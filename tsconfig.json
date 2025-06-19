@@ -2,7 +2,8 @@
     "include": ["src"],
     "exclude": [],
     "compilerOptions": {
-        "module": "NodeNext",
+        "module": "node18",
+        "moduleResolution": "nodenext",
         "target": "ESNext",
         "lib": ["ESNext"],
         "allowJs": true,

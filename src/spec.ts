@@ -1,0 +1,50 @@
+import { type } from 'arktype'
+
+const knownType = type.enumerated(
+   'animation',
+   'camera',
+   'character',
+   'clothing',
+   'environment',
+   'figure',
+   'hair',
+   'light',
+   'material',
+   'modifier',
+   'morph',
+   'pose',
+   'preset_dform',
+   'preset_hierarchical_material',
+   'preset_hierarchical_pose',
+   'preset_layered_image',
+   'preset_layered_image',
+   'preset_light',
+   'preset_material',
+   'preset_pose',
+   'preset_render_settings',
+   'preset_shader',
+   'preset_simulation_settings',
+   'prop',
+   'scene_subset',
+   'scene',
+   'script',
+   'shader',
+   'utility',
+   'uv_set',
+   'wearable',
+)
+
+export const duf = type({
+   file_version: 'string',
+   asset_info: {
+      id: 'string',
+      type: knownType,
+      contributor: {
+         author: 'string',
+         email: 'string',
+         website: 'string',
+      },
+      revision: 'string',
+      modified: 'string',
+   },
+})

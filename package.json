@@ -1,5 +1,6 @@
 {
   "name": "daz-ts",
+  "type": "module",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,6 +13,7 @@
     "@biomejs/biome": "^2.0.0",
     "@types/bun": "^1.2.16",
     "arktype": "^2.1.20",
+    "chalk": "^5.4.1",
     "pathe": "^2.0.3"
   }
 }

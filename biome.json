@@ -8,6 +8,7 @@
             "noFloatingPromises": "error"
          },
          "style": {
+            "useImportType": "off",
             "noInferrableTypes": "off",
             "useTemplate": "off"
          },
