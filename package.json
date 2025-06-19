@@ -9,7 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@biomejs/biome": "^2.0.0",
     "@types/bun": "^1.2.16",
-    "arktype": "^2.1.20"
+    "arktype": "^2.1.20",
+    "pathe": "^2.0.3"
   }
 }

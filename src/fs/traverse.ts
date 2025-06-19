@@ -1,9 +1,10 @@
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from 'pathe';
 
 const rootDir = process.cwd(); // Current workspace directory
 const outputFile = 'data/duf_files.txt';
 const outputLines: string[] = [];
+const dazFolder = 'C:/Users/Public/Documents/My DAZ 3D Library/duf_files.txt'
 
 function getAssetType(filePath: string): string | null {
   try {
