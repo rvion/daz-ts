@@ -1,0 +1,12 @@
+{
+    "include": ["src"],
+    "exclude": [],
+    "compilerOptions": {
+        "module": "NodeNext",
+        "target": "ESNext",
+        "lib": ["ESNext"],
+        "allowJs": true,
+        "strict": true,
+        "resolveJsonModule": true
+    }
+}
