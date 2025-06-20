@@ -1,16 +1,15 @@
 import * as fs from 'node:fs/promises'
 import chalk from 'chalk'
 import * as path from 'pathe'
-import { DsonFile } from './core/_DazFile.js'
-import { DazCharacter } from './core/DazCharacter.js'
-import { DazWearable } from './core/DazWearable.js'
+import { DsonFile } from './file/_DazFile.js'
+import { DazStuff } from './file/_DazStuff.js'
+import { DazCharacter } from './file/DazCharacter.js'
+import { DazWearable } from './file/DazWearable.js'
 import { $$, DazAssetType, Dson, strign_DazId } from './spec.js'
 import { string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
 import { bang } from './utils/assert.js'
 import { FileMeta, walk } from './walk.js'
-
-type DazStuff = DazCharacter | DazWearable
 
 export class DazMgr {
    // ---- files
