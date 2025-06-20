@@ -1,4 +1,4 @@
-import { DazCharacter } from './DazCharacter.js'
-import { DazWearable } from './DazWearable.js'
+import type { DazCharacter } from './DazCharacter.js'
+import type { DazWearable } from './DazWearable.js'
 
 export type DazStuff = DazCharacter | DazWearable

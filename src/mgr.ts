@@ -1,11 +1,11 @@
 import * as fs from 'node:fs/promises'
 import chalk from 'chalk'
 import * as path from 'pathe'
-import { DsonFile } from './file/_DazFile.js'
 import { DazStuff } from './file/_DazStuff.js'
+import { DsonFile } from './file/_DsonFile.js'
 import { DazCharacter } from './file/DazCharacter.js'
 import { DazWearable } from './file/DazWearable.js'
-import { $$, DazAssetType, Dson, strign_DazId } from './spec.js'
+import { $$, DazAssetType, Dson, string_DazId } from './spec.js'
 import { string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
 import { bang } from './utils/assert.js'
@@ -17,10 +17,10 @@ export class DazMgr {
    filesFull = new Map<string_AbsPath, DazStuff>()
 
    // ---- full objects loaded during the run
-   charactersByDazId: Map<strign_DazId, DazCharacter> = new Map()
+   charactersByDazId: Map<string_DazId, DazCharacter> = new Map()
    charactersByRelPath: Map<string_RelPath, DazCharacter> = new Map()
 
-   wearablesByDazId: Map<strign_DazId, DazWearable> = new Map()
+   wearablesByDazId: Map<string_DazId, DazWearable> = new Map()
    wearablesByRelPath: Map<string_RelPath, DazWearable> = new Map()
 
    // ---- stats
@@ -49,7 +49,7 @@ export class DazMgr {
       this.count++
 
       // load simple
-      const file = new DsonFile(meta, dson)
+      const file = new DsonFile(this, meta, dson)
       this.filesSimple.set(file.absPath, file)
       return file
    }

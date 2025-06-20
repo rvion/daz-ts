@@ -1,10 +1,11 @@
 import { scope, type } from 'arktype'
 
 export type string_DazUrl = string & { __dazurl: true } // biome-ignore format: misc
-export type strign_DazId = string & { __dazid: true } // biome-ignore format: misc
+export type string_DazId = string & { __dazid: true } // biome-ignore format: misc
 
 // smart re-exports
 export type Dson = typeof $$.dson.infer
+export type DazNodeData = typeof $$.node.infer
 
 // ------------------------------------------------
 export type DazAssetType = (typeof dazAssetTypes)[number]
@@ -83,7 +84,7 @@ export const $ = scope({
       'yoffset?': 'number', // 0,
       'operation?': "'blend_source_over'", // "blend_source_over"
    },
-   dazid: type('string').as<strign_DazId>(),
+   dazid: type('string').as<string_DazId>(),
    geometry: {
       '+': 'reject',
       id: 'dazid', // "Genesis9-1",
