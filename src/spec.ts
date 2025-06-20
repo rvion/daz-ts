@@ -1,5 +1,12 @@
 import { scope, type } from 'arktype'
 
+export type string_DazUrl = string & { __dazurl: true } // biome-ignore format: misc
+export type strign_DazId = string & { __dazid: true } // biome-ignore format: misc
+
+// smart re-exports
+export type Dson = typeof $$.dson.infer
+
+// ------------------------------------------------
 export type DazAssetType = (typeof dazAssetTypes)[number]
 export const dazAssetTypes = [
    // extra
@@ -38,17 +45,17 @@ export const dazAssetTypes = [
    'wearable',
 ] as const
 
-const knownType = type.enumerated(...dazAssetTypes)
+const dazAssetType = type.enumerated(...dazAssetTypes).as<DazAssetType>()
 
 export const $ = scope({
-   duf: {
+   dson: {
       file_version: 'string',
       asset_info: 'asset_info',
    },
    asset_info: {
       '+': 'reject',
-      id: 'string',
-      type: knownType,
+      id: 'dazid',
+      type: dazAssetType,
       contributor: 'contributor',
       revision: 'string',
       modified: 'string',
@@ -59,42 +66,71 @@ export const $ = scope({
       email: 'string',
       website: 'string',
    },
-   image_map: () =>
-      $.type({
-         '+': 'reject',
-         'url?': 'string', // "/Runtime/Textures/DAZ/Characters/Genesis9/Base/Eyes/Split/Genesis9_Eyes_Iris_01.png",
-         label: 'string', // "Iris",
-         'active?': 'boolean', // true,
-         'color?': ['number', 'number', 'number'], // [ 0, 0, 0 ],
-         'transparency?': 'number', // 1,
-         'invert?': 'boolean', // false,
-         'rotation?': 'number', // 0,
-         'xmirror?': 'boolean', // false,
-         'ymirror?': 'boolean', // false,
-         'xscale?': 'number', // 1,
-         'yscale?': 'number', // 1,
-         'xoffset?': 'number', // 0,
-         'yoffset?': 'number', // 0,
-         'operation?': "'blend_source_over'", // "blend_source_over"
-      }),
-   scene_node_geometry: () =>
-      $.type({
-         '+': 'reject',
-         // "Genesis9-1",
-         id: 'string',
-         // "name://@selection#geometries/Genesis9:"
-         url: 'string',
-      }),
-   scene_node: () =>
-      $.type({
-         '+': 'reject',
-         //  "Genesis9",
-         id: 'string',
-         //  "name://@selection/Genesis9:",
-         url: 'string',
-         geometries: $.type('scene_node_geometry').array(),
-      }),
-   chanelType: type.enumerated('bool', 'enum', 'int', 'float', 'node', 'string'),
+   image_map: {
+      '+': 'reject',
+      'url?': 'string', // "/Runtime/Textures/DAZ/Characters/Genesis9/Base/Eyes/Split/Genesis9_Eyes_Iris_01.png",
+      label: 'string', // "Iris",
+      'active?': 'boolean', // true,
+      'color?': ['number', 'number', 'number'], // [ 0, 0, 0 ],
+      'transparency?': 'number', // 1,
+      'invert?': 'boolean', // false,
+      'rotation?': 'number', // 0,
+      'xmirror?': 'boolean', // false,
+      'ymirror?': 'boolean', // false,
+      'xscale?': 'number', // 1,
+      'yscale?': 'number', // 1,
+      'xoffset?': 'number', // 0,
+      'yoffset?': 'number', // 0,
+      'operation?': "'blend_source_over'", // "blend_source_over"
+   },
+   dazid: type('string').as<strign_DazId>(),
+   geometry: {
+      '+': 'reject',
+      id: 'dazid', // "Genesis9-1",
+      url: 'string', // "name://@selection#geometries/Genesis9:"
+      name: 'string',
+      type: "'subdivision_surface'",
+      label: 'string',
+      current_subdivision_level: 'number',
+      edge_interpolation_mode: "'edges_only'",
+      subd_normal_smoothing_mode: "'smooth_all_normals'",
+      extra: 'geometry_extra[]',
+   },
+   geometry_extra: {
+      '+': 'reject',
+      type: "'studio_geometry_channels'",
+      'version?': 'string | number',
+      'channels?': 'chanel[]',
+   },
+   point2d: ['number', 'number'], // [ 0, 0, 0 ],
+   point3d: ['number', 'number', 'number'], // [ 0, 0, 0 ],
+   rotation_order: type.enumerated("'XYZ'", "'XZY'", "'YXZ'", "'YZX'", "'ZXY'", "'ZYX'"),
+   node: {
+      '+': 'reject',
+      id: 'dazid', //  "Genesis9",
+      url: 'string', //  "name://@selection/Genesis9:",
+      'geometries?': 'geometry[]',
+      name: 'string',
+      label: 'string', // "Genesis 9",
+      'parent?': 'dazurl', // "#Genesis9",
+      preview: {
+         type: "'figure' | 'bone'",
+         'oriented_box?': {
+            min: 'point3d', // [ -63.24, -0.094, -13.15 ]
+            max: 'point3d', // [ 63.241, 170.019, 14.524 ]
+            'center_point?': 'point3d', // [ 0, 0, 0 ],
+            'end_point?': 'point3d', // [ 0, 103.876, 0 ],
+            'rotation_order?': 'rotation_order',
+         },
+      },
+      extra: 'node_extra[]',
+   },
+   node_extra: {
+      '+': 'reject',
+      type: "'studio_node_channels'",
+      version: 'string | number',
+   },
+   chanelType: type.enumerated('bool', 'enum', 'int', 'float', 'node', 'string', 'float_color', 'color', 'file'),
    presentation: {
       '+': 'reject',
       'type?': 'string',
@@ -106,9 +142,9 @@ export const $ = scope({
    chanel: {
       '+': 'reject',
       'id?': 'string',
+      'name?': 'string',
       'type?': 'chanelType',
       'label?': 'string',
-      'enum_values?': 'unknown[]',
       'visible?': 'boolean',
       'value?': 'unknown',
       'current_value?': 'unknown',
@@ -122,47 +158,136 @@ export const $ = scope({
       'default_image_gamma?': 'number',
       'mappable?': 'boolean',
       'presentation?': 'presentation',
+      'image?': 'null',
+      // enum specific
+      'enum_values?': 'unknown[]',
+      // file specific
+      'file_type?': "'file_open'",
+      'file_display_text?': 'string',
+      'file_filter?': 'string',
       // ?
       'channel?': 'chanel',
    },
-   modifier_library: () =>
-      $.type({
+   modifier_library_extra_item: {
+      '+': 'reject',
+      'type?': 'string',
+      'push_post_smooth?': 'boolean',
+      'channels?': () => $.type('chanel').array(),
+   },
+   modifier_library_item: {
+      '+': 'reject',
+      id: 'dazid',
+      'name?': 'string',
+      'parent?': 'string',
+      'extra?': 'modifier_library_extra_item[]',
+      'url?': 'string',
+      'channel?': 'chanel',
+   },
+   dazurl: type('string').as<string_DazUrl>(),
+   material: {
+      '+': 'reject',
+      // meta
+      id: 'dazid',
+      'name?': 'string',
+      'label?': 'string',
+      // things to resolve
+      'url?': 'dazurl', // "#Fingernails",",
+      'geometry?': 'dazurl', // "#Genesis9-1"
+      'uv_set?': 'dazurl', // "/data/Daz%203D/Genesis%209/Base/UV%20Sets/Daz%203D/Base/Base%20Multi%20UDIM.dsf#Base%20Multi%20UDIM",
+      // misc
+      'groups?': 'string[]', // [ "Fingernails" ]
+      diffuse: {
+         channel: 'chanel',
+      },
+      extra: 'material_extra[]',
+      // 'parent?': 'string',
+      // 'url?': 'string',
+      // 'channels?': 'chanel[]',
+      // 'extra?': { '+': 'reject' }, // TODO: define extra
+   },
+   material_extra: {
+      '+': 'reject',
+      type: "'studio/material/uber_iray' | 'studio_material_channels'",
+      'version?': 'string | number',
+      'channels?': 'chanel[]',
+   },
+   image: {
+      '+': 'reject',
+      id: 'dazid',
+      name: 'string',
+      'map_size?': ['number', 'number'],
+      map_gamma: 'number',
+      map: 'image_map[]',
+      'scene?': 'scene',
+   },
+   scene: {
+      '+': 'reject',
+      nodes: 'node[]',
+      modifiers: 'modifier_library_item[]',
+      materials: 'material[]',
+      extra: 'scene_extra[]',
+   },
+   scene_extra: {
+      '+': 'reject',
+      type: "'scene_post_load_script'",
+      name: 'string',
+      'version?': 'string | number',
+      'script?': 'dazurl', // "data/Daz 3D/Genesis 9/Base/Tools/Utilities/Character Addon Loader.dse",
+      'settings?': {
          '+': 'reject',
-         id: 'string',
-         'name?': 'string',
-         'parent?': 'string',
-         'extra?': type({
-            '+': 'reject',
-            'type?': 'string',
-            'push_post_smooth?': 'boolean',
-            'channels?': () => $.type('chanel').array(),
-         }).array(),
-      }).array(),
-   duf_wearable: () =>
-      $.type({
-         '+': 'reject',
-         file_version: 'string',
-         asset_info: 'asset_info',
-         scene: type({}),
-         'geometry_library?': type({}),
-         'node_library?': type({}),
-         'material_library?': type({}),
-         'modifier_library?': 'modifier_library',
-         'image_library?': () =>
-            $.type({
-               '+': 'reject',
-               id: 'string',
-               name: 'string',
-               'map_size?': ['number', 'number'],
-               map_gamma: 'number',
-               map: 'image_map[]',
-               'scene?': () =>
-                  $.type({
-                     '+': 'reject',
-                     nodes: 'scene_node[]',
-                  }),
-            }).array(),
-      }),
+         PostLoadAddons: 'unknown',
+         FigureInstanceID: 'dazurl',
+         RunOnce: 'boolean',
+         // '[string]': 'setting',
+      },
+   },
+
+   duf_character: {
+      '+': 'reject',
+      file_version: 'string',
+      asset_info: 'asset_info',
+      scene: 'scene',
+      'geometry_library?': { '+': 'reject' },
+      'node_library?': { '+': 'reject' },
+      'material_library?': 'material[]',
+      'modifier_library?': 'modifier_library_item[]',
+      'image_library?': 'image[]',
+   },
+   duf_wearable: {
+      '+': 'reject',
+      file_version: 'string',
+      asset_info: 'asset_info',
+      scene: 'scene',
+      'geometry_library?': { '+': 'reject' },
+      'node_library?': { '+': 'reject' },
+      'material_library?': 'material[]',
+      'modifier_library?': 'modifier_library_item[]',
+      'image_library?': 'image[]',
+   },
 })
 
 export const $$ = $.export()
+
+// setting: {
+//    '+': 'reject',
+//    type: "'settings'",
+//    value: {
+//       '[string]': 'unknown',
+//       // {
+//       //    '+': 'reject',
+//       //    type: "'settings'",
+//       //    value: {
+//       //       '+': 'reject',
+//       //       AssetName: 'string',
+//       //       AssetFile: 'dazurl',
+//       //       'Presets?': {
+//       //          '+': 'reject',
+//       //          type: "'settings'",
+//       //          value: 'unknown',
+//       //       },
+//       //    },
+//       // },
+//    },
+//    // id: 'dazid',
+//    // 'name': 'string',
+// },

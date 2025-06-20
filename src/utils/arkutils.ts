@@ -7,7 +7,16 @@ export const check = <T>(typ: Type<T, any>, obj: unknown, id: string): T => {
    const t = typ(obj)
    if (t instanceof type.errors) {
       printArkResultInConsole(t, id)
-      // throw new Error(`ArkErrors encountered: ${t.toString()}`)
+   }
+   return t as T
+}
+
+// biome-ignore lint/suspicious/noExplicitAny: ...
+export const check_orCrash = <T>(typ: Type<T, any>, obj: unknown, id: string): T => {
+   const t = typ(obj)
+   if (t instanceof type.errors) {
+      printArkResultInConsole(t, id)
+      throw new Error(`ArkErrors encountered: ${t.toString()}`)
    }
    return t as T
 }
