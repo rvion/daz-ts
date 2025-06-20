@@ -1,5 +1,5 @@
 import { check } from './arkutils.js'
-import { duf } from './spec.js'
+import { $$, DazAssetType } from './spec.js'
 import { string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { FileMeta } from './walk.js'
 
@@ -24,13 +24,17 @@ export class DazFile {
    }
 
    get json() {
-      const value = this.json_.then((json) => check(duf, json, this.absPath))
+      const value = this.json_.then((json) => {
+         const out = check($$.duf, json, this.absPath)
+         if (out.asset_info.type === 'wearable') check($$.duf_wearable, json, this.absPath)
+         return out
+      })
       Object.defineProperty(this, 'json', { value })
       return value
    }
 
    // Helper function to get asset type from DUF files
-   get assetType(): Promise<string> {
+   get assetType(): Promise<DazAssetType> {
       return this.json.then((json) => json.asset_info.type).catch(() => 'unknown')
    }
 }

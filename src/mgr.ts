@@ -1,11 +1,14 @@
 import * as fs from 'node:fs/promises'
+import chalk from 'chalk'
 import * as path from 'pathe'
 import { DazFile } from './dson.js'
+import { DazAssetType } from './spec.js'
 import { string_AbsPath } from './types.js'
 import { FileMeta, walk } from './walk.js'
 
 export class Mgr {
    files = new Map<string_AbsPath, DazFile>()
+   countPerType = new Map<DazAssetType, number>()
 
    constructor(public absRootPath: string_AbsPath) {}
 
@@ -23,7 +26,7 @@ export class Mgr {
       this.count++
       const file = this.file(p) // Store the file path in the manager
       const type = await file.assetType
-      // console.log(`[🤠] type=`, type)
+      this.countPerType.set(type, (this.countPerType.get(type) ?? 0) + 1)
       return `{${p.fileExt}} [${type}] ${p.relPath}`
    }
 
@@ -41,17 +44,22 @@ export class Mgr {
    }
 
    async saveSummary(summary: string) {
-      const outputFile = 'data/processed_files.txt' // More generic name
+      const pathAssetList = 'data/processed_files.txt' // More generic name
+      const pathStats = 'data/stats.txt' // More generic name
       try {
          // Ensure the data directory exists
-         const outputDir = path.dirname(outputFile)
+         const outputDir = path.dirname(pathAssetList)
          await fs.mkdir(outputDir, { recursive: true })
-         await fs.writeFile(outputFile, summary)
+         await this.writeFile(pathAssetList, summary)
+         await this.writeFile(pathStats, JSON.stringify(Object.fromEntries(this.countPerType), null, 2))
          console.log(`Processed ${this.count} relevant files.`)
-         console.log(`Output written to ${outputFile}`)
-      } catch (err: any) {
-         console.error(`Error writing to ${outputFile}: ${err.message}`)
+      } catch (err: unknown) {
+         console.error(`Error writing to ${pathAssetList}`, err)
       }
+   }
+   private writeFile(path: string, content: string): Promise<void> {
+      console.log(`Output written to ${chalk.cyanBright(path)}`)
+      return fs.writeFile(path, content)
    }
 }
 

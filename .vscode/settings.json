@@ -25,5 +25,10 @@
    },
    "[jsonc]": {
       "editor.defaultFormatter": "biomejs.biome"
+   },
+
+   // assign .duf file to json
+   "files.associations": {
+      "*.duf": "json"
    }
 }

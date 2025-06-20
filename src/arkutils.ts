@@ -2,7 +2,8 @@ import type { ArkErrors } from 'arktype'
 import { Type, type } from 'arktype'
 import chalk from 'chalk'
 
-export const check = <T>(typ: Type<T>, obj: unknown, id: string): T => {
+// biome-ignore lint/suspicious/noExplicitAny: ...
+export const check = <T>(typ: Type<T, any>, obj: unknown, id: string): T => {
    const t = typ(obj)
    if (t instanceof type.errors) {
       printArkResultInConsole(t, id)
