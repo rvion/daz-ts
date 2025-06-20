@@ -29,6 +29,7 @@
 
    // assign .duf file to json
    "files.associations": {
-      "*.duf": "json"
+      "*.duf": "json",
+      "*.dsf": "json"
    }
 }

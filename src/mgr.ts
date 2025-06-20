@@ -1,24 +1,28 @@
 import * as fs from 'node:fs/promises'
 import chalk from 'chalk'
 import * as path from 'pathe'
-import { DazStuff } from './file/_DazStuff.js'
-import { DsonFile } from './file/_DsonFile.js'
+import { DsonFile, KnownDazFile } from './file/_DsonFile.js'
+import { AnyDsonFile } from './file/DazAny.js'
 import { DazCharacter } from './file/DazCharacter.js'
+import { DazFigure } from './file/DazFigure.js'
 import { DazWearable } from './file/DazWearable.js'
 import { $$, DazAssetType, Dson, string_DazId } from './spec.js'
-import { string_AbsPath, string_Ext, string_RelPath } from './types.js'
+import { any_, string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
 import { bang } from './utils/assert.js'
 import { FileMeta, walk } from './walk.js'
 
 export class DazMgr {
    // ---- files
-   filesSimple = new Map<string_AbsPath, DsonFile>()
-   filesFull = new Map<string_AbsPath, DazStuff>()
+   filesSimple = new Map<string_AbsPath, DsonFile<any_>>()
+   filesFull = new Map<string_AbsPath, KnownDazFile>()
 
    // ---- full objects loaded during the run
    charactersByDazId: Map<string_DazId, DazCharacter> = new Map()
    charactersByRelPath: Map<string_RelPath, DazCharacter> = new Map()
+
+   figuresByDazId: Map<string_DazId, DazFigure> = new Map()
+   figuresByRelPath: Map<string_RelPath, DazFigure> = new Map()
 
    wearablesByDazId: Map<string_DazId, DazWearable> = new Map()
    wearablesByRelPath: Map<string_RelPath, DazWearable> = new Map()
@@ -38,7 +42,7 @@ export class DazMgr {
    }
 
    /** Only load as simple DSON file. do not hydrate graph. do not resolve URLs. */
-   private async loadSimple_fromMeta(meta: FileMeta): Promise<DsonFile> {
+   private async loadSimple_fromMeta(meta: FileMeta): Promise<DsonFile<any_>> {
       // use cached file if exists
       if (this.filesSimple.has(meta.absPath)) return bang(this.filesSimple.get(meta.absPath))
 
@@ -49,7 +53,7 @@ export class DazMgr {
       this.count++
 
       // load simple
-      const file = new DsonFile(this, meta, dson)
+      const file = new AnyDsonFile(this, meta, dson)
       this.filesSimple.set(file.absPath, file)
       return file
    }
@@ -61,7 +65,7 @@ export class DazMgr {
    }
 
    /**  Load full Daz asset, hydrate graph, resolve URLs. */
-   private async loadFull_fromMeta(meta: FileMeta): Promise<DazStuff> {
+   private async loadFull_fromMeta(meta: FileMeta): Promise<KnownDazFile> {
       // use cached file if exists
       if (this.filesFull.has(meta.absPath)) return bang(this.filesFull.get(meta.absPath))
 
@@ -72,16 +76,17 @@ export class DazMgr {
       this.count++
 
       // load full
-      const stuff = this.loadStuff(meta, dson)
+      const stuff = await this.loadStuff(meta, dson)
       this.filesSimple.set(meta.absPath, stuff) // also store as simple file
       this.filesFull.set(meta.absPath, stuff)
       return stuff
    }
 
-   private loadStuff(meta: FileMeta, dson: Dson): DazStuff {
+   private loadStuff(meta: FileMeta, dson: Dson): Promise<KnownDazFile> {
       const assetType = dson.asset_info.type
-      if (assetType === 'wearable') return new DazWearable(mgr, meta, dson)
-      else if (assetType === 'character') return new DazCharacter(mgr, meta, dson)
+      if (assetType === 'wearable') return DazWearable.init(mgr, meta, dson)
+      else if (assetType === 'character') return DazCharacter.init(mgr, meta, dson)
+      else if (assetType === 'figure') return DazFigure.init(mgr, meta, dson)
       else throw new Error(`Invalid asset type: ${chalk.red(`'${assetType}'`)} in "${meta.absPath}"`)
    }
 

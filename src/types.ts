@@ -56,3 +56,6 @@ export const asMDContent = (s: string): MDContent => s as MDContent
 // #region HTML
 export type HTMLContent = Branded<string, { HTML: true }>
 export const asHTMLContent = (s: string): HTMLContent => s as HTMLContent
+
+// biome-ignore lint/suspicious/noExplicitAny: ...
+export type any_ = any

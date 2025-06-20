@@ -1,3 +1,4 @@
+import './DI.js'
 import { mgr } from './mgr.js'
 
 // await mgr.summarize()

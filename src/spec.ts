@@ -3,9 +3,19 @@ import { scope, type } from 'arktype'
 export type string_DazUrl = string & { __dazurl: true } // biome-ignore format: misc
 export type string_DazId = string & { __dazid: true } // biome-ignore format: misc
 
-// smart re-exports
+// files
 export type Dson = typeof $$.dson.infer
+export type DsonCharacterData = typeof $$.duf_character.infer
+export type DsonWearableData = typeof $$.duf_wearable.infer
+export type DsonFigureData = typeof $$.duf_figure.infer
+
+// core
 export type DazNodeData = typeof $$.node.infer
+export type DazGeometryData = typeof $$.geometry.infer
+
+// misc
+export type DsonFileVersion = string
+export type DsonAssetInfo = typeof $$.asset_info.infer
 
 // ------------------------------------------------
 export type DazAssetType = (typeof dazAssetTypes)[number]
@@ -86,25 +96,47 @@ export const $ = scope({
    },
    dazid: type('string').as<string_DazId>(),
    geometry: {
-      '+': 'reject',
+      // '+': 'reject', // UNCOMMENT ME 🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
       id: 'dazid', // "Genesis9-1",
-      url: 'string', // "name://@selection#geometries/Genesis9:"
+      'url?': 'dazurl', // "name://@selection#geometries/Genesis9:"
       name: 'string',
       type: "'subdivision_surface'",
-      label: 'string',
-      current_subdivision_level: 'number',
+      'label?': 'string',
+      'current_subdivision_level?': 'number',
       edge_interpolation_mode: "'edges_only'",
       subd_normal_smoothing_mode: "'smooth_all_normals'",
       extra: 'geometry_extra[]',
+      'vertices?': {
+         count: 'number',
+         values: 'point3d[]',
+      },
+      'polygon_groups?': {
+         count: 'number',
+         values: 'string[]', // "l_forearm", "l_upperarm", "r_forearm", ...
+      },
+      'polygon_material_groups?': {
+         count: 'number',
+         values: 'string[]', // "Fingernails", "Toenails", "Legs", ...
+      },
+      'polylist?': {
+         count: 'number',
+         values: 'point6d[]', // [ 27, 0, 2184, 2186, 2210, 2208 ], ...
+      },
+   },
+   material_selection_sets: {
+      name: 'string',
+      'materials?': 'string[]',
    },
    geometry_extra: {
       '+': 'reject',
-      type: "'studio_geometry_channels'",
+      type: "'studio_geometry_channels' | 'material_selection_sets'",
+      'material_selection_sets?': 'material_selection_sets[]',
       'version?': 'string | number',
       'channels?': 'chanel[]',
    },
    point2d: ['number', 'number'], // [ 0, 0, 0 ],
    point3d: ['number', 'number', 'number'], // [ 0, 0, 0 ],
+   point6d: ['number', 'number', 'number', 'number', 'number', 'number'], // [ 0, 0, 0 ],
    rotation_order: type.enumerated("'XYZ'", "'XZY'", "'YXZ'", "'YZX'", "'ZXY'", "'ZYX'"),
    node: {
       '+': 'reject',
@@ -242,24 +274,34 @@ export const $ = scope({
          // '[string]': 'setting',
       },
    },
-
    duf_character: {
       '+': 'reject',
       file_version: 'string',
       asset_info: 'asset_info',
       scene: 'scene',
-      'geometry_library?': { '+': 'reject' },
+      'geometry_library?': 'geometry[]',
       'node_library?': { '+': 'reject' },
       'material_library?': 'material[]',
       'modifier_library?': 'modifier_library_item[]',
       'image_library?': 'image[]',
+   },
+   duf_figure: {
+      // '+': 'reject',
+      file_version: 'string',
+      asset_info: 'asset_info',
+      // scene: 'scene',
+      'geometry_library?': 'geometry[]',
+      // 'node_library?': { '+': 'reject' },
+      // 'material_library?': 'material[]',
+      // 'modifier_library?': 'modifier_library_item[]',
+      // 'image_library?': 'image[]',
    },
    duf_wearable: {
       '+': 'reject',
       file_version: 'string',
       asset_info: 'asset_info',
       scene: 'scene',
-      'geometry_library?': { '+': 'reject' },
+      'geometry_library?': 'geometry[]',
       'node_library?': { '+': 'reject' },
       'material_library?': 'material[]',
       'modifier_library?': 'modifier_library_item[]',

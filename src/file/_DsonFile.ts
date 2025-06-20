@@ -1,50 +1,43 @@
-import { DazNode } from '../core/DazNode.js'
-import { DazMgr } from '../mgr.js'
-import { $$, DazAssetType, DazNodeData, string_DazId } from '../spec.js'
+import { DazAbstraction } from '../core/_DazAbstraction.js'
+import { DazAssetType, Dson, string_DazId } from '../spec.js'
 import { string_AbsPath, string_Ext, string_RelPath } from '../types.js'
 import { fmtAbsPath, fmtDazId, fmtRelPath } from '../utils/fmt.js'
 import { FileMeta } from '../walk.js'
 
-export class DsonFile {
-   constructor(
-      //
-      public mgr: DazMgr,
-      public meta: FileMeta,
-      public dson: (typeof $$.dson)['infer'],
-      public dazId: string_DazId = dson.asset_info.id, // id from dson
-   ) {}
+import type { DazCharacter } from './DazCharacter.js'
+import type { DazFigure } from './DazFigure.js'
+import type { DazWearable } from './DazWearable.js'
+
+export type KnownDazFile = DazCharacter | DazWearable | DazFigure
+
+export abstract class DsonFile<DATA extends Dson> extends DazAbstraction<FileMeta, DATA> {
+   get dazId(): string_DazId {
+      return this.data.asset_info.id
+   }
 
    get assetType(): DazAssetType {
-      return this.dson.asset_info.type ?? 'unknown'
+      return this.data.asset_info.type ?? 'unknown'
    }
 
    get absPath(): string_AbsPath {
-      return this.meta.absPath
+      return this.parent.absPath
    }
 
    get relPath(): string_RelPath {
-      return this.meta.relPath
+      return this.parent.relPath
    }
 
    get fileExt(): string_Ext {
-      return this.meta.fileExt
+      return this.parent.fileExt
    }
 
    get rootDir(): string {
-      return this.meta.rootDir
-   }
-
-   // ---- child hydrate
-   nodes: Map<string_DazId, DazNode> = new Map()
-   hydrateNode(nodeData: DazNodeData): DazNode {
-      const node = new DazNode(this.mgr, this, nodeData)
-      this.nodes.set(node.id, node) // register node
-      return node
+      return this.parent.rootDir
    }
 
    // ---- print methods
-   printHeader(): void {
+   override printHeader(): void {
       console.log(fmtAbsPath(this.absPath))
-      console.log(`[wearable ${fmtDazId(this.dazId)} @ ${fmtRelPath(this.relPath)}] `)
+      console.log(`[${this.emoji} ${this.assetType} #${fmtDazId(this.dazId)} @ ${fmtRelPath(this.relPath)}] `)
    }
 }

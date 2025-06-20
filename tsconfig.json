@@ -8,6 +8,7 @@
         "lib": ["ESNext"],
         "allowJs": true,
         "strict": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "noImplicitOverride": true
     }
 }
