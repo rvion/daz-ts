@@ -1,8 +1,8 @@
 import { DazMgr } from '../mgr.js'
-import { getPathFromDazUrl } from '../path/resolveFile.js'
 import { $$geometry_ref, string_DazId, string_DazUrl } from '../spec.js'
 import { string_RelPath } from '../types.js'
 import { fmtDazUrl } from '../utils/fmt.js'
+import { getPathFromDazUrl } from '../utils/parseDazUrl.js'
 import { AnyDazAbstraction, DazAbstraction } from './_DazAbstraction.js'
 import { KnownDazFile } from './_DsonFile.js'
 

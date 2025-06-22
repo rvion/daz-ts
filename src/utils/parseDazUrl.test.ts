@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'bun:test'
 import { string_DazUrl } from '../spec.js'
-import { getPathFromDazUrl } from './resolveFile.js'
+import { getPathFromDazUrl } from './parseDazUrl.js'
 
-describe('resolveFile', () => {
+describe('parseDazUrl', () => {
    it('works', () => {
       // found in People/Genesis 9/Genesis 9.duf
       const t1 = '/data/Daz%203D/Genesis%209/Base/Genesis9.dsf#Genesis9-1' as string_DazUrl
