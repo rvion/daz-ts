@@ -6,7 +6,7 @@ import { AnyDsonFile } from './file/DazAny.js'
 import { DazCharacter } from './file/DazCharacter.js'
 import { DazFigure } from './file/DazFigure.js'
 import { DazWearable } from './file/DazWearable.js'
-import { $$, DazAssetType, Dson, string_DazId } from './spec.js'
+import { $$, $$dson, DazAssetType, string_DazId } from './spec.js'
 import { any_, string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
 import { bang } from './utils/assert.js'
@@ -82,7 +82,7 @@ export class DazMgr {
       return stuff
    }
 
-   private loadStuff(meta: FileMeta, dson: Dson): Promise<KnownDazFile> {
+   private loadStuff(meta: FileMeta, dson: $$dson): Promise<KnownDazFile> {
       const assetType = dson.asset_info.type
       if (assetType === 'wearable') return DazWearable.init(mgr, meta, dson)
       else if (assetType === 'character') return DazCharacter.init(mgr, meta, dson)

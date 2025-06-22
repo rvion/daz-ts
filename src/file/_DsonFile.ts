@@ -1,5 +1,5 @@
 import { DazAbstraction } from '../core/_DazAbstraction.js'
-import { DazAssetType, Dson, string_DazId } from '../spec.js'
+import { $$dson, DazAssetType, string_DazId } from '../spec.js'
 import { string_AbsPath, string_Ext, string_RelPath } from '../types.js'
 import { fmtAbsPath, fmtDazId, fmtRelPath } from '../utils/fmt.js'
 import { FileMeta } from '../walk.js'
@@ -10,7 +10,7 @@ import type { DazWearable } from './DazWearable.js'
 
 export type KnownDazFile = DazCharacter | DazWearable | DazFigure
 
-export abstract class DsonFile<DATA extends Dson> extends DazAbstraction<FileMeta, DATA> {
+export abstract class DsonFile<DATA extends $$dson> extends DazAbstraction<FileMeta, DATA> {
    get dazId(): string_DazId {
       return this.data.asset_info.id
    }

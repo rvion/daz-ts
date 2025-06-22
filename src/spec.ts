@@ -4,18 +4,19 @@ export type string_DazUrl = string & { __dazurl: true } // biome-ignore format: 
 export type string_DazId = string & { __dazid: true } // biome-ignore format: misc
 
 // files
-export type Dson = typeof $$.dson.infer
-export type DsonCharacterData = typeof $$.duf_character.infer
-export type DsonWearableData = typeof $$.duf_wearable.infer
-export type DsonFigureData = typeof $$.duf_figure.infer
+export type $$dson = typeof $$.dson.infer
+export type $$duf_character = typeof $$.duf_character.infer
+export type $$duf_wearable = typeof $$.duf_wearable.infer
+export type $$duf_figure = typeof $$.duf_figure.infer
 
 // core
-export type DazNodeData = typeof $$.node.infer
-export type DazGeometryData = typeof $$.geometry.infer
+export type $$node = typeof $$.node.infer
+export type $$geometry_ref = typeof $$.geometry_ref.infer
+export type $$geometry_inf = typeof $$.geometry_inf.infer
 
 // misc
 export type DsonFileVersion = string
-export type DsonAssetInfo = typeof $$.asset_info.infer
+export type $$asset_info = typeof $$.asset_info.infer
 
 // ------------------------------------------------
 export type DazAssetType = (typeof dazAssetTypes)[number]
@@ -95,14 +96,26 @@ export const $ = scope({
       'operation?': "'blend_source_over'", // "blend_source_over"
    },
    dazid: type('string').as<string_DazId>(),
-   geometry: {
-      // '+': 'reject', // UNCOMMENT ME 🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
+   geometry_ref: {
+      '+': 'reject',
       id: 'dazid', // "Genesis9-1",
-      'url?': 'dazurl', // "name://@selection#geometries/Genesis9:"
+      url: 'dazurl', // "name://@selection#geometries/Genesis9:"
       name: 'string',
+      label: 'string',
       type: "'subdivision_surface'",
-      'label?': 'string',
-      'current_subdivision_level?': 'number',
+      current_subdivision_level: 'number',
+      edge_interpolation_mode: "'edges_only'",
+      subd_normal_smoothing_mode: "'smooth_all_normals'",
+      extra: 'geometry_extra[]',
+   },
+   geometry_inf: {
+      '+': 'reject',
+      id: 'dazid', // "Genesis9-1",
+      // url: 'dazurl', // "name://@selection#geometries/Genesis9:"
+      name: 'string',
+      // label: 'string',
+      type: "'subdivision_surface'",
+      // current_subdivision_level: 'number',
       edge_interpolation_mode: "'edges_only'",
       subd_normal_smoothing_mode: "'smooth_all_normals'",
       extra: 'geometry_extra[]',
@@ -122,6 +135,16 @@ export const $ = scope({
          count: 'number',
          values: 'point6d[]', // [ 27, 0, 2184, 2186, 2210, 2208 ], ...
       },
+      default_uv_set: 'dazurl', // "default_uv_set" : "/data/Daz%203D/Genesis%209/Base/UV%20Sets/Daz%203D/Base/Base%20Multi%20UDIM.dsf#Base%20Multi%20UDIM",
+      'root_region?': 'root_region',
+      graft: { '+': 'reject' },
+   },
+   root_region: {
+      id: 'string',
+      label: 'string',
+      display_hint: "'cards_on' | 'cards_off'",
+      'children?': 'root_region[]',
+      'map?': { count: 'number', values: 'number[]' },
    },
    material_selection_sets: {
       name: 'string',
@@ -142,7 +165,7 @@ export const $ = scope({
       '+': 'reject',
       id: 'dazid', //  "Genesis9",
       url: 'string', //  "name://@selection/Genesis9:",
-      'geometries?': 'geometry[]',
+      'geometries?': 'geometry_ref[]',
       name: 'string',
       label: 'string', // "Genesis 9",
       'parent?': 'dazurl', // "#Genesis9",
@@ -279,7 +302,7 @@ export const $ = scope({
       file_version: 'string',
       asset_info: 'asset_info',
       scene: 'scene',
-      'geometry_library?': 'geometry[]',
+      'geometry_library?': 'geometry_ref[]',
       'node_library?': { '+': 'reject' },
       'material_library?': 'material[]',
       'modifier_library?': 'modifier_library_item[]',
@@ -290,7 +313,7 @@ export const $ = scope({
       file_version: 'string',
       asset_info: 'asset_info',
       // scene: 'scene',
-      'geometry_library?': 'geometry[]',
+      'geometry_library?': 'geometry_inf[]',
       // 'node_library?': { '+': 'reject' },
       // 'material_library?': 'material[]',
       // 'modifier_library?': 'modifier_library_item[]',
@@ -301,7 +324,7 @@ export const $ = scope({
       file_version: 'string',
       asset_info: 'asset_info',
       scene: 'scene',
-      'geometry_library?': 'geometry[]',
+      'geometry_library?': 'geometry_ref[]',
       'node_library?': { '+': 'reject' },
       'material_library?': 'material[]',
       'modifier_library?': 'modifier_library_item[]',
