@@ -1,3 +1,4 @@
+import { DazFigure } from './core/DazFileFigure.js'
 import { DazGeometryInf } from './core/DazGeometryInf.js'
 import { DazGeometryRef } from './core/DazGeometryRef.js'
 import { DazNodeInf } from './core/DazNodeInf.js' // New import
@@ -9,4 +10,5 @@ export const GLOBAL = {
    DazGeometryInf: DazGeometryInf,
    DazNodeRef: DazNodeRef, // Renamed from DazNode
    DazNodeInf: DazNodeInf, // Added DazNodeInf
+   DazFigure: DazFigure,
 }

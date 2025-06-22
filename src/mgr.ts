@@ -4,6 +4,7 @@ import { AnyDsonFile, DsonFile, KnownDazFile } from './core/_DsonFile.js'
 import { DazCharacter } from './core/DazFileCharacter.js'
 import { DazFigure } from './core/DazFileFigure.js'
 import { DazWearable } from './core/DazFileWearable.js'
+import { GLOBAL } from './DI.js'
 import { $$, $$dson, DazAssetType, string_DazId } from './spec.js'
 import { any_, string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
@@ -83,6 +84,13 @@ export class DazMgr {
       this.filesSimple.set(meta.absPath, stuff) // also store as simple file
       this.filesFull.set(meta.absPath, stuff)
       return stuff
+   }
+
+   async loadDazFigureByRelPath_orCrash(relPath: string_RelPath): Promise<DazFigure> {
+      const file = await this.loadFull_FromRelPath(relPath)
+      if (file instanceof GLOBAL.DazFigure) return file
+      const errMst = `Expected DazFigure at "${relPath}", but found ${file.constructor.name} (AssetType: ${file.assetType}, DazID: ${file.dazId})`
+      throw new Error(errMst)
    }
 
    private loadStuff(meta: FileMeta, dson: $$dson): Promise<KnownDazFile> {
