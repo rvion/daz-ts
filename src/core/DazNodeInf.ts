@@ -7,7 +7,9 @@ export class DazNodeInf extends DazAbstraction<AnyDazAbstraction, $$node_inf> {
    emoji = '🌳ℹ️' // Emoji to signify information/definition
    kind = 'node_inf'
    get dazId(): string_DazId { return this.data.id } // biome-ignore format: misc
-
+   override get summary(): string {
+      return `${this.data.type} - ${this.data.name} (${this.data.id})`
+   }
    // init
    static async init(mgr: DazMgr, parent: AnyDazAbstraction, json: $$node_inf): Promise<DazNodeInf> {
       const self = new DazNodeInf(mgr, parent, json)
