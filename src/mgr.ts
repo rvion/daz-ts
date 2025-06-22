@@ -140,6 +140,7 @@ export class DazMgr {
    }
 }
 
-const root = `C:/Users/Public/Documents/My DAZ 3D Library/`
+const root = '/Volumes/ssd4t1/daz-lib/'
+// const root = `C:/Users/Public/Documents/My DAZ 3D Library/`
 
 export const mgr = new DazMgr(root)

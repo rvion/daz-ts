@@ -5,9 +5,9 @@ export type string_DazId = string & { __dazid: true } // biome-ignore format: mi
 
 // files
 export type $$dson = typeof $$.dson.infer
-export type $$duf_character = typeof $$.duf_character.infer
-export type $$duf_wearable = typeof $$.duf_wearable.infer
-export type $$duf_figure = typeof $$.duf_figure.infer
+export type $$dson_character = typeof $$.dson_character.infer
+export type $$dson_wearable = typeof $$.dson_wearable.infer
+export type $$dson_figure = typeof $$.dson_figure.infer
 
 // core
 export type $$node = typeof $$.node.infer
@@ -297,7 +297,7 @@ export const $ = scope({
          // '[string]': 'setting',
       },
    },
-   duf_character: {
+   dson_character: {
       '+': 'reject',
       file_version: 'string',
       asset_info: 'asset_info',
@@ -308,18 +308,19 @@ export const $ = scope({
       'modifier_library?': 'modifier_library_item[]',
       'image_library?': 'image[]',
    },
-   duf_figure: {
+   dson_figure: {
       // '+': 'reject',
       file_version: 'string',
       asset_info: 'asset_info',
       // scene: 'scene',
       'geometry_library?': 'geometry_inf[]',
+      'node_library?': { '+': 'reject' },
       // 'node_library?': { '+': 'reject' },
       // 'material_library?': 'material[]',
       // 'modifier_library?': 'modifier_library_item[]',
       // 'image_library?': 'image[]',
    },
-   duf_wearable: {
+   dson_wearable: {
       '+': 'reject',
       file_version: 'string',
       asset_info: 'asset_info',

@@ -5,7 +5,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "t1": "bun --watch src/main.ts"
   },
   "author": "",
   "license": "ISC",
@@ -14,7 +15,6 @@
     "@types/bun": "^1.2.16",
     "arktype": "^2.1.20",
     "chalk": "^5.4.1",
-    "gl": "^8.1.6",
     "pathe": "^2.0.3",
     "three": "^0.177.0",
     "typescript": "^5.8.3"

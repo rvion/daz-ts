@@ -8,7 +8,7 @@
             "detail": "Get all typescript errors in problems pane",
             "type": "process",
             "options": { "env": { "NODE_OPTIONS": "--max-old-space-size=8192" } },
-            "command": "./node_modules/.bin/tsc.exe",
+            "command": "./node_modules/.bin/tsc",
             "args": ["--watch", "--noEmit", "--preserveWatchOutput", "--incremental"],
             "isBackground": true,
             "problemMatcher": "$tsc-watch",
