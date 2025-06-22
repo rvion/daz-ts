@@ -3,6 +3,8 @@ import { scope, type } from 'arktype'
 export type string_DazUrl = string & { __dazurl: true }
 export type string_DazId = string & { __dazid: true }
 
+export const asDazId = (s: string): string_DazId => s as string_DazId
+
 // files
 export type $$dson = typeof $$.dson.infer
 export type $$dson_character = typeof $$.dson_character.infer
@@ -14,6 +16,9 @@ export type $$node_ref = typeof $$.node_ref.infer
 export type $$node_inf = typeof $$.node_inf.infer
 export type $$geometry_ref = typeof $$.geometry_ref.infer
 export type $$geometry_inf = typeof $$.geometry_inf.infer
+export type $$point2d = typeof $$.point2d.infer
+export type $$point3d = typeof $$.point3d.infer
+export type $$point6d = typeof $$.point6d.infer
 
 // misc
 export type DsonFileVersion = string

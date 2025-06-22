@@ -1,4 +1,3 @@
-import * as fs from 'node:fs/promises'
 import chalk from 'chalk'
 import * as path from 'pathe'
 import { AnyDsonFile, DsonFile, KnownDazFile } from './core/_DsonFile.js'
@@ -9,6 +8,7 @@ import { $$, $$dson, DazAssetType, string_DazId } from './spec.js'
 import { any_, string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
 import { bang } from './utils/assert.js'
+import { FS } from './utils/fsNode.js'
 import { FileMeta, walk } from './walk.js'
 
 export class DazMgr {
@@ -33,7 +33,11 @@ export class DazMgr {
       this.countPerType.set(type, (this.countPerType.get(type) ?? 0) + 1)
    }
 
-   constructor(public absRootPath: string_AbsPath) {}
+   constructor(
+      //
+      public absRootPath: string_AbsPath,
+      public fs: FS,
+   ) {}
 
    // ---- Load Simple
    async loadSimple_FromRelPath(relPath: string_RelPath) {
@@ -46,7 +50,7 @@ export class DazMgr {
       if (this.filesSimple.has(meta.absPath)) return bang(this.filesSimple.get(meta.absPath))
 
       // load dson
-      const json = await Bun.file(meta.absPath).json()
+      const json = await this.fs.readJSON(meta.absPath)
       const dson = check_orCrash($$.dson, json, meta.absPath)
       this.incrementType(dson.asset_info.type)
       this.count++
@@ -69,7 +73,7 @@ export class DazMgr {
       if (this.filesFull.has(meta.absPath)) return bang(this.filesFull.get(meta.absPath))
 
       // load dson
-      const json = await Bun.file(meta.absPath).json()
+      const json = await this.fs.readJSON(meta.absPath)
       const dson = check_orCrash($$.dson, json, meta.absPath)
       this.incrementType(dson.asset_info.type)
       this.count++
@@ -83,9 +87,9 @@ export class DazMgr {
 
    private loadStuff(meta: FileMeta, dson: $$dson): Promise<KnownDazFile> {
       const assetType = dson.asset_info.type
-      if (assetType === 'wearable') return DazWearable.init(mgr, meta, dson)
-      else if (assetType === 'character') return DazCharacter.init(mgr, meta, dson)
-      else if (assetType === 'figure') return DazFigure.init(mgr, meta, dson)
+      if (assetType === 'wearable') return DazWearable.init(this, meta, dson)
+      else if (assetType === 'character') return DazCharacter.init(this, meta, dson)
+      else if (assetType === 'figure') return DazFigure.init(this, meta, dson)
       else throw new Error(`Invalid asset type: ${chalk.red(`'${assetType}'`)} in "${meta.absPath}"`)
    }
 
@@ -111,7 +115,7 @@ export class DazMgr {
       try {
          // Ensure the data directory exists
          const outputDir = path.dirname(pathAssetList)
-         await fs.mkdir(outputDir, { recursive: true })
+         await this.fs.mkdir(outputDir, { recursive: true })
          await this._writeFile(pathAssetList, summary)
          await this._writeFile(pathStats, JSON.stringify(Object.fromEntries(this.countPerType), null, 2))
          console.log(`Processed ${this.count} relevant files.`)
@@ -123,7 +127,7 @@ export class DazMgr {
    // ---- Utils
    private _writeFile(path: string, content: string): Promise<void> {
       console.log(`Output written to ${chalk.cyanBright(path)}`)
-      return fs.writeFile(path, content)
+      return this.fs.writeFile(path, content)
    }
 
    private _getFileMeta(relPath: string_RelPath): FileMeta {
@@ -138,8 +142,3 @@ export class DazMgr {
       return fileMeta
    }
 }
-
-const root = '/Volumes/ssd4t1/daz-lib/'
-// const root = `C:/Users/Public/Documents/My DAZ 3D Library/`
-
-export const mgr = new DazMgr(root)
