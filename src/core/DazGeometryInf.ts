@@ -1,9 +1,8 @@
 import { DazMgr } from '../mgr.js'
 import { $$geometry_inf, string_DazId } from '../spec.js'
 import { AnyDazAbstraction, DazAbstraction } from './_DazAbstraction.js'
-import type { DazNode } from './DazNode.js'
 
-export class DazGeometryInf extends DazAbstraction<DazNode, $$geometry_inf> {
+export class DazGeometryInf extends DazAbstraction<AnyDazAbstraction, $$geometry_inf> {
    emoji = '🔻'
    kind = 'geometry_inf'
    get dazId(): string_DazId { return this.data.id } // biome-ignore format: misc

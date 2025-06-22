@@ -21,9 +21,14 @@ export const check_orCrash = <T>(typ: Type<T, any>, obj: unknown, id: string): T
    return t as T
 }
 
+let maxErrors = 10
 export function printArkResultInConsole(res: ArkErrors, id: string) {
    console.log(chalk.red(`   ❌ Ark validation failed for "${id}":`))
    for (const error of res) {
+      maxErrors--
+      if (maxErrors <= 0) {
+         throw new Error(`   - Too many errors, stopping output to avoid clutter.`)
+      }
       console.log(chalk.red(`   - ${error.path.join('.')} : ${error.message}`))
    }
    console.log(chalk.red(`   - ${res.length} errors found`))

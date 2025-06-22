@@ -16,7 +16,17 @@ export class DazCharacter extends DsonFile<$$dson_character> {
       mgr.charactersByRelPath.set(self.relPath, self)
 
       // init
-      for (const nodeData of self.data.scene.nodes) await self.hydrateNode(nodeData)
+      if (self.data.scene?.nodes) {
+         // scene might be optional or nodes might be
+         for (const nodeData of self.data.scene.nodes) {
+            await self.hydrateNodeRef(nodeData) // Changed from hydrateNode
+         }
+      }
+      // if (self.data.node_library) {
+      //    for (const nodeRefData of self.data.node_library) {
+      //       await self.hydrateNodeRef(nodeRefData)
+      //    }
+      // }
 
       return self
    }

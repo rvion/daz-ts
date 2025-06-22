@@ -13,10 +13,12 @@
   "dependencies": {
     "@biomejs/biome": "^2.0.0",
     "@types/bun": "^1.2.16",
+    "@types/three": "^0.177.0",
     "arktype": "^2.1.20",
     "chalk": "^5.4.1",
     "pathe": "^2.0.3",
     "three": "^0.177.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
   }
 }

@@ -5,9 +5,8 @@ import { $$geometry_ref, string_DazId, string_DazUrl } from '../spec.js'
 import { string_RelPath } from '../types.js'
 import { fmtDazUrl } from '../utils/fmt.js'
 import { AnyDazAbstraction, DazAbstraction } from './_DazAbstraction.js'
-import type { DazNode } from './DazNode.js'
 
-export class DazGeometryRef extends DazAbstraction<DazNode, $$geometry_ref> {
+export class DazGeometryRef extends DazAbstraction<AnyDazAbstraction, $$geometry_ref> {
    emoji = '🔺'
    kind = 'geometry_ref'
    get dazId(): string_DazId { return this.data.id } // biome-ignore format: misc

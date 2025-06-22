@@ -16,10 +16,14 @@ export class DazFigure extends DsonFile<$$dson_figure> {
       mgr.figuresByRelPath.set(self.relPath, self)
 
       // init
-      // for (const nodeData of self.data.scene.nodes) await self.hydrateNode(nodeData)
       if (self.data.geometry_library) {
-         for (const x of self.data.geometry_library) {
-            await self.hydrateGeometryInf(x)
+         for (const geometryInfData of self.data.geometry_library) {
+            await self.hydrateGeometryInf(geometryInfData)
+         }
+      }
+      if (self.data.node_library) {
+         for (const nodeInfData of self.data.node_library) {
+            await self.hydrateNodeInf(nodeInfData) // Use hydrateNodeInf for node_inf types
          }
       }
 

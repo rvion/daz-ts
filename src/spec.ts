@@ -1,7 +1,7 @@
 import { scope, type } from 'arktype'
 
-export type string_DazUrl = string & { __dazurl: true } // biome-ignore format: misc
-export type string_DazId = string & { __dazid: true } // biome-ignore format: misc
+export type string_DazUrl = string & { __dazurl: true }
+export type string_DazId = string & { __dazid: true }
 
 // files
 export type $$dson = typeof $$.dson.infer
@@ -10,7 +10,8 @@ export type $$dson_wearable = typeof $$.dson_wearable.infer
 export type $$dson_figure = typeof $$.dson_figure.infer
 
 // core
-export type $$node = typeof $$.node.infer
+export type $$node_ref = typeof $$.node_ref.infer
+export type $$node_inf = typeof $$.node_inf.infer
 export type $$geometry_ref = typeof $$.geometry_ref.infer
 export type $$geometry_inf = typeof $$.geometry_inf.infer
 
@@ -20,50 +21,23 @@ export type $$asset_info = typeof $$.asset_info.infer
 
 // ------------------------------------------------
 export type DazAssetType = (typeof dazAssetTypes)[number]
+
+// biome-ignore format: misc
 export const dazAssetTypes = [
-   // extra
-   'unknown',
-   // known
-   'animation',
-   'camera',
-   'character',
-   'clothing',
-   'environment',
-   'figure',
-   'hair',
-   'light',
-   'material',
-   'modifier',
-   'morph',
-   'pose',
-   'preset_dform',
-   'preset_hierarchical_material',
-   'preset_hierarchical_pose',
-   'preset_layered_image',
-   'preset_layered_image',
-   'preset_light',
-   'preset_material',
-   'preset_pose',
-   'preset_render_settings',
-   'preset_shader',
-   'preset_simulation_settings',
-   'prop',
-   'scene_subset',
-   'scene',
-   'script',
-   'shader',
-   'utility',
-   'uv_set',
-   'wearable',
+   'unknown', // extra
+   'animation', 'camera', 'character', 'clothing', 'environment', 'figure', 'hair', 'light', 'material',
+   'modifier', 'morph', 'pose', 'preset_dform', 'preset_hierarchical_material', 'preset_hierarchical_pose',
+   'preset_layered_image', 'preset_layered_image', 'preset_light', 'preset_material', 'preset_pose',
+   'preset_render_settings', 'preset_shader', 'preset_simulation_settings', 'prop', 'scene_subset',
+   'scene', 'script', 'shader', 'utility', 'uv_set', 'wearable',
 ] as const
 
 const dazAssetType = type.enumerated(...dazAssetTypes).as<DazAssetType>()
 
 export const $ = scope({
-   dson: {
-      file_version: 'string',
-      asset_info: 'asset_info',
-   },
+   // #region DSON core ------------------------------------------------------------------------
+   dson: { file_version: 'string', asset_info: 'asset_info' },
+   contributor: { '+': 'reject', author: 'string', email: 'string', website: 'string' },
    asset_info: {
       '+': 'reject',
       id: 'dazid',
@@ -72,12 +46,65 @@ export const $ = scope({
       revision: 'string',
       modified: 'string',
    },
-   contributor: {
+
+   // #region Core stuff ------------------------------------------------------------------------
+   dazid: type('string').as<string_DazId>(),
+   dazurl: type('string').as<string_DazUrl>(),
+
+   point2d: ['number', 'number'], // [ 0, 0, 0 ],
+   point3d: ['number', 'number', 'number'], // [ 0, 0, 0 ],
+   point6d: ['number', 'number', 'number', 'number', 'number', 'number'], // [ 0, 0, 0 ],
+   rotation_order: type.enumerated('ZYX', 'YXZ', 'XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX'),
+
+   // #region Core files- ------------------------------------------------------------------------
+   dson_character: {
       '+': 'reject',
-      author: 'string',
-      email: 'string',
-      website: 'string',
+      file_version: 'string',
+      asset_info: 'asset_info',
+      'material_library?': 'material[]',
+      scene: 'scene', // scene is a bunch of refs
+      // 🗑️❓ 'image_library?': 'image[]',
+      // 🗑️❓ 'node_library?': 'node_ref[]', // Character .duf might also have a node_library of node_refs
+      // 🗑️❓ 'geometry_library?': 'geometry_ref[]', // Character .duf might reference geometries
+      // 🗑️❓ 'modifier_library?': 'modifier_ref[]',
    },
+
+   dson_figure: {
+      // '+': 'reject',
+      file_version: 'string',
+      asset_info: 'asset_info',
+      // scene: 'scene', // .dsf figure files usually don't have a "scene" block in the same way .duf files do
+      'geometry_library?': 'geometry_inf[]', // .dsf figure defines its geometries
+      'node_library?': 'node_inf[]', // .dsf figure defines its nodes (skeleton, etc.)
+      'modifier_library?': 'modifier_inf[]', // And modifiers
+      // 🗑️❓ 'uv_set_library?': { '+': 'reject' }, // TODO: Define uv_set_library if needed
+      // 🗑️❓ 'material_library?': 'material[]', // Can also define materials
+      // 🗑️❓ 'image_library?': 'image[]', // And images
+   },
+
+   dson_wearable: {
+      '+': 'reject',
+      file_version: 'string',
+      asset_info: 'asset_info',
+      scene: 'scene',
+      'geometry_library?': 'geometry_ref[]',
+      'node_library?': 'node_ref[]', // Wearable .duf might also have a node_library of node_refs
+      'material_library?': 'material[]',
+      'modifier_library?': 'modifier_ref[]',
+      'image_library?': 'image[]',
+   },
+
+   // #region Images ------------------------------------------------------------------------
+   image: {
+      '+': 'reject',
+      id: 'dazid',
+      name: 'string',
+      'map_size?': ['number', 'number'],
+      map_gamma: 'number',
+      map: 'image_map[]',
+      'scene?': 'scene',
+   },
+
    image_map: {
       '+': 'reject',
       'url?': 'string', // "/Runtime/Textures/DAZ/Characters/Genesis9/Base/Eyes/Split/Genesis9_Eyes_Iris_01.png",
@@ -95,7 +122,32 @@ export const $ = scope({
       'yoffset?': 'number', // 0,
       'operation?': "'blend_source_over'", // "blend_source_over"
    },
-   dazid: type('string').as<string_DazId>(),
+
+   // #region Scene ------------------------------------------------------------------------
+   scene: {
+      // Typically found in .duf files
+      '+': 'reject',
+      nodes: 'node_ref[]', // Changed from node[] to node_ref[]
+      modifiers: 'modifier_ref[]',
+      materials: 'material[]',
+      extra: 'scene_extra[]',
+   },
+   scene_extra: {
+      '+': 'reject',
+      type: "'scene_post_load_script'",
+      name: 'string',
+      'version?': 'string | number',
+      'script?': 'dazurl', // "data/Daz 3D/Genesis 9/Base/Tools/Utilities/Character Addon Loader.dse",
+      'settings?': {
+         '+': 'reject',
+         PostLoadAddons: 'unknown',
+         FigureInstanceID: 'dazurl',
+         RunOnce: 'boolean',
+         // '[string]': 'setting',
+      },
+   },
+
+   // #region Geometry.Ref ------------------------------------------------------------------------
    geometry_ref: {
       '+': 'reject',
       id: 'dazid', // "Genesis9-1",
@@ -108,6 +160,8 @@ export const $ = scope({
       subd_normal_smoothing_mode: "'smooth_all_normals'",
       extra: 'geometry_extra[]',
    },
+
+   // #region Geometry.Inf ------------------------------------------------------------------------
    geometry_inf: {
       '+': 'reject',
       id: 'dazid', // "Genesis9-1",
@@ -146,47 +200,97 @@ export const $ = scope({
       'children?': 'root_region[]',
       'map?': { count: 'number', values: 'number[]' },
    },
-   material_selection_sets: {
-      name: 'string',
-      'materials?': 'string[]',
-   },
    geometry_extra: {
       '+': 'reject',
       type: "'studio_geometry_channels' | 'material_selection_sets'",
       'material_selection_sets?': 'material_selection_sets[]',
       'version?': 'string | number',
-      'channels?': 'chanel[]',
+      'channels?': 'channel_container[]', // Updated
    },
-   point2d: ['number', 'number'], // [ 0, 0, 0 ],
-   point3d: ['number', 'number', 'number'], // [ 0, 0, 0 ],
-   point6d: ['number', 'number', 'number', 'number', 'number', 'number'], // [ 0, 0, 0 ],
-   rotation_order: type.enumerated("'XYZ'", "'XZY'", "'YXZ'", "'YZX'", "'ZXY'", "'ZYX'"),
-   node: {
+   material_selection_sets: { name: 'string', 'materials?': 'string[]' },
+   // #region Nodes.Ref ------------------------------------------------------------------------
+   node_ref: {
+      // Represents a node reference, typically in .duf files
       '+': 'reject',
-      id: 'dazid', //  "Genesis9",
-      url: 'string', //  "name://@selection/Genesis9:",
+      id: 'dazid',
+      url: 'dazurl', // Changed from string to dazurl
       'geometries?': 'geometry_ref[]',
       name: 'string',
-      label: 'string', // "Genesis 9",
-      'parent?': 'dazurl', // "#Genesis9",
-      preview: {
-         type: "'figure' | 'bone'",
-         'oriented_box?': {
-            min: 'point3d', // [ -63.24, -0.094, -13.15 ]
-            max: 'point3d', // [ 63.241, 170.019, 14.524 ]
-            'center_point?': 'point3d', // [ 0, 0, 0 ],
-            'end_point?': 'point3d', // [ 0, 103.876, 0 ],
-            'rotation_order?': 'rotation_order',
-         },
-      },
-      extra: 'node_extra[]',
+      label: 'string',
+      'parent?': 'dazurl',
+      'preview?': 'node_ref_preview', // Adjusted preview structure
+      'extra?': 'node_ref_extra[]', // extra is optional in some contexts
    },
-   node_extra: {
+   node_ref_preview: {
+      // For .duf style node preview
+      type: "'figure' | 'bone'",
+      'oriented_box?': { min: 'point3d', max: 'point3d' },
+      'center_point?': 'point3d',
+      'end_point?': 'point3d',
+      'rotation_order?': 'rotation_order',
+   },
+   node_ref_extra: {
+      // For simple extra in node_ref
       '+': 'reject',
       type: "'studio_node_channels'",
       version: 'string | number',
    },
-   chanelType: type.enumerated('bool', 'enum', 'int', 'float', 'node', 'string', 'float_color', 'color', 'file'),
+   // #region Nodes.Inf ------------------------------------------------------------------------
+   node_inf: {
+      // Represents a full node definition, typically in .dsf files
+      '+': 'reject',
+      id: 'dazid',
+      name: 'string',
+      'name_aliases?': 'string[]',
+      type: 'string', // e.g. "figure", "bone"
+      label: 'string',
+      'parent?': 'dazurl',
+      'rotation_order?': 'rotation_order',
+      'inherits_scale?': 'boolean',
+      'center_point?': 'chanel[]', // Array of 3 channels (x,y,z)
+      'end_point?': 'chanel[]', // Array of 3 channels (x,y,z)
+      'orientation?': 'chanel[]', // Array of 3 channels (x,y,z)
+      'rotation?': 'chanel[]', // Array of 3 channels (x,y,z)
+      'translation?': 'chanel[]', // Array of 3 channels (x,y,z)
+      'scale?': 'chanel[]', // Array of 3 channels (x,y,z)
+      'general_scale?': 'chanel',
+      'presentation?': 'presentation',
+      'extra?': 'node_inf_extra[]',
+      'children?': () => $.type('node_inf').array(), // For hierarchical nodes like skeletons
+      'formulas?': 'formula_item[]', // Common in .dsf for rigging
+      'inherits_selected_channels?': 'boolean',
+      // 'geometries?': 'geometry_inf[]', // Geometries are usually in geometry_library for .dsf figures
+   },
+   node_inf_extra: {
+      // For richer extra in node_inf, potentially with channels
+      '+': 'reject',
+      type: "'studio_node_channels'", // Add other types if necessary
+      version: 'string | number',
+      'channels?': 'channel_container[]',
+   },
+   formula_item: {
+      // Basic structure for formula items, expand as needed
+      '+': 'reject',
+      'output?': 'dazurl', // e.g., "Genesis9:/data/Daz%203D/Genesis%209/Base/Genesis9.dsf#l_hand?value"
+      'operations?': 'formula_op[]', // Define operations structure if needed
+   },
+   formula_op: 'formula_op_push_url| formula_op_push_val| formula_op_mult',
+   formula_op_push_url: { op: "'push'", url: 'dazurl', '+': 'reject' },
+   formula_op_push_val: { op: "'push'", val: 'number', '+': 'reject' },
+   formula_op_mult: { op: "'mult'" },
+
+   chanelType: type.enumerated(
+      'bool',
+      'enum',
+      'int',
+      'float',
+      'node',
+      'string',
+      'float_color',
+      'color',
+      'file',
+      'numeric_node',
+   ), // Added numeric_node
    presentation: {
       '+': 'reject',
       'type?': 'string',
@@ -194,6 +298,7 @@ export const $ = scope({
       'description?': 'string',
       'icon_large?': 'string',
       'colors?': type({}),
+      'auto_fit_base?': 'dazurl',
    },
    chanel: {
       '+': 'reject',
@@ -204,6 +309,8 @@ export const $ = scope({
       'visible?': 'boolean',
       'value?': 'unknown',
       'current_value?': 'unknown',
+      'auto_follow?': 'boolean',
+      'locked?': 'boolean',
       'min?': 'number',
       'max?': 'number',
       'clamped?': 'boolean',
@@ -221,25 +328,79 @@ export const $ = scope({
       'file_type?': "'file_open'",
       'file_display_text?': 'string',
       'file_filter?': 'string',
-      // ?
       'channel?': 'chanel',
+      // 'channel?': 'chanel', // Removed recursive definition; use channel_container for lists of channels
+      'needs_node?': 'boolean', // For "Point At" like channels
+      'node?': 'null | string | dazid', // For "Point At" like channels
    },
-   modifier_library_extra_item: {
+   channel_container: {
+      // Used in lists like geometry_extra.channels or node_inf_extra.channels
+      channel: 'chanel',
+      'group?': 'string', // e.g. "/General/Transforms"
+   },
+
+   // #region Modifier.Ref ------------------------------------------------------------------------
+   modifier_ref: {
+      '+': 'reject',
+      id: 'dazid',
+      url: 'string',
+      parent: 'string',
+      'channel?': 'chanel',
+      'name?': 'string',
+      'extra?': 'modifier_ref_extra[]',
+   },
+   modifier_ref_extra: {
       '+': 'reject',
       'type?': 'string',
       'push_post_smooth?': 'boolean',
       'channels?': () => $.type('chanel').array(),
    },
-   modifier_library_item: {
+   // #region Modifier.Inf ------------------------------------------------------------------------
+   modifier_inf: {
       '+': 'reject',
       id: 'dazid',
       'name?': 'string',
       'parent?': 'string',
-      'extra?': 'modifier_library_extra_item[]',
-      'url?': 'string',
-      'channel?': 'chanel',
+      skin: {
+         node: 'dazurl',
+         geometry: 'dazurl',
+         vertex_count: 'number',
+         joints: 'joint[]',
+         selection_map: 'selMap[]',
+      },
+      'extra?': 'modifier_inf_extra[]',
+      // 'channel?': 'chanel',
    },
-   dazurl: type('string').as<string_DazUrl>(),
+   selMap: {
+      id: 'dazid',
+      mappings: type(['string', 'string']).array(),
+   },
+   joint: {
+      id: 'dazid',
+      node: 'dazurl',
+      node_weights: {
+         count: 'number',
+         values: 'point2d[]', // e.g. [ 0.5, 0.5, 0.5 ]
+      },
+   },
+   modifier_inf_extra: {
+      '+': 'reject',
+      'type?': "'skin_settings'",
+      auto_normalize_general: 'boolean', // true,
+      auto_normalize_local: 'boolean', // true,
+      auto_normalize_scale: 'boolean', // true,
+      binding_mode: "'General'", // "General",
+      general_map_mode: "'DualQuat'", // "DualQuat",
+      blend_mode: "'BlendLinearDualQuat'", // "BlendLinearDualQuat",
+      scale_mode: "'BindingMaps'", // "BindingMaps",
+      blend_vertex_count: 'number',
+      blend_weights: {
+         count: 'number',
+         values: 'point2d[]',
+      },
+   },
+
+   // #region Matérial ------------------------------------------------------------------------
    material: {
       '+': 'reject',
       // meta
@@ -266,70 +427,6 @@ export const $ = scope({
       type: "'studio/material/uber_iray' | 'studio_material_channels'",
       'version?': 'string | number',
       'channels?': 'chanel[]',
-   },
-   image: {
-      '+': 'reject',
-      id: 'dazid',
-      name: 'string',
-      'map_size?': ['number', 'number'],
-      map_gamma: 'number',
-      map: 'image_map[]',
-      'scene?': 'scene',
-   },
-   scene: {
-      '+': 'reject',
-      nodes: 'node[]',
-      modifiers: 'modifier_library_item[]',
-      materials: 'material[]',
-      extra: 'scene_extra[]',
-   },
-   scene_extra: {
-      '+': 'reject',
-      type: "'scene_post_load_script'",
-      name: 'string',
-      'version?': 'string | number',
-      'script?': 'dazurl', // "data/Daz 3D/Genesis 9/Base/Tools/Utilities/Character Addon Loader.dse",
-      'settings?': {
-         '+': 'reject',
-         PostLoadAddons: 'unknown',
-         FigureInstanceID: 'dazurl',
-         RunOnce: 'boolean',
-         // '[string]': 'setting',
-      },
-   },
-   dson_character: {
-      '+': 'reject',
-      file_version: 'string',
-      asset_info: 'asset_info',
-      scene: 'scene',
-      'geometry_library?': 'geometry_ref[]',
-      'node_library?': { '+': 'reject' },
-      'material_library?': 'material[]',
-      'modifier_library?': 'modifier_library_item[]',
-      'image_library?': 'image[]',
-   },
-   dson_figure: {
-      // '+': 'reject',
-      file_version: 'string',
-      asset_info: 'asset_info',
-      // scene: 'scene',
-      'geometry_library?': 'geometry_inf[]',
-      'node_library?': { '+': 'reject' },
-      // 'node_library?': { '+': 'reject' },
-      // 'material_library?': 'material[]',
-      // 'modifier_library?': 'modifier_library_item[]',
-      // 'image_library?': 'image[]',
-   },
-   dson_wearable: {
-      '+': 'reject',
-      file_version: 'string',
-      asset_info: 'asset_info',
-      scene: 'scene',
-      'geometry_library?': 'geometry_ref[]',
-      'node_library?': { '+': 'reject' },
-      'material_library?': 'material[]',
-      'modifier_library?': 'modifier_library_item[]',
-      'image_library?': 'image[]',
    },
 })
 

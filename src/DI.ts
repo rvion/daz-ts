@@ -1,10 +1,12 @@
 import { DazGeometryInf } from './core/DazGeometryInf.js'
 import { DazGeometryRef } from './core/DazGeometryRef.js'
-import { DazNode } from './core/DazNode.js'
+import { DazNodeInf } from './core/DazNodeInf.js' // New import
+import { DazNodeRef } from './core/DazNodeRef.js' // Corrected import path
 
 // this object should be filled by DI.setup
 export const GLOBAL = {
    DazGeometryRef: DazGeometryRef,
    DazGeometryInf: DazGeometryInf,
-   DazNode: DazNode,
+   DazNodeRef: DazNodeRef, // Renamed from DazNode
+   DazNodeInf: DazNodeInf, // Added DazNodeInf
 }
