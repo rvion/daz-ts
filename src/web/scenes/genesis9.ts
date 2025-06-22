@@ -15,8 +15,13 @@ const characterMeshes: THREE.Mesh[] = []
 
 export async function initSceneGenesis9(character: DazCharacter) {
    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000)
-   camera.position.set(0, 1.5, 3) // Adjusted for character height and view
-   camera.lookAt(0, 1, 0) // Look at the character's approximate center
+   camera.position.set(
+      // Adjusted for character height and view
+      100 /* LR: 0 => centered */,
+      100 /* HEIGHT (meters): height are 1m high */,
+      100 /* FB */,
+   )
+   camera.lookAt(0, 100, 0) // Look at the character's approximate center
 
    scene = new THREE.Scene()
    scene.background = new THREE.Color(0x87ceeb) // Sky blue background
