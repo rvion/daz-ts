@@ -11,7 +11,7 @@ import { DazNodeRef } from './DazNodeRef.js'
 export class DazCharacter extends DsonFile<$$dson_character> {
    emoji = '👤'
    kind = 'character'
-   public resolvedFigure: DazFigure | null = null
+   resolvedFigure: DazFigure | null = null
 
    static async init(mgr: DazMgr, meta: FileMeta, dson: $$dson): Promise<DazCharacter> {
       const json = check_orCrash($$.dson_character, dson, dson.asset_info.id)
