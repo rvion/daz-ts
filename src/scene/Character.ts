@@ -485,14 +485,25 @@ export class RVCharacter {
    }
 
    update(): void {
-      // Update animations, bone transformations, etc.
-      // This could include automatic animations like breathing, idle movements
-      this.meshes.forEach((mesh) => {
-         mesh.rotation.y += 0.003 // Simple rotation for now
-      })
+      this.stupidAnimation2()
 
       // Update skeleton matrices to keep SkeletonHelper synchronized
       this.updateSkeletonMatrices()
+   }
+
+   private stupidAnimation1(): void {
+      this.meshes.forEach((mesh) => {
+         mesh.rotation.y += 0.003 // Simple rotation for now
+      })
+   }
+   private stupidAnimation2(): void {
+      const time = Date.now() * 0.003 // Convert to seconds
+      const armAngle = Math.sin(time * 0.8) * 0.4 // Oscillate between -0.8 and 0.8 radians
+      // Animate shoulder bones for arm raising/lowering
+      const leftShoulder = this.bones.get(asDazId('l_shoulder'))
+      const rightShoulder = this.bones.get(asDazId('r_shoulder'))
+      if (leftShoulder) leftShoulder.rotation.z = armAngle
+      if (rightShoulder) rightShoulder.rotation.z = -armAngle // Mirror for right arm
    }
 
    dispose(): void {
