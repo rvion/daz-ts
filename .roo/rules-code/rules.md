@@ -45,3 +45,4 @@ Coding Guidelines & Preferences Summary:
 
 *   Misc
     *   imporpting the DI module `import '../DI.js'` is necessary in entrypoints / test files.
+    *   installing packages is done with `bun install <package>`
