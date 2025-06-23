@@ -1,8 +1,8 @@
 import { GLOBAL } from '../DI.js'
 import type { DazMgr } from '../mgr.js'
-import type { $$geometry, $$geometry_ref, $$node, $$node_ref, string_DazId } from '../spec.js'
+import type { $$geometry, $$geometry_ref, $$modifier_inf, $$node, $$node_ref, string_DazId } from '../spec.js'
 import { Maybe } from '../types.js'
-import { DazGeometryInf } from './DazGeometry.js'
+import { DazGeometry } from './DazGeometry.js'
 import type { DazGeometryRef } from './DazGeometryRef.js'
 import type { DazNode } from './DazNode.js' // New file
 import type { DazNodeRef } from './DazNodeRef.js' // Corrected to DazNodeRef.js due to file rename
@@ -13,7 +13,7 @@ export type AnyDazAbstraction =
    | DazAbstraction<any, any>
    | DazNodeRef
    | DazNode
-   | DazGeometryInf
+   | DazGeometry
    | DazGeometryRef // Made more specific
 
 export abstract class DazAbstraction<PARENT, DATA> {
@@ -69,10 +69,26 @@ export abstract class DazAbstraction<PARENT, DATA> {
       return geometryRef
    }
 
-   geometries: Map<string_DazId, DazGeometryInf> = new Map()
-   async hydrateGeometry(geometry_inf: $$geometry): Promise<DazGeometryInf> {
+   geometries: Map<string_DazId, DazGeometry> = new Map()
+   async hydrateGeometry(geometry_inf: $$geometry): Promise<DazGeometry> {
       const geometry = await GLOBAL.DazGeometryInf.init(this.mgr, this, geometry_inf)
       this.geometries.set(geometry.dazId, geometry)
       return geometry
+   }
+
+   modifiers: Map<string_DazId, $$modifier_inf> = new Map()
+   async hydrateModifier(modifier_inf: $$modifier_inf): Promise<$$modifier_inf> {
+      // For now, just store the raw modifier data since we don't have a DazModifier class yet
+      this.modifiers.set(modifier_inf.id, modifier_inf)
+      return modifier_inf
+   }
+
+   getSkinBindingModifier(): $$modifier_inf | null {
+      for (const modifier of this.modifiers.values()) {
+         if (modifier.id === 'SkinBinding' || modifier.name === 'SkinBinding') {
+            return modifier
+         }
+      }
+      return null
    }
 }

@@ -26,6 +26,11 @@ export class DazFigure extends DsonFile<$$dson_figure> {
             await self.hydrateNode(nodeInfData) // Use hydrateNodeInf for node_inf types
          }
       }
+      if (self.data.modifier_library) {
+         for (const modifierInfData of self.data.modifier_library) {
+            await self.hydrateModifier(modifierInfData)
+         }
+      }
 
       return self
    }

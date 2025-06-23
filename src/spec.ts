@@ -20,7 +20,8 @@ export type $$node = typeof $$.node_inf.infer
 export type $$node_type = typeof $$.node_type.infer
 export type $$geometry_ref = typeof $$.geometry_ref.infer
 export type $$geometry = typeof $$.geometry_inf.infer
-export type $$skin = typeof $$.skin.infer
+export type $$modifier_inf = typeof $$.modifier_inf.infer
+// export type $$skin = typeof $$.skin.infer
 export type $$point2d = typeof $$.point2d.infer
 export type $$point3d = typeof $$.point3d.infer
 export type $$point6d = typeof $$.point6d.infer
@@ -207,7 +208,6 @@ export const $ = scope({
       // current_subdivision_level: 'number',
       edge_interpolation_mode: "'edges_only'",
       subd_normal_smoothing_mode: "'smooth_all_normals'",
-      extra: 'geometry_extra[]',
       'vertices?': {
          count: 'number',
          values: 'point3d[]',
@@ -227,13 +227,14 @@ export const $ = scope({
       default_uv_set: 'dazurl', // "default_uv_set" : "/data/Daz%203D/Genesis%209/Base/UV%20Sets/Daz%203D/Base/Base%20Multi%20UDIM.dsf#Base%20Multi%20UDIM",
       'root_region?': 'root_region',
       graft: { '+': 'reject' },
-      'skin?': 'skin',
+      extra: 'geometry_extra[]',
+      // 'skin?': 'skin',
    },
-   skin: {
-      'vertex_weights?': 'skin_weights[]',
-      // ... other skin properties if they exist
-   },
-   skin_weights: ['string', 'point2d[]'], // [ "bone_name", [ [vertex_index, weight], ... ] ]
+   // skin: {
+   //    'vertex_weights?': 'skin_weights[]',
+   //    // ... other skin properties if they exist
+   // },
+   // skin_weights: ['string', 'point2d[]'], // [ "bone_name", [ [vertex_index, weight], ... ] ]
    root_region: {
       id: 'string',
       label: 'string',

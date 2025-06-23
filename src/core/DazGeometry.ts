@@ -1,8 +1,9 @@
 import { DazMgr } from '../mgr.js'
-import { $$geometry, $$point3d, $$point6d, string_DazId } from '../spec.js' // Added $$point3d and $$point6d
+import { $$geometry, $$point3d, $$point6d, string_DazId } from '../spec.js'
+import { bang } from '../utils/assert.js'
 import { AnyDazAbstraction, DazAbstraction } from './_DazAbstraction.js'
 
-export class DazGeometryInf extends DazAbstraction<AnyDazAbstraction, $$geometry> {
+export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
    emoji = '🔻'
    kind = 'geometry_inf'
    get dazId(): string_DazId { return this.data.id } // biome-ignore format: misc
@@ -15,8 +16,8 @@ export class DazGeometryInf extends DazAbstraction<AnyDazAbstraction, $$geometry
    }
 
    // init
-   static async init(mgr: DazMgr, parent: AnyDazAbstraction, json: $$geometry): Promise<DazGeometryInf> {
-      const self = new DazGeometryInf(mgr, parent, json)
+   static async init(mgr: DazMgr, parent: AnyDazAbstraction, json: $$geometry): Promise<DazGeometry> {
+      const self = new DazGeometry(mgr, parent, json)
       self.printHeader()
       // await self.load()
       return self
@@ -45,5 +46,87 @@ export class DazGeometryInf extends DazAbstraction<AnyDazAbstraction, $$geometry
          threeIndices.push(poly[2], poly[4], poly[5]) // Triangle 2: (v0, v2, v3)
       })
       return threeIndices.length > 0 ? threeIndices : null
+   }
+
+   // #region Skinning
+   hasSkinData(figure: AnyDazAbstraction): boolean {
+      const skinModifier = figure.getSkinBindingModifier()
+      return !!(skinModifier && skinModifier.skin.joints.length > 0)
+   }
+
+   getSkinWeightsForThree(
+      // geometryId: string_DazId,
+   ): { boneNames: string[]; boneIndices: number[]; boneWeights: number[] } | null {
+      // Get skin data from the figure's modifier library
+      const skinModifier = this.source.getSkinBindingModifier()
+      if (!skinModifier) {
+         console.warn(`No SkinBinding modifier found for geometry: ${this.dazId}`)
+         return null
+      }
+
+      // Check if this modifier applies to our geometry
+      const geometryUrl = skinModifier.skin.geometry
+      if (geometryUrl !== `#${this.dazId}`) {
+         // if (!geometryUrl.includes(geometryId)) {
+         console.warn(`SkinBinding modifier apply to "${geometryUrl}", not to requested: ${this.dazId}`)
+         return null
+      }
+
+      const vertexCount = this.data.vertices?.count || 0
+      if (vertexCount === 0) return null
+
+      // Extract unique bone names and create bone index mapping
+      const boneNames: string[] = []
+      const boneNameToIndex = new Map<string, number>()
+
+      for (const joint of skinModifier.skin.joints) {
+         const boneName = joint.id
+         if (!boneNameToIndex.has(boneName)) {
+            boneNameToIndex.set(boneName, boneNames.length)
+            boneNames.push(boneName)
+         }
+      }
+
+      // Initialize arrays for Three.js skinning (4 influences per vertex max)
+      const boneIndices = new Array(vertexCount * 4).fill(0)
+      const boneWeights = new Array(vertexCount * 4).fill(0)
+
+      // Process each joint's vertex weights
+      for (const joint of skinModifier.skin.joints) {
+         const boneName = joint.id
+         const boneIndex = bang(boneNameToIndex.get(boneName))
+
+         for (const [vertexIndex, weight] of joint.node_weights.values) {
+            if (vertexIndex >= vertexCount) continue
+
+            // Find an empty slot for this vertex (up to 4 influences)
+            for (let i = 0; i < 4; i++) {
+               const idx = vertexIndex * 4 + i
+               if (boneWeights[idx] === 0) {
+                  boneIndices[idx] = boneIndex
+                  boneWeights[idx] = weight
+                  break
+               }
+            }
+         }
+      }
+
+      // Normalize weights for each vertex to ensure they sum to 1
+      for (let v = 0; v < vertexCount; v++) {
+         const baseIdx = v * 4
+         let totalWeight = 0
+
+         for (let i = 0; i < 4; i++) {
+            totalWeight += boneWeights[baseIdx + i]
+         }
+
+         if (totalWeight > 0) {
+            for (let i = 0; i < 4; i++) {
+               boneWeights[baseIdx + i] /= totalWeight
+            }
+         }
+      }
+
+      return { boneNames, boneIndices, boneWeights }
    }
 }

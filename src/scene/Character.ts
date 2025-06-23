@@ -11,37 +11,42 @@ import { getFallbackMaterial } from './misc.js'
 
 export class RVCharacter {
    group: THREE.Group
-   meshes: THREE.Mesh[] = []
+   meshes: (THREE.Mesh | THREE.SkinnedMesh)[] = []
    skeleton: THREE.Skeleton | null = null
    skeletonHelper: THREE.SkeletonHelper | null = null
    bones: Map<string_DazId, THREE.Bone> = new Map()
    boneHierarchy: Map<string, string[]> = new Map() // parent -> children mapping
+   private boneNameToIndex: Map<string, number> = new Map() // bone name -> skeleton bone index
 
    get figure_orCrash(): DazFigure { return this.character.figure_orCrash } // biome-ignore format: misc
 
    constructor(public readonly character: DazCharacter) {
       this.group = new THREE.Group()
       this.group.name = `Character_${character.dazId}`
-      this.buildMeshes()
-      this.buildSkeleton()
 
-      this.DEBUG_BONES()
+      // Build skeleton first so meshes can be properly bound
+      this.buildSkeleton()
+      this.buildMeshes()
+
       ASSERT_(this.skeleton != null, 'skeleton should not be null after buildSkeleton')
       ASSERT_(this.skeletonHelper != null, 'skeletonHelper should not be null after buildSkeleton')
+
+      // Initial skeleton matrix update to ensure proper display
+      this.updateSkeletonMatrices()
    }
 
-   DEBUG_BONES(): void {
-      const fbm = getFallbackMaterial()
-      for (const bone of this.bones.values()) {
-         const vec = new THREE.Vector3()
-         bone.getWorldPosition(vec)
-         const helper = new THREE.SphereGeometry(2, 8, 8)
-         const mesh = new THREE.Mesh(helper, fbm)
-         mesh.position.copy(vec)
-         mesh.name = `BoneHelper_${bone.name || bone.uuid}`
-         this.group.add(mesh)
-      }
-   }
+   // DEBUG_BONES(): void {
+   //    const fbm = getFallbackMaterial()
+   //    for (const bone of this.bones.values()) {
+   //       const vec = new THREE.Vector3()
+   //       bone.getWorldPosition(vec)
+   //       const helper = new THREE.SphereGeometry(2, 8, 8)
+   //       const mesh = new THREE.Mesh(helper, fbm)
+   //       mesh.position.copy(vec)
+   //       mesh.name = `BoneHelper_${bone.name || bone.uuid}`
+   //       this.group.add(mesh)
+   //    }
+   // }
 
    private buildMeshes(): void {
       if (!this.character.figure) {
@@ -68,8 +73,7 @@ export class RVCharacter {
          this.createFallbackMesh()
       }
    }
-
-   private createMeshFromGeometryRef(geometryRef: DazGeometryRef): THREE.Mesh | null {
+   private createMeshFromGeometryRef(geometryRef: DazGeometryRef): THREE.Mesh | THREE.SkinnedMesh | null {
       const resolvedInf = geometryRef.resolvedGeometryInf
       if (!resolvedInf) return null
 
@@ -93,14 +97,52 @@ export class RVCharacter {
          side: THREE.DoubleSide,
       })
 
-      const mesh = new THREE.Mesh(geometry, material)
-      mesh.name = `Mesh_${geometryRef.dazId}`
-      mesh.castShadow = true
-      mesh.receiveShadow = true
+      const allowSkinning = true
+      const allowRegular = true
 
-      return mesh
+      // Check if geometry has skin data and we have a skeleton
+      if (allowSkinning && resolvedInf.hasSkinData(this.figure_orCrash) && this.skeleton) {
+         console.log(`[🤠] A`)
+         const skinData = resolvedInf.getSkinWeightsForThree()
+         console.log(`[🤠] B`, skinData)
+         if (skinData) {
+            // Map bone names to skeleton indices
+            const mappedBoneIndices = new Array(skinData.boneIndices.length)
+            for (let i = 0; i < skinData.boneIndices.length; i++) {
+               const originalBoneIndex = skinData.boneIndices[i]
+               const boneName = skinData.boneNames[originalBoneIndex]
+               const skeletonBoneIndex = this.boneNameToIndex.get(boneName) ?? 0
+               mappedBoneIndices[i] = skeletonBoneIndex
+            }
+
+            // Add skinning attributes to geometry
+            geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(mappedBoneIndices, 4))
+            geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(skinData.boneWeights, 4))
+
+            // Create skinned mesh
+            const skinnedMesh = new THREE.SkinnedMesh(geometry, material)
+            skinnedMesh.name = `SkinnedMesh_${geometryRef.dazId}`
+            skinnedMesh.castShadow = true
+            skinnedMesh.receiveShadow = true
+
+            // Bind skeleton to mesh
+            skinnedMesh.bind(this.skeleton)
+
+            return skinnedMesh
+         }
+      } else if (allowRegular) {
+         // Fallback to regular mesh if no skin data
+         const mesh = new THREE.Mesh(geometry, material)
+         mesh.name = `Mesh_${geometryRef.dazId}`
+         mesh.castShadow = true
+         mesh.receiveShadow = true
+
+         return mesh
+      }
+      console.log(`[🤠] hasSkinData`, resolvedInf.hasSkinData(this.figure_orCrash))
+      console.log(`[🤠] hasSkinData`, Boolean(this.skeleton))
+      throw new Error(`Geometry ${geometryRef.dazId} has no skin data or skeleton available`)
    }
-
    private createFallbackMesh(): void {
       const geometry = new THREE.BoxGeometry(50, 170, 30) // Approximate human proportions in cm
       const material = getFallbackMaterial()
@@ -174,6 +216,13 @@ export class RVCharacter {
       ASSERT_(rootBones.length > 0 && this.bones.size > 0, 'not enough bones or root bones found')
       this.skeleton = new THREE.Skeleton(Array.from(this.bones.values()))
 
+      // Build bone name to index mapping for skinning
+      this.skeleton.bones.forEach((bone, index) => {
+         if (bone.name) {
+            this.boneNameToIndex.set(bone.name, index)
+         }
+      })
+
       // Create skeleton helper for debugging
       this.skeletonHelper = new THREE.SkeletonHelper(rootBones[0])
       this.skeletonHelper.visible = true // Visible by default
@@ -237,6 +286,9 @@ export class RVCharacter {
       for (const change of pose.changes) {
          this.applyPoseChange(change)
       }
+
+      // Update skeleton matrices after pose changes
+      this.updateSkeletonMatrices()
    }
 
    private applyPoseChange(change: { url: string; value: number }): void {
@@ -366,12 +418,24 @@ export class RVCharacter {
       return result
    }
 
+   private updateSkeletonMatrices(): void {
+      if (!this.skeleton) return
+
+      // Force update of all bone world matrices to keep SkeletonHelper synchronized
+      for (const bone of this.skeleton.bones) {
+         bone.updateMatrixWorld(true)
+      }
+   }
+
    update(): void {
       // Update animations, bone transformations, etc.
       // This could include automatic animations like breathing, idle movements
       this.meshes.forEach((mesh) => {
          mesh.rotation.y += 0.003 // Simple rotation for now
       })
+
+      // Update skeleton matrices to keep SkeletonHelper synchronized
+      this.updateSkeletonMatrices()
    }
 
    dispose(): void {

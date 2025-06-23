@@ -4,14 +4,14 @@ import { fmtDazUrl } from '../utils/fmt.js'
 import { getDazPathAndIdFromDazURL_orCrash } from '../utils/parseDazUrl.js' // Changed to crash-first version
 import { AnyDazAbstraction, DazAbstraction } from './_DazAbstraction.js'
 import { DazFigure } from './DazFileFigure.js' // DazFigure is used by mgr.loadDazFigureByRelPath_orCrash implicitly, but keep for clarity if needed by other parts or for type safety
-import { DazGeometryInf } from './DazGeometry.js'
+import { DazGeometry } from './DazGeometry.js'
 
 export class DazGeometryRef extends DazAbstraction<AnyDazAbstraction, $$geometry_ref> {
    emoji = '🔺'
 
    kind = 'geometry_ref'
 
-   private _resolvedGeometryInf: DazGeometryInf | null = null
+   private _resolvedGeometryInf: DazGeometry | null = null
 
    get dazId(): string_DazId {
       return this.data.id
@@ -25,7 +25,7 @@ export class DazGeometryRef extends DazAbstraction<AnyDazAbstraction, $$geometry
       return this.data.url
    }
 
-   get resolvedGeometryInf(): DazGeometryInf | null {
+   get resolvedGeometryInf(): DazGeometry | null {
       return this._resolvedGeometryInf
    }
 

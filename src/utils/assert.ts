@@ -1,4 +1,3 @@
-import { unknown } from 'arktype/internal/keywords/ts.ts'
 import type { Maybe } from '../types.js'
 
 export const ASSERT = (condition: boolean, message: string): asserts condition => {
