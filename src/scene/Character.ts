@@ -10,7 +10,7 @@ import { ASSERT_, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
 import { getFallbackMaterial } from './misc.js'
 
 export class RVCharacter {
-   public group: THREE.Group
+   group: THREE.Group
    meshes: THREE.Mesh[] = []
    skeleton: THREE.Skeleton | null = null
    skeletonHelper: THREE.SkeletonHelper | null = null
@@ -25,8 +25,22 @@ export class RVCharacter {
       this.buildMeshes()
       this.buildSkeleton()
 
+      this.DEBUG_BONES()
       ASSERT_(this.skeleton != null, 'skeleton should not be null after buildSkeleton')
       ASSERT_(this.skeletonHelper != null, 'skeletonHelper should not be null after buildSkeleton')
+   }
+
+   DEBUG_BONES(): void {
+      const fbm = getFallbackMaterial()
+      for (const bone of this.bones.values()) {
+         const vec = new THREE.Vector3()
+         bone.getWorldPosition(vec)
+         const helper = new THREE.SphereGeometry(2, 8, 8)
+         const mesh = new THREE.Mesh(helper, fbm)
+         mesh.position.copy(vec)
+         mesh.name = `BoneHelper_${bone.name || bone.uuid}`
+         this.group.add(mesh)
+      }
    }
 
    private buildMeshes(): void {
