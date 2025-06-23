@@ -6,9 +6,10 @@ import { FileMeta } from '../walk.js'
 import { DazAbstraction } from './_DazAbstraction.js'
 import type { DazCharacter } from './DazFileCharacter.js'
 import type { DazFigure } from './DazFileFigure.js'
+import type { DazFilePose } from './DazFilePose.js'
 import type { DazWearable } from './DazFileWearable.js'
 
-export type KnownDazFile = DazCharacter | DazWearable | DazFigure
+export type KnownDazFile = DazCharacter | DazWearable | DazFigure | DazFilePose
 
 export abstract class DsonFile<DATA extends $$dson> extends DazAbstraction<FileMeta, DATA> {
    get dazId(): string_DazId {

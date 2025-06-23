@@ -6,7 +6,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "t1": "bun --watch src/main.ts"
+    "t1": "bun --watch src/main.ts",
+    "diff:all": "git diff main                   > tmp/diff-with-master-all.diff && code tmp/diff-with-master-all.diff",
+    "diff:add": "git diff main | grep -Ev '^\\-' > tmp/diff-with-master.diff     && code tmp/diff-with-master.diff"
   },
   "author": "",
   "license": "ISC",

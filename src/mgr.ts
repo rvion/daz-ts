@@ -3,6 +3,7 @@ import * as path from 'pathe'
 import { AnyDsonFile, DsonFile, KnownDazFile } from './core/_DsonFile.js'
 import { DazCharacter } from './core/DazFileCharacter.js'
 import { DazFigure } from './core/DazFileFigure.js'
+import { DazFilePose } from './core/DazFilePose.js'
 import { DazWearable } from './core/DazFileWearable.js'
 import { GLOBAL } from './DI.js'
 import { $$, $$dson, DazAssetType, string_DazId } from './spec.js'
@@ -23,6 +24,9 @@ export class DazMgr {
 
    figuresByDazId: Map<string_DazId, DazFigure> = new Map()
    figuresByRelPath: Map<string_RelPath, DazFigure> = new Map()
+
+   poseByDazId: Map<string_DazId, DazFilePose> = new Map()
+   poseByRelPath: Map<string_RelPath, DazFilePose> = new Map()
 
    wearablesByDazId: Map<string_DazId, DazWearable> = new Map()
    wearablesByRelPath: Map<string_RelPath, DazWearable> = new Map()
@@ -98,6 +102,7 @@ export class DazMgr {
       if (assetType === 'wearable') return DazWearable.init(this, meta, dson)
       else if (assetType === 'character') return DazCharacter.init(this, meta, dson)
       else if (assetType === 'figure') return DazFigure.init(this, meta, dson)
+      else if (assetType === 'preset_pose') return DazFilePose.init(this, meta, dson)
       else throw new Error(`Invalid asset type: ${chalk.red(`'${assetType}'`)} in "${meta.absPath}"`)
    }
 

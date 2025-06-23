@@ -10,6 +10,7 @@ export type $$dson = typeof $$.dson.infer
 export type $$dson_character = typeof $$.dson_character.infer
 export type $$dson_wearable = typeof $$.dson_wearable.infer
 export type $$dson_figure = typeof $$.dson_figure.infer
+export type $$dson_pose = typeof $$.dson_pose.infer
 
 // core
 export type $$node_ref = typeof $$.node_ref.infer
@@ -88,6 +89,19 @@ export const $ = scope({
       // 🗑️❓ 'image_library?': 'image[]', // And images
    },
 
+   dson_pose: {
+      '+': 'reject',
+      file_version: 'string',
+      asset_info: 'asset_info',
+      scene: 'scene_pose', // .dsf figure files usually don't have a "scene" block in the same way .duf files do
+      // 'geometry_library?': 'geometry_inf[]', // .dsf figure defines its geometries
+      // 'node_library?': 'node_inf[]', // .dsf figure defines its nodes (skeleton, etc.)
+      // 'modifier_library?': 'modifier_inf[]', // And modifiers
+      // 🗑️❓ 'uv_set_library?': { '+': 'reject' }, // TODO: Define uv_set_library if needed
+      // 🗑️❓ 'material_library?': 'material[]', // Can also define materials
+      // 🗑️❓ 'image_library?': 'image[]', // And images
+   },
+
    dson_wearable: {
       '+': 'reject',
       file_version: 'string',
@@ -98,6 +112,17 @@ export const $ = scope({
       'material_library?': 'material[]',
       'modifier_library?': 'modifier_ref[]',
       'image_library?': 'image[]',
+   },
+
+   // #region Pose ------------------------------------------------------------------------
+   scene_pose: {
+      '+': 'reject',
+      animations: 'animation[]',
+   },
+   animation: {
+      '+': 'reject',
+      url: 'dazurl',
+      keys: 'point2d[]',
    },
 
    // #region Images ------------------------------------------------------------------------
