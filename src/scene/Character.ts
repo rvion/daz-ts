@@ -6,6 +6,7 @@ import { DazFilePose } from '../core/DazFilePose.js'
 import { DazGeometryRef } from '../core/DazGeometryRef.js'
 import { DazNode } from '../core/DazNode.js'
 import { asDazId, string_DazId } from '../spec.js'
+import { Maybe } from '../types.js'
 import { ASSERT_, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
 import { getFallbackMaterial } from './misc.js'
 
@@ -17,6 +18,11 @@ export class RVCharacter {
    bones: Map<string_DazId, THREE.Bone> = new Map()
    boneHierarchy: Map<string, string[]> = new Map() // parent -> children mapping
    private boneNameToIndex: Map<string, number> = new Map() // bone name -> skeleton bone index
+
+   // Debug getter for testing
+   get boneNameToIndexMap(): ReadonlyMap<string, number> {
+      return this.boneNameToIndex
+   }
 
    get figure_orCrash(): DazFigure { return this.character.figure_orCrash } // biome-ignore format: misc
 
@@ -98,21 +104,24 @@ export class RVCharacter {
       })
 
       const allowSkinning = true
-      const allowRegular = true
+      const allowRegular = false
 
       // Check if geometry has skin data and we have a skeleton
       if (allowSkinning && resolvedInf.hasSkinData(this.figure_orCrash) && this.skeleton) {
-         console.log(`[🤠] A`)
          const skinData = resolvedInf.getSkinWeightsForThree()
-         console.log(`[🤠] B`, skinData)
          if (skinData) {
-            // Map bone names to skeleton indices
+            // Map bone names from skin data to skeleton bone indices
             const mappedBoneIndices = new Array(skinData.boneIndices.length)
             for (let i = 0; i < skinData.boneIndices.length; i++) {
-               const originalBoneIndex = skinData.boneIndices[i]
-               const boneName = skinData.boneNames[originalBoneIndex]
-               const skeletonBoneIndex = this.boneNameToIndex.get(boneName) ?? 0
-               mappedBoneIndices[i] = skeletonBoneIndex
+               const boneNameIndex = skinData.boneIndices[i] // This is an index into boneNames array
+               const boneName = skinData.boneNames[boneNameIndex]
+               const skeletonBoneIndex = this.boneNameToIndex.get(boneName)
+               if (skeletonBoneIndex === undefined) {
+                  console.warn(`[RVCharacter] Bone '${boneName}' not found in skeleton, using index 0`)
+                  mappedBoneIndices[i] = 0
+               } else {
+                  mappedBoneIndices[i] = skeletonBoneIndex
+               }
             }
 
             // Add skinning attributes to geometry
@@ -125,7 +134,10 @@ export class RVCharacter {
             skinnedMesh.castShadow = true
             skinnedMesh.receiveShadow = true
 
-            // Bind skeleton to mesh
+            // Ensure skeleton is in bind pose before binding
+            this.setSkeletonToBindPose()
+
+            // Bind skeleton to mesh - this calculates the bind matrices automatically
             skinnedMesh.bind(this.skeleton)
 
             return skinnedMesh
@@ -139,9 +151,8 @@ export class RVCharacter {
 
          return mesh
       }
-      console.log(`[🤠] hasSkinData`, resolvedInf.hasSkinData(this.figure_orCrash))
-      console.log(`[🤠] hasSkinData`, Boolean(this.skeleton))
-      throw new Error(`Geometry ${geometryRef.dazId} has no skin data or skeleton available`)
+
+      return null // Return null instead of throwing error
    }
    private createFallbackMesh(): void {
       const geometry = new THREE.BoxGeometry(50, 170, 30) // Approximate human proportions in cm
@@ -172,33 +183,33 @@ export class RVCharacter {
 
             // Store the absolute position for later relative calculation
             absolutePositions.set(node.dazId, bone.position.clone())
-         } else console.log(`[buildSkeleton.fstPass] node '${node.dazId}' is not a bone => skipping`)
+         }
       }
 
       // ----- Second pass: build hierarchy and calculate relative positions -----
       for (const node of figureNodes) {
-         if (node.data.type !== 'bone') {
-            console.log(`[buildSkeleton.sndPass] node '${node.dazId}' is not a bone => skipping`)
-            continue
-         }
-         const bone = bang(this.bones.get(node.dazId), `[🔶] bone not found !`)
+         if (node.data.type !== 'bone') continue
+
+         const bone = bang(this.bones.get(node.dazId), `bone not found for ${node.dazId}`)
          const parent = node.parent_orCrash
+
          if (parent.type !== 'bone') {
-            console.log(`🔶SKIPPING] parent ${parent?.type}`)
+            // This is a root bone
             rootBones.push(bone)
             // Root bones keep their absolute position
             continue
          }
 
          const parentBone = this.bones.get(parent.dazId)
-         if (parentBone == null) throw new Error(`Parent bone ${parent.dazId} not found for ${node.dazId}`)
+         if (!parentBone) {
+            console.warn(`Parent bone ${parent.dazId} not found for ${node.dazId}, treating as root`)
+            rootBones.push(bone)
+            continue
+         }
 
          // Calculate relative position: child_absolute - parent_absolute
          const childAbsPos = bang(absolutePositions.get(node.dazId), `absolute position not found for ${node.dazId}`)
-         const parentAbsPos = bang(
-            absolutePositions.get(parent.dazId),
-            `absolute position not found for ${parent.dazId}`,
-         )
+         const parentAbsPos = bang(absolutePositions.get(parent.dazId), `missing absolute position for ${parent.dazId}`)
          const relativePos = childAbsPos.clone().sub(parentAbsPos)
 
          // Set the relative position before adding to parent
@@ -214,7 +225,10 @@ export class RVCharacter {
       }
 
       ASSERT_(rootBones.length > 0 && this.bones.size > 0, 'not enough bones or root bones found')
-      this.skeleton = new THREE.Skeleton(Array.from(this.bones.values()))
+
+      // Create skeleton with bones in a consistent order
+      const orderedBones = Array.from(this.bones.values())
+      this.skeleton = new THREE.Skeleton(orderedBones)
 
       // Build bone name to index mapping for skinning
       this.skeleton.bones.forEach((bone, index) => {
@@ -223,31 +237,74 @@ export class RVCharacter {
          }
       })
 
+      // Add root bones to the character group so they're positioned correctly
+      for (const rootBone of rootBones) {
+         this.group.add(rootBone)
+      }
+
       // Create skeleton helper for debugging
-      this.skeletonHelper = new THREE.SkeletonHelper(rootBones[0])
-      this.skeletonHelper.visible = true // Visible by default
-      this.group.add(this.skeletonHelper)
+      if (rootBones.length > 0) {
+         this.skeletonHelper = new THREE.SkeletonHelper(rootBones[0])
+         this.skeletonHelper.visible = true
+         this.group.add(this.skeletonHelper)
+      }
+   }
+
+   private assertXYZChanels(chans?: Maybe<{ id?: string; value?: unknown }[]>): { x: number; y: number; z: number } {
+      if (chans == null) throw new Error('center_point must have channels')
+      ASSERT_(chans.length === 3, 'center_point must have exactly 3 channels (x, y, z)')
+      ASSERT_(chans[0].id === 'x', `channel name should be x. (${JSON.stringify(chans[0])})`)
+      ASSERT_(chans[1].id === 'y', `channel name should be y. (${JSON.stringify(chans[1])})`)
+      ASSERT_(chans[2].id === 'z', `channel name should be z. (${JSON.stringify(chans[2])})`)
+      const x = NUMBER_OR_CRASH(chans[0].value, 'x must be a number')
+      const y = NUMBER_OR_CRASH(chans[1].value, 'y must be a number')
+      const z = NUMBER_OR_CRASH(chans[2].value, 'z must be a number')
+      return { x, y, z }
    }
 
    private createBoneFromNodeInf(node: DazNode): THREE.Bone {
       const bone = new THREE.Bone()
       bone.name = node.data.name || node.dazId
 
+      const _rotation = this.assertXYZChanels(node.data.rotation || [])
+      if (_rotation.x !== 0 || _rotation.y !== 0 || _rotation.z !== 0) console.log(`[🔴] !!`, { _rotation })
+
+      const _translation = this.assertXYZChanels(node.data.translation || [])
+      if (_translation.x !== 0 || _translation.y !== 0 || _translation.z !== 0) console.log(`[🔴] !!`, { _translation })
+
+      const _scale = this.assertXYZChanels(node.data.scale || [])
+      if (_scale.x !== 1 || _scale.y !== 1 || _scale.z !== 1) console.log(`[🔴] !!`, JSON.stringify({ _scale }))
+      // const _orientation = this.assertXYZChanels(node.data.orientation || [])
+      // if (_orientation.x !== 0 || _orientation.y !== 0 || _orientation.z !== 0) console.log(`[🔴] !!`, { _orientation })
+
       // Set initial position/rotation from node data if available
       // This would need to be expanded based on your node_inf structure
       if (node.data.center_point) {
          const chans = node.data.center_point
-         ASSERT_(chans.length === 3, 'center_point must have exactly 3 channels (x, y, z)')
-         ASSERT_(chans[0].id === 'x', `chanel name should be x. (${JSON.stringify(chans[0])})`)
-         ASSERT_(chans[1].id === 'y', `chanel name should be y. (${JSON.stringify(chans[1])})`)
-         ASSERT_(chans[2].id === 'z', `chanel name should be z. (${JSON.stringify(chans[2])})`)
-         const x = NUMBER_OR_CRASH(chans[0].value, 'x must be a number')
-         const y = NUMBER_OR_CRASH(chans[1].value, 'y must be a number')
-         const z = NUMBER_OR_CRASH(chans[2].value, 'z must be a number')
+         const { x, y, z } = this.assertXYZChanels(chans)
          bone.position.set(x, y, z)
       }
 
       return bone
+   }
+
+   private setSkeletonToBindPose(): void {
+      if (!this.skeleton) return
+
+      // For bind pose, we need to preserve the bone hierarchy positions
+      // but reset any additional transformations (rotations, scales)
+      for (const bone of this.skeleton.bones) {
+         // Keep the position (which defines the bone hierarchy)
+         // but reset rotation and scale to identity
+         bone.rotation.set(0, 0, 0)
+         bone.scale.set(1, 1, 1)
+         bone.updateMatrix()
+      }
+
+      // Update all bone matrices to ensure proper bind pose
+      for (const bone of this.skeleton.bones) {
+         bone.updateMatrixWorld(true)
+      }
    }
 
    // Position and transformation methods

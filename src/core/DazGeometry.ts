@@ -56,7 +56,11 @@ export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
 
    getSkinWeightsForThree(
       // geometryId: string_DazId,
-   ): { boneNames: string[]; boneIndices: number[]; boneWeights: number[] } | null {
+   ): {
+      boneNames: string[]
+      boneIndices: number[]
+      boneWeights: number[]
+   } | null {
       // Get skin data from the figure's modifier library
       const skinModifier = this.source.getSkinBindingModifier()
       if (!skinModifier) {
