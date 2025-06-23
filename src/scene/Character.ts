@@ -24,6 +24,9 @@ export class RVCharacter {
       this.group.name = `Character_${character.dazId}`
       this.buildMeshes()
       this.buildSkeleton()
+
+      ASSERT_(this.skeleton != null, 'skeleton should not be null after buildSkeleton')
+      ASSERT_(this.skeletonHelper != null, 'skeletonHelper should not be null after buildSkeleton')
    }
 
    private buildMeshes(): void {
@@ -102,7 +105,7 @@ export class RVCharacter {
       const figureNodes = [...this.figure_orCrash.nodes.values()]
       console.log(`❓ ---- buildSkeleton (${figureNodes.length} nodes)`)
 
-      // First pass: create all bones
+      // ----- First pass: create all bones -----
       for (const node of figureNodes) {
          if (node.data.type === 'bone') {
             const bone = this.createBoneFromNodeInf(node)
@@ -110,7 +113,7 @@ export class RVCharacter {
          } else console.log(`[buildSkeleton.fstPass] node '${node.dazId}' is not a bone => skipping`)
       }
 
-      // Second pass: build hierarchy
+      // ----- Second pass: build hierarchy -----
       for (const node of figureNodes) {
          if (node.data.type !== 'bone') {
             console.log(`[buildSkeleton.sndPass] node '${node.dazId}' is not a bone => skipping`)
@@ -135,16 +138,13 @@ export class RVCharacter {
          bang(this.boneHierarchy.get(parentId)).push(node.dazId)
       }
 
-      if (rootBones.length > 0 && this.bones.size > 0) {
-         this.skeleton = new THREE.Skeleton(Array.from(this.bones.values()))
+      ASSERT_(rootBones.length > 0 && this.bones.size > 0, 'not enough bones or root bones found')
+      this.skeleton = new THREE.Skeleton(Array.from(this.bones.values()))
 
-         // Create skeleton helper for debugging
-         if (rootBones[0]) {
-            this.skeletonHelper = new THREE.SkeletonHelper(rootBones[0])
-            this.skeletonHelper.visible = true // Visible by default
-            this.group.add(this.skeletonHelper)
-         }
-      }
+      // Create skeleton helper for debugging
+      this.skeletonHelper = new THREE.SkeletonHelper(rootBones[0])
+      this.skeletonHelper.visible = true // Visible by default
+      this.group.add(this.skeletonHelper)
    }
 
    private createBoneFromNodeInf(node: DazNode): THREE.Bone {
@@ -307,7 +307,6 @@ export class RVCharacter {
          (boneId) => ![...this.boneHierarchy.values()].some((children) => children.includes(boneId)),
       )
       console.log(`🟢 root bones: ${rootBones.map((rb) => rb).join(', ')}`)
-
       const logBone = (boneId: string, depth = 0): void => {
          if (visited.has(boneId)) return
          visited.add(boneId)
