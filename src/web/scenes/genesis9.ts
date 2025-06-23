@@ -1,27 +1,18 @@
 import * as THREE from 'three'
 import { DazCharacter } from '../../core/DazFileCharacter.js'
-
-// import { DazNodeRef } from '../../core/DazNodeRef.js'; // Not directly used in function signatures
-
-// No other core/* or spec.js imports should be needed here for geometry processing
-// DazGeometryInf is used implicitly via geometryRef.resolvedGeometryInf
-
-// import { DazGeometryInf } from '../../core/DazGeometryInf.js'; // Type is inferred
+import { CameraController } from '../CameraController.js'
 
 let camera: THREE.PerspectiveCamera
 let scene: THREE.Scene
 let renderer: THREE.WebGLRenderer
+let cameraController: CameraController
 const characterMeshes: THREE.Mesh[] = []
 
 export async function initSceneGenesis9(character: DazCharacter) {
-   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000)
-   camera.position.set(
-      // Adjusted for character height and view
-      100 /* LR: 0 => centered */,
-      100 /* HEIGHT (meters): height are 1m high */,
-      100 /* FB */,
-   )
-   camera.lookAt(0, 100, 0) // Look at the character's approximate center
+   camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000)
+   // Initial camera position will be updated after character is loaded
+   camera.position.set(0, 200, 200)
+   camera.lookAt(0, 200, 0)
 
    scene = new THREE.Scene()
    scene.background = new THREE.Color(0x87ceeb) // Sky blue background
@@ -92,6 +83,10 @@ export async function initSceneGenesis9(character: DazCharacter) {
    if (document.body.contains(renderer?.domElement)) {
       renderer.setAnimationLoop(null) // Stop previous loop
       document.body.removeChild(renderer.domElement) // Remove old canvas
+
+      // Clean up camera controller to prevent memory leaks
+      if (cameraController) cameraController.dispose()
+
       renderer.dispose() // Dispose old renderer
    }
 
@@ -101,10 +96,36 @@ export async function initSceneGenesis9(character: DazCharacter) {
    renderer.setAnimationLoop(animate)
    document.body.appendChild(renderer.domElement)
 
+   // Initialize camera controller for scene navigation
+   cameraController = new CameraController(camera, renderer.domElement)
+
+   // Frame the character to ensure it's fully visible
+   frameCharacter()
+
    window.addEventListener('resize', onWindowResize)
 }
 
-// Removed createMeshFromGeometryRef function as its logic is now in DazGeometryRef.toThreeMesh()
+/** Frames the character in the camera view by calculating bounds and positioning the camera to ensure the entire character is visible. */
+function frameCharacter() {
+   if (characterMeshes.length === 0) return
+
+   // Create a bounding box that encompasses all character meshes
+   const boundingBox = new THREE.Box3()
+   characterMeshes.forEach((mesh) => {
+      mesh.geometry.computeBoundingBox()
+      boundingBox.expandByObject(mesh)
+   })
+
+   // Calculate the center and size of the bounding box
+   const center = new THREE.Vector3()
+   boundingBox.getCenter(center).add(new THREE.Vector3(0, 50, 0)) // Adjust for character height
+
+   const size = new THREE.Vector3()
+   boundingBox.getSize(size)
+
+   // Update the orbit controls target to the center of the character
+   if (cameraController) cameraController.controls.target.copy(center)
+}
 
 function onWindowResize() {
    if (camera && renderer) {
@@ -116,9 +137,8 @@ function onWindowResize() {
 
 function animate() {
    if (renderer && scene && camera) {
-      characterMeshes.forEach((mesh) => {
-         mesh.rotation.y += 0.003
-      })
+      if (cameraController) cameraController.update()
+      characterMeshes.forEach((mesh) => void (mesh.rotation.y += 0.003))
       renderer.render(scene, camera)
    }
 }
