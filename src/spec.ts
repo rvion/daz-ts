@@ -12,11 +12,14 @@ export type $$dson_wearable = typeof $$.dson_wearable.infer
 export type $$dson_figure = typeof $$.dson_figure.infer
 export type $$dson_pose = typeof $$.dson_pose.infer
 
+export type $$chanel = typeof $$.chanel.infer
+export type $$rotation_order = typeof $$.rotation_order.infer
 // core
 export type $$node_ref = typeof $$.node_ref.infer
 export type $$node_inf = typeof $$.node_inf.infer
 export type $$geometry_ref = typeof $$.geometry_ref.infer
 export type $$geometry_inf = typeof $$.geometry_inf.infer
+export type $$skin = typeof $$.skin.infer
 export type $$point2d = typeof $$.point2d.infer
 export type $$point3d = typeof $$.point3d.infer
 export type $$point6d = typeof $$.point6d.infer
@@ -223,7 +226,13 @@ export const $ = scope({
       default_uv_set: 'dazurl', // "default_uv_set" : "/data/Daz%203D/Genesis%209/Base/UV%20Sets/Daz%203D/Base/Base%20Multi%20UDIM.dsf#Base%20Multi%20UDIM",
       'root_region?': 'root_region',
       graft: { '+': 'reject' },
+      'skin?': 'skin',
    },
+   skin: {
+      'vertex_weights?': 'skin_weights[]',
+      // ... other skin properties if they exist
+   },
+   skin_weights: ['string', 'point2d[]'], // [ "bone_name", [ [vertex_index, weight], ... ] ]
    root_region: {
       id: 'string',
       label: 'string',
@@ -259,6 +268,7 @@ export const $ = scope({
       'center_point?': 'point3d',
       'end_point?': 'point3d',
       'rotation_order?': 'rotation_order',
+      'rotation?': 'point3d',
    },
    node_ref_extra: {
       // For simple extra in node_ref
