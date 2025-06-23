@@ -2,7 +2,7 @@ import { asDazId, string_DazId, string_DazUrl } from '../spec.js' // Added asDaz
 import { string_RelPath } from '../types.js'
 
 export interface DazUrlParts {
-   path: string_RelPath
+   srcPath: string_RelPath
    idInFile: string_DazId | null
 }
 
@@ -18,39 +18,38 @@ export const parseDazUrl = (dazUrl: string_DazUrl): URL => {
    return new URL(dazUrl, 'daz://')
 }
 
-export const getDazUrlParts = (dazUrl: string_DazUrl): DazUrlParts | null => {
+export const getDazUrlParts = (dazUrl: string_DazUrl): DazUrlParts => {
    const url = parseDazUrl(dazUrl)
 
-   if (!url.pathname) {
-      console.error(`[getDazUrlParts] Could not extract pathname from Daz URL: ${dazUrl}`)
-      return null
-   }
+   // if (!url.pathname) {
+   //    console.error(`[getDazUrlParts] Could not extract pathname from Daz URL: ${dazUrl}`)
+   //    return null
+   // }
 
    // Pathname often starts with a leading '/' from the URL parsing, remove it.
-   // Also, decode URI components like %20 to spaces.
-   const path = (url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname).replace(
-      /%20/g,
-      ' ',
-   ) as string_RelPath
+   let path = url.pathname.startsWith('/') //
+      ? url.pathname.substring(1)
+      : url.pathname
 
+   // Also, decode URI components like %20 to spaces.
+   path = path.replace(/%20/g, ' ') as string_RelPath
+
+   // Hash usually starts with '#', remove it.
    let idInFile: string_DazId | null = null
    if (url.hash) {
-      // Hash usually starts with '#', remove it.
-      idInFile = asDazId(url.hash.startsWith('#') ? url.hash.substring(1) : url.hash)
+      idInFile = asDazId(
+         url.hash.startsWith('#') //
+            ? url.hash.substring(1)
+            : url.hash,
+      )
    }
 
-   if (!path) {
-      // idInFile can be null for some URLs like file paths
-      console.error(`[getDazUrlParts] Extracted path is empty for Daz URL: ${dazUrl}`)
-      return null
-   }
-
-   return { path, idInFile }
+   return { srcPath: path, idInFile }
 }
 
 export const getPathFromDazUrl = (dazUrl: string_DazUrl): string_RelPath | null => {
    const parts = getDazUrlParts(dazUrl)
-   return parts ? parts.path : null
+   return parts ? parts.srcPath : null
 }
 
 export const getDazPathAndIdFromDazURL_orCrash = (dazUrl: string_DazUrl): DazUrlPartsWithId => {

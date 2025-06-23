@@ -16,9 +16,10 @@ export type $$chanel = typeof $$.chanel.infer
 export type $$rotation_order = typeof $$.rotation_order.infer
 // core
 export type $$node_ref = typeof $$.node_ref.infer
-export type $$node_inf = typeof $$.node_inf.infer
+export type $$node = typeof $$.node_inf.infer
+export type $$node_type = typeof $$.node_type.infer
 export type $$geometry_ref = typeof $$.geometry_ref.infer
-export type $$geometry_inf = typeof $$.geometry_inf.infer
+export type $$geometry = typeof $$.geometry_inf.infer
 export type $$skin = typeof $$.skin.infer
 export type $$point2d = typeof $$.point2d.infer
 export type $$point3d = typeof $$.point3d.infer
@@ -283,7 +284,7 @@ export const $ = scope({
       id: 'dazid',
       name: 'string',
       'name_aliases?': 'string[]',
-      type: 'string', // e.g. "figure", "bone"
+      type: 'node_type', // e.g. "figure", "bone"
       label: 'string',
       'parent?': 'dazurl',
       'rotation_order?': 'rotation_order',
@@ -302,6 +303,7 @@ export const $ = scope({
       'inherits_selected_channels?': 'boolean',
       // 'geometries?': 'geometry_inf[]', // Geometries are usually in geometry_library for .dsf figures
    },
+   node_type: "'bone' | 'figure'",
    node_inf_extra: {
       // For richer extra in node_inf, potentially with channels
       '+': 'reject',

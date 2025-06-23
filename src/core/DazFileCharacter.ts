@@ -11,7 +11,12 @@ import { DazNodeRef } from './DazNodeRef.js'
 export class DazCharacter extends DsonFile<$$dson_character> {
    emoji = '👤'
    kind = 'character'
-   resolvedFigure: DazFigure | null = null
+
+   figure: DazFigure | null = null
+   get figure_orCrash(): DazFigure {
+      if (!this.figure) throw new Error(`[DazCharacter:${this.dazId}] No DazFigure associated with this character.`)
+      return this.figure
+   }
 
    static async init(mgr: DazMgr, meta: FileMeta, dson: $$dson): Promise<DazCharacter> {
       const json = check_orCrash($$.dson_character, dson, dson.asset_info.id)
@@ -43,7 +48,7 @@ export class DazCharacter extends DsonFile<$$dson_character> {
 
       // Try common IDs first
       for (const id of commonFigureNodeIds) {
-         const nodeRef = self.nodesRefs.get(id)
+         const nodeRef = self.nodeRefs.get(id)
          if (nodeRef?.data?.preview?.type === 'figure' || (nodeRef && id === asDazId('Genesis9'))) {
             figureNodeRef = nodeRef
             break
@@ -52,7 +57,7 @@ export class DazCharacter extends DsonFile<$$dson_character> {
 
       // If not found by common ID, try iterating all nodeRefs to find one with preview.type 'figure'
       if (!figureNodeRef) {
-         for (const nodeRef of self.nodesRefs.values()) {
+         for (const nodeRef of self.nodeRefs.values()) {
             if (nodeRef.data?.preview?.type === 'figure') {
                figureNodeRef = nodeRef
                break
@@ -62,8 +67,8 @@ export class DazCharacter extends DsonFile<$$dson_character> {
 
       if (figureNodeRef?.data.url) {
          try {
-            const { path: dsfPath } = getDazPathAndIdFromDazURL_orCrash(figureNodeRef.data.url)
-            self.resolvedFigure = await mgr.loadDazFigureByRelPath_orCrash(dsfPath as string_RelPath)
+            const { srcPath: dsfPath } = getDazPathAndIdFromDazURL_orCrash(figureNodeRef.data.url)
+            self.figure = await mgr.loadDazFigureByRelPath_orCrash(dsfPath as string_RelPath)
          } catch (e) {
             console.error(
                `[DazCharacter:${self.dazId}] Error loading or resolving DazFigure for nodeRef ${figureNodeRef.dazId} (URL: ${figureNodeRef.data.url}):`,

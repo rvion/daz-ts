@@ -1,8 +1,8 @@
 import { DazMgr } from '../mgr.js'
-import { $$geometry_inf, $$point3d, $$point6d, string_DazId } from '../spec.js' // Added $$point3d and $$point6d
+import { $$geometry, $$point3d, $$point6d, string_DazId } from '../spec.js' // Added $$point3d and $$point6d
 import { AnyDazAbstraction, DazAbstraction } from './_DazAbstraction.js'
 
-export class DazGeometryInf extends DazAbstraction<AnyDazAbstraction, $$geometry_inf> {
+export class DazGeometryInf extends DazAbstraction<AnyDazAbstraction, $$geometry> {
    emoji = '🔻'
    kind = 'geometry_inf'
    get dazId(): string_DazId { return this.data.id } // biome-ignore format: misc
@@ -15,7 +15,7 @@ export class DazGeometryInf extends DazAbstraction<AnyDazAbstraction, $$geometry
    }
 
    // init
-   static async init(mgr: DazMgr, parent: AnyDazAbstraction, json: $$geometry_inf): Promise<DazGeometryInf> {
+   static async init(mgr: DazMgr, parent: AnyDazAbstraction, json: $$geometry): Promise<DazGeometryInf> {
       const self = new DazGeometryInf(mgr, parent, json)
       self.printHeader()
       // await self.load()

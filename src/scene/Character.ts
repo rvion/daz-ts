@@ -1,31 +1,40 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: ... */
 import * as THREE from 'three'
 import { DazCharacter } from '../core/DazFileCharacter.js'
+import { DazFigure } from '../core/DazFileFigure.js'
 import { DazFilePose } from '../core/DazFilePose.js'
+import { DazGeometryRef } from '../core/DazGeometryRef.js'
+import { DazNode } from '../core/DazNode.js'
+import { asDazId, string_DazId } from '../spec.js'
+import { ASSERT_, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
+import { getFallbackMaterial } from './misc.js'
 
 export class RVCharacter {
    public group: THREE.Group
-   private meshes: THREE.Mesh[] = []
-   private skeleton: THREE.Skeleton | null = null
-   private skeletonHelper: THREE.SkeletonHelper | null = null
-   private bones: Map<string, THREE.Bone> = new Map()
+   meshes: THREE.Mesh[] = []
+   skeleton: THREE.Skeleton | null = null
+   skeletonHelper: THREE.SkeletonHelper | null = null
+   bones: Map<string_DazId, THREE.Bone> = new Map()
+   boneHierarchy: Map<string, string[]> = new Map() // parent -> children mapping
 
-   constructor(private characterData: DazCharacter) {
+   get figure_orCrash(): DazFigure { return this.character.figure_orCrash } // biome-ignore format: misc
+
+   constructor(public readonly character: DazCharacter) {
       this.group = new THREE.Group()
-      this.group.name = `Character_${characterData.dazId}`
-
+      this.group.name = `Character_${character.dazId}`
       this.buildMeshes()
       this.buildSkeleton()
    }
 
    private buildMeshes(): void {
-      if (!this.characterData.resolvedFigure) {
-         console.warn(`[RVCharacter] No resolved figure for character ${this.characterData.dazId}`)
+      if (!this.character.figure) {
+         console.warn(`[RVCharacter] No resolved figure for character ${this.character.dazId}`)
          this.createFallbackMesh()
          return
       }
 
       // Build meshes from character's node references
-      for (const nodeRef of this.characterData.nodesRefs.values()) {
+      for (const nodeRef of this.character.nodeRefs.values()) {
          if (!nodeRef.geometryRefs) continue
 
          for (const geometryRef of nodeRef.geometryRefs.values()) {
@@ -38,12 +47,12 @@ export class RVCharacter {
       }
 
       if (this.meshes.length === 0) {
-         console.warn(`[RVCharacter] No meshes created for character ${this.characterData.dazId}`)
+         console.warn(`[RVCharacter] No meshes created for character ${this.character.dazId}`)
          this.createFallbackMesh()
       }
    }
 
-   private createMeshFromGeometryRef(geometryRef: any): THREE.Mesh | null {
+   private createMeshFromGeometryRef(geometryRef: DazGeometryRef): THREE.Mesh | null {
       const resolvedInf = geometryRef.resolvedGeometryInf
       if (!resolvedInf) return null
 
@@ -61,7 +70,9 @@ export class RVCharacter {
 
       const material = new THREE.MeshStandardMaterial({
          color: 0xdddddd,
-         wireframe: false,
+         wireframe: true,
+         transparent: true,
+         opacity: 0.3,
          side: THREE.DoubleSide,
       })
 
@@ -75,34 +86,53 @@ export class RVCharacter {
 
    private createFallbackMesh(): void {
       const geometry = new THREE.BoxGeometry(50, 170, 30) // Approximate human proportions in cm
-      const material = new THREE.MeshStandardMaterial({ color: 0xcccccc })
+      const material = getFallbackMaterial()
       const mesh = new THREE.Mesh(geometry, material)
       mesh.name = 'FallbackMesh'
       mesh.position.y = 85 // Half height to place on ground
       mesh.castShadow = true
       mesh.receiveShadow = true
-
       this.meshes.push(mesh)
       this.group.add(mesh)
    }
 
    private buildSkeleton(): void {
-      if (!this.characterData.resolvedFigure) return
-
       // Build skeleton from figure's node_inf data
       const rootBones: THREE.Bone[] = []
+      const figureNodes = [...this.figure_orCrash.nodes.values()]
+      console.log(`❓ ---- buildSkeleton (${figureNodes.length} nodes)`)
 
-      for (const nodeInf of this.characterData.resolvedFigure.nodesInf.values()) {
-         if (nodeInf.data.type === 'bone') {
-            const bone = this.createBoneFromNodeInf(nodeInf)
-            if (bone) {
-               this.bones.set(nodeInf.dazId, bone)
-               // If this bone has no parent in our bone map, it's a root bone
-               if (!this.findParentBone(nodeInf)) {
-                  rootBones.push(bone)
-               }
-            }
+      // First pass: create all bones
+      for (const node of figureNodes) {
+         if (node.data.type === 'bone') {
+            const bone = this.createBoneFromNodeInf(node)
+            this.bones.set(node.dazId, bone)
+         } else console.log(`[buildSkeleton.fstPass] node '${node.dazId}' is not a bone => skipping`)
+      }
+
+      // Second pass: build hierarchy
+      for (const node of figureNodes) {
+         if (node.data.type !== 'bone') {
+            console.log(`[buildSkeleton.sndPass] node '${node.dazId}' is not a bone => skipping`)
+            continue
          }
+         const bone = bang(this.bones.get(node.dazId), `[🔶] bone not found !`)
+         const parent = node.parent_orCrash
+         if (parent.type !== 'bone') {
+            console.log(`🔶SKIPPING] parent ${parent?.type}`)
+            rootBones.push(bone)
+            continue
+         }
+
+         const parentBone = this.bones.get(parent.dazId)
+         if (parentBone == null) throw new Error(`Parent bone ${parent.dazId} not found for ${node.dazId}`)
+         // parent threejs bones
+         parentBone.add(bone)
+
+         // and index them
+         const parentId = node.parentId_orCrash
+         if (!this.boneHierarchy.has(parentId)) this.boneHierarchy.set(parentId, [])
+         bang(this.boneHierarchy.get(parentId)).push(node.dazId)
       }
 
       if (rootBones.length > 0 && this.bones.size > 0) {
@@ -111,30 +141,31 @@ export class RVCharacter {
          // Create skeleton helper for debugging
          if (rootBones[0]) {
             this.skeletonHelper = new THREE.SkeletonHelper(rootBones[0])
-            this.skeletonHelper.visible = false // Hidden by default
+            this.skeletonHelper.visible = true // Visible by default
             this.group.add(this.skeletonHelper)
          }
       }
    }
 
-   private createBoneFromNodeInf(nodeInf: any): THREE.Bone | null {
+   private createBoneFromNodeInf(node: DazNode): THREE.Bone {
       const bone = new THREE.Bone()
-      bone.name = nodeInf.data.name || nodeInf.dazId
+      bone.name = node.data.name || node.dazId
 
       // Set initial position/rotation from node data if available
       // This would need to be expanded based on your node_inf structure
-      if (nodeInf.data.center_point) {
-         const [x, y, z] = nodeInf.data.center_point
+      if (node.data.center_point) {
+         const chans = node.data.center_point
+         ASSERT_(chans.length === 3, 'center_point must have exactly 3 channels (x, y, z)')
+         ASSERT_(chans[0].id === 'x', `chanel name should be x. (${JSON.stringify(chans[0])})`)
+         ASSERT_(chans[1].id === 'y', `chanel name should be y. (${JSON.stringify(chans[1])})`)
+         ASSERT_(chans[2].id === 'z', `chanel name should be z. (${JSON.stringify(chans[2])})`)
+         const x = NUMBER_OR_CRASH(chans[0].value, 'x must be a number')
+         const y = NUMBER_OR_CRASH(chans[1].value, 'y must be a number')
+         const z = NUMBER_OR_CRASH(chans[2].value, 'z must be a number')
          bone.position.set(x, y, z)
       }
 
       return bone
-   }
-
-   private findParentBone(nodeInf: any): THREE.Bone | null {
-      // This would need to be implemented based on your node hierarchy
-      // For now, return null (all bones are root bones)
-      return null
    }
 
    // Position and transformation methods
@@ -166,9 +197,7 @@ export class RVCharacter {
    // Animation and pose methods
    applyPose(pose: DazFilePose): void {
       if (!this.skeleton) {
-         console.warn(
-            `[RVCharacter] Cannot apply pose: no skeleton available for character ${this.characterData.dazId}`,
-         )
+         console.warn(`[RVCharacter] Cannot apply pose: no skeleton available for character ${this.character.dazId}`)
          return
       }
 
@@ -180,11 +209,11 @@ export class RVCharacter {
    private applyPoseChange(change: { url: string; value: number }): void {
       // Parse the pose URL to extract bone name and property
       // Example URL: "name://@selection/l_bigtoe2:?rotation/x/value"
-      const urlMatch = change.url.match(/name:\/\/@selection\/([^:]+):\?([^\/]+)\/([^\/]+)\/value/)
+      const urlMatch = change.url.match(/name:\/\/@selection\/([^:]+):\?([^/]+)\/([^/]+)\/value/)
       if (!urlMatch) return
 
       const [, boneName, property, axis] = urlMatch
-      const bone = this.bones.get(boneName)
+      const bone = this.bones.get(asDazId(boneName))
       if (!bone) return
 
       // Apply the transformation based on property and axis
@@ -214,6 +243,95 @@ export class RVCharacter {
 
    get boneHelperVisible(): boolean {
       return this.skeletonHelper?.visible ?? false
+   }
+
+   set boneHelperVisible(visible: boolean) {
+      if (this.skeletonHelper) {
+         this.skeletonHelper.visible = visible
+      }
+   }
+
+   private applyToStandardMaterials(fn: (mat: THREE.MeshStandardMaterial) => void): void {
+      for (const mesh of this.meshes) {
+         const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+         materials.forEach((mat) => mat instanceof THREE.MeshStandardMaterial && fn(mat))
+      }
+   }
+
+   private getFirstStandardMaterial(): THREE.MeshStandardMaterial | null {
+      if (this.meshes.length === 0) return null
+      const materials = Array.isArray(this.meshes[0].material) ? this.meshes[0].material : [this.meshes[0].material]
+      return (materials.find((mat) => mat instanceof THREE.MeshStandardMaterial) as THREE.MeshStandardMaterial) || null
+   }
+
+   toggleWireframe(): void {
+      this.applyToStandardMaterials((mat) => (mat.wireframe = !mat.wireframe))
+   }
+
+   get wireframeEnabled(): boolean {
+      return this.getFirstStandardMaterial()?.wireframe ?? false
+   }
+
+   set wireframeEnabled(enabled: boolean) {
+      this.applyToStandardMaterials((mat) => (mat.wireframe = enabled))
+   }
+
+   toggleGhostMode(): void {
+      this.applyToStandardMaterials((mat) => {
+         mat.transparent = !mat.transparent
+         mat.opacity = mat.transparent ? 0.3 : 1.0
+      })
+   }
+
+   get ghostModeEnabled(): boolean {
+      return this.getFirstStandardMaterial()?.transparent ?? false
+   }
+
+   set ghostModeEnabled(enabled: boolean) {
+      this.applyToStandardMaterials((mat) => {
+         mat.transparent = enabled
+         mat.opacity = enabled ? 0.3 : 1.0
+      })
+   }
+
+   get skeletonHierarchyString(): string {
+      if (this.bones.size === 0) return 'No skeleton available'
+      console.log(`🟢`, this.bones.size, 'bones')
+
+      const lines = ['=== Skeleton Hierarchy ===']
+      const visited = new Set<string>()
+      const worldPos = new THREE.Vector3()
+
+      // Find root bones efficiently
+      const rootBones = [...this.bones.keys()].filter(
+         (boneId) => ![...this.boneHierarchy.values()].some((children) => children.includes(boneId)),
+      )
+      console.log(`🟢 root bones: ${rootBones.map((rb) => rb).join(', ')}`)
+
+      const logBone = (boneId: string, depth = 0): void => {
+         if (visited.has(boneId)) return
+         visited.add(boneId)
+
+         const bone = this.bones.get(asDazId(boneId))
+         if (!bone) return
+
+         const indent = '  '.repeat(depth)
+         const { x: lx, y: ly, z: lz } = bone.position
+         bone.getWorldPosition(worldPos)
+         const { x: wx, y: wy, z: wz } = worldPos
+
+         lines.push(
+            `${indent}${bone.name || boneId}: local(${lx.toFixed(2)}, ${ly.toFixed(2)}, ${lz.toFixed(2)}) world(${wx.toFixed(2)}, ${wy.toFixed(2)}, ${wz.toFixed(2)})`,
+         )
+
+         // Recursively log children
+         this.boneHierarchy.get(boneId)?.forEach((childId) => logBone(childId, depth + 1))
+      }
+
+      rootBones.forEach((rootBoneId) => logBone(rootBoneId))
+      const result = lines.join('\n')
+      console.log(result)
+      return result
    }
 
    update(): void {

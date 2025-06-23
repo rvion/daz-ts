@@ -18,12 +18,12 @@ export class DazFigure extends DsonFile<$$dson_figure> {
       // init
       if (self.data.geometry_library) {
          for (const geometryInfData of self.data.geometry_library) {
-            await self.hydrateGeometryInf(geometryInfData)
+            await self.hydrateGeometry(geometryInfData)
          }
       }
       if (self.data.node_library) {
          for (const nodeInfData of self.data.node_library) {
-            await self.hydrateNodeInf(nodeInfData) // Use hydrateNodeInf for node_inf types
+            await self.hydrateNode(nodeInfData) // Use hydrateNodeInf for node_inf types
          }
       }
 
@@ -31,6 +31,6 @@ export class DazFigure extends DsonFile<$$dson_figure> {
    }
 
    get availableGeometryIds(): string_DazId[] {
-      return Array.from(this.geometryInfs.keys())
+      return Array.from(this.geometries.keys())
    }
 }

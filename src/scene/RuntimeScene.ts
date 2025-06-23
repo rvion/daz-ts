@@ -111,12 +111,6 @@ export class RuntimeScene {
       this.renderer.render(this.scene, this.camera)
    }
 
-   toggleAllBoneHelpersVisibility(): void {
-      for (const character of this.characters) {
-         character.toggleBoneHelperVisibility()
-      }
-   }
-
    dispose(): void {
       if (this.isDisposed) return
 

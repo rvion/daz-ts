@@ -21,19 +21,19 @@ export abstract class DsonFile<DATA extends $$dson> extends DazAbstraction<FileM
    }
 
    get absPath(): string_AbsPath {
-      return this.parent.absPath
+      return this.source.absPath
    }
 
    get relPath(): string_RelPath {
-      return this.parent.relPath
+      return this.source.relPath
    }
 
    get fileExt(): string_Ext {
-      return this.parent.fileExt
+      return this.source.fileExt
    }
 
    get rootDir(): string {
-      return this.parent.rootDir
+      return this.source.rootDir
    }
 
    // ---- print methods
