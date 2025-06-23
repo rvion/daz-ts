@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: ... */
 import { beforeAll, describe, expect, test } from 'bun:test'
 import '../DI.js'
 
@@ -6,21 +5,17 @@ import * as THREE from 'three'
 import { DazCharacter } from '../core/DazFileCharacter.js'
 import { DazMgr } from '../mgr.js'
 import { asDazId } from '../spec.js'
+import { bang } from '../utils/assert.js'
 import { fs } from '../utils/fsNode.js'
 import { RVCharacter } from './Character.js'
 
-// Load real Genesis 9 character for testing
 async function loadGenesis9Character(): Promise<DazCharacter> {
    // Create DazMgr instance with the same path as main.ts
    const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
 
    // Load Genesis 9 character from the same path as main.ts
    const character = await mgr.loadFull_FromRelPath('People/Genesis 9/Genesis 9.duf')
-
-   if (!(character instanceof DazCharacter)) {
-      throw new Error(`Expected DazCharacter, got ${character.constructor.name}`)
-   }
-
+   if (!(character instanceof DazCharacter)) throw new Error(`Expected DazCharacter, got ${character.constructor.name}`)
    return character
 }
 
@@ -40,17 +35,11 @@ describe('RVCharacter Skeleton Tests', () => {
 
    test('should build skeleton with bones', () => {
       expect(rvCharacter.bones.size).toBeGreaterThan(0)
-      console.log(`Character has ${rvCharacter.bones.size} bones`)
    })
 
-   test.only('should have proper bone hierarchy', () => {
+   test('should have proper bone hierarchy', () => {
       const hierarchyString = rvCharacter.skeletonHierarchyString
       expect(hierarchyString).toContain('=== Skeleton Hierarchy ===')
-
-      // Log the full hierarchy for visual inspection
-      console.log('\n' + hierarchyString)
-
-      // Basic hierarchy checks
       expect(hierarchyString.length).toBeGreaterThan(50)
    })
 
@@ -73,9 +62,7 @@ describe('RVCharacter Skeleton Tests', () => {
 
          // Log first few bones for inspection
          if (bonesWithPositions <= 5) {
-            console.log(
-               `Bone ${boneId}: local(${bone.position.x.toFixed(2)}, ${bone.position.y.toFixed(2)}, ${bone.position.z.toFixed(2)}) world(${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}, ${worldPos.z.toFixed(2)})`,
-            )
+            console.log(`Bone ${boneId}: local(${bone.position.x.toFixed(2)}, ${bone.position.y.toFixed(2)}, ${bone.position.z.toFixed(2)}) world(${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}, ${worldPos.z.toFixed(2)})`) // biome-ignore format: misc
          }
       }
 
@@ -95,19 +82,15 @@ describe('RVCharacter Skeleton Tests', () => {
          toeBone.getWorldPosition(toeWorldPos)
 
          expect(headWorldPos.y).toBeGreaterThan(toeWorldPos.y)
-         console.log(`Head Y: ${headWorldPos.y.toFixed(2)}, Toe Y: ${toeWorldPos.y.toFixed(2)}`)
+         expect(headWorldPos.y).toBeGreaterThan(150 /* cm */)
+         expect(toeWorldPos.y).toBeLessThan(10 /* cm */)
       }
    })
 
    test('should have proper parent-child relationships', () => {
-      const hipBone = rvCharacter.bones.get(asDazId('hip'))
-      const pelvisBone = rvCharacter.bones.get(asDazId('pelvis'))
-
-      if (hipBone && pelvisBone) {
-         // Check that pelvis is a child of hip
-         expect(hipBone.children).toContain(pelvisBone)
-         console.log(`Hip has ${hipBone.children.length} children`)
-      }
+      const hipBone = bang(rvCharacter.bones.get(asDazId('hip')))
+      const pelvisBone = bang(rvCharacter.bones.get(asDazId('pelvis')))
+      expect(hipBone.children).toContain(pelvisBone)
    })
 
    test('debug controls should work', () => {

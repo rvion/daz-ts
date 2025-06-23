@@ -105,15 +105,21 @@ export class RVCharacter {
       const figureNodes = [...this.figure_orCrash.nodes.values()]
       console.log(`❓ ---- buildSkeleton (${figureNodes.length} nodes)`)
 
-      // ----- First pass: create all bones -----
+      // Store absolute positions for relative calculation
+      const absolutePositions = new Map<string, THREE.Vector3>()
+
+      // ----- First pass: create all bones and store absolute positions -----
       for (const node of figureNodes) {
          if (node.data.type === 'bone') {
             const bone = this.createBoneFromNodeInf(node)
             this.bones.set(node.dazId, bone)
+
+            // Store the absolute position for later relative calculation
+            absolutePositions.set(node.dazId, bone.position.clone())
          } else console.log(`[buildSkeleton.fstPass] node '${node.dazId}' is not a bone => skipping`)
       }
 
-      // ----- Second pass: build hierarchy -----
+      // ----- Second pass: build hierarchy and calculate relative positions -----
       for (const node of figureNodes) {
          if (node.data.type !== 'bone') {
             console.log(`[buildSkeleton.sndPass] node '${node.dazId}' is not a bone => skipping`)
@@ -124,15 +130,28 @@ export class RVCharacter {
          if (parent.type !== 'bone') {
             console.log(`🔶SKIPPING] parent ${parent?.type}`)
             rootBones.push(bone)
+            // Root bones keep their absolute position
             continue
          }
 
          const parentBone = this.bones.get(parent.dazId)
          if (parentBone == null) throw new Error(`Parent bone ${parent.dazId} not found for ${node.dazId}`)
-         // parent threejs bones
+
+         // Calculate relative position: child_absolute - parent_absolute
+         const childAbsPos = bang(absolutePositions.get(node.dazId), `absolute position not found for ${node.dazId}`)
+         const parentAbsPos = bang(
+            absolutePositions.get(parent.dazId),
+            `absolute position not found for ${parent.dazId}`,
+         )
+         const relativePos = childAbsPos.clone().sub(parentAbsPos)
+
+         // Set the relative position before adding to parent
+         bone.position.copy(relativePos)
+
+         // Add to parent bone
          parentBone.add(bone)
 
-         // and index them
+         // Index the hierarchy
          const parentId = node.parentId_orCrash
          if (!this.boneHierarchy.has(parentId)) this.boneHierarchy.set(parentId, [])
          bang(this.boneHierarchy.get(parentId)).push(node.dazId)
