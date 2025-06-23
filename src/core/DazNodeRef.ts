@@ -12,7 +12,7 @@ export class DazNodeRef extends DazAbstraction<AnyDazAbstraction, $$node_ref> {
    static async init(mgr: DazMgr, parent: AnyDazAbstraction, json: $$node_ref): Promise<DazNodeRef> {
       // Renamed and updated type
       const self = new DazNodeRef(mgr, parent, json) // Renamed
-      self.printHeader()
+      // self.printHeader()
       if (self.data.geometries) {
          for (const geometryRefData of self.data.geometries) {
             // Renamed nodeData to geometryRefData for clarity

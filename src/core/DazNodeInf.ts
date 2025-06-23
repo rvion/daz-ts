@@ -13,7 +13,7 @@ export class DazNodeInf extends DazAbstraction<AnyDazAbstraction, $$node_inf> {
    // init
    static async init(mgr: DazMgr, parent: AnyDazAbstraction, json: $$node_inf): Promise<DazNodeInf> {
       const self = new DazNodeInf(mgr, parent, json)
-      self.printHeader()
+      // self.printHeader()
 
       // If this node_inf has children (e.g., a skeleton), hydrate them
       if (self.data.children) {
