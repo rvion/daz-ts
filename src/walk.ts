@@ -7,6 +7,8 @@ export type FileMeta = {
    relPath: string_RelPath
    rootDir: string
    fileExt: string_Ext
+   baseName: string
+   fileName: string
 }
 
 // Type definition for file processing callbacks
@@ -52,21 +54,14 @@ export function walk<A>(
 
       // process files based on their extensions
       else if (stat.isFile()) {
-         const fileExt = path.extname(item).toLowerCase()
+         const fileExt = path.extname(item).toLowerCase() as string_Ext
          const relPath = path.relative(rootDir, absPath).replace(/\\/g, '/')
-
-         // dsa
-         if (fileExt === '.dsa' && callbacks.onDsaFile) {
-            out.push(callbacks.onDsaFile({ absPath, relPath, rootDir, fileExt }))
-         }
-         // dsf
-         else if (fileExt === '.dsf' && callbacks.onDsfFile) {
-            out.push(callbacks.onDsfFile({ absPath, relPath, rootDir, fileExt }))
-         }
-         // duf
-         else if (fileExt === '.duf' && callbacks.onDufFile) {
-            out.push(callbacks.onDufFile({ absPath, relPath, rootDir, fileExt }))
-         }
+         const baseName = path.basename(item, fileExt) as string_Ext // Get the base name without extension
+         const fileName = path.basename(item) // Get the base name with extension
+         const fileMeta: FileMeta = { absPath, relPath, rootDir, fileExt, baseName, fileName }
+         if (fileExt === '.dsa' && callbacks.onDsaFile) out.push(callbacks.onDsaFile(fileMeta))
+         else if (fileExt === '.dsf' && callbacks.onDsfFile) out.push(callbacks.onDsfFile(fileMeta))
+         else if (fileExt === '.duf' && callbacks.onDufFile) out.push(callbacks.onDufFile(fileMeta))
       }
    }
    return out

@@ -41,7 +41,7 @@ export class DazMgr {
    ) {}
 
    // ---- Load Simple
-   async loadSimple_FromRelPath(relPath: string_RelPath) {
+   async loadSimple_FromRelPath(relPath: string_RelPath): Promise<DsonFile<any_>> {
       return this.loadSimple_fromMeta(this._getFileMeta(relPath)) // Store the file path in the manager
    }
 
@@ -104,7 +104,11 @@ export class DazMgr {
    // ---- Summarize
    async summarize() {
       const res = walk(this.absRootPath, this.absRootPath, {
-         onDufFile: (f) => this.loadSimple_fromMeta(f),
+         onDufFile: (f) =>
+            this.loadSimple_fromMeta(f).catch((_err) => {
+               if (f.fileName.startsWith('._')) return // skip hidden files
+               console.log(`[🤠] skipping ${f.fileName}`)
+            }),
          // onDsaFile: (f) => this.handleFile(f),
          // onDsfFile: (f) => this.handleFile(f),
       })
@@ -141,11 +145,15 @@ export class DazMgr {
    private _getFileMeta(relPath: string_RelPath): FileMeta {
       const absPath = path.join(this.absRootPath, relPath)
       const fileExt = path.extname(absPath) as string_Ext // Ensure this is a valid extension
+      const baseName = path.basename(absPath, fileExt) // Get the base name without extension
+      const fileName = path.basename(absPath) // Get the base name without extension
       const fileMeta: FileMeta = {
          absPath: absPath as string_AbsPath,
          relPath: relPath as string_RelPath,
          fileExt: fileExt,
          rootDir: this.absRootPath,
+         baseName,
+         fileName,
       }
       return fileMeta
    }

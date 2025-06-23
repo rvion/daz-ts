@@ -35,11 +35,11 @@ export abstract class DazAbstraction<PARENT, DATA> {
    }
 
    // ---- child hydrate
-   nodes: Map<string_DazId, DazNodeRef> = new Map() // Renamed DazNode to DazNodeRef
+   nodesRefs: Map<string_DazId, DazNodeRef> = new Map() // Renamed DazNode to DazNodeRef
    async hydrateNodeRef(nodeData: $$node_ref): Promise<DazNodeRef> {
       // Renamed hydrateNode to hydrateNodeRef, updated type
       const node = await GLOBAL.DazNodeRef.init(this.mgr, this, nodeData) // Renamed GLOBAL.DazNode to GLOBAL.DazNodeRef
-      this.nodes.set(node.dazId, node)
+      this.nodesRefs.set(node.dazId, node)
       return node
    }
 

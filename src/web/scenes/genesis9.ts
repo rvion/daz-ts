@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { DazCharacter } from '../../core/DazFileCharacter.js'
+
 // import { DazNodeRef } from '../../core/DazNodeRef.js'; // Not directly used in function signatures
-import { DazGeometryRef } from '../../core/DazGeometryRef.js'
 
 // No other core/* or spec.js imports should be needed here for geometry processing
 // DazGeometryInf is used implicitly via geometryRef.resolvedGeometryInf
@@ -34,7 +34,7 @@ export async function initSceneGenesis9(character: DazCharacter) {
 
    characterMeshes.length = 0 // Clear previous meshes
 
-   for (const nodeRef of character.nodes.values()) {
+   for (const nodeRef of character.nodesRefs.values()) {
       if (nodeRef.geometryRefs) {
          for (const geometryRef of nodeRef.geometryRefs.values()) {
             try {
@@ -49,8 +49,10 @@ export async function initSceneGenesis9(character: DazCharacter) {
                      threeGeometry.setIndex(indices)
                      threeGeometry.computeVertexNormals()
 
+                     // const randomColor = Math.random() * 0xffffff // Random color for each mesh
+                     const randomColor = 0xdddddd // Random color for each mesh
                      const material = new THREE.MeshStandardMaterial({
-                        color: 0xdddddd,
+                        color: randomColor, // 0xdddddd
                         wireframe: false,
                         side: THREE.DoubleSide,
                      })

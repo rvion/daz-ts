@@ -35,6 +35,7 @@ export const dazAssetTypes = [
    'preset_layered_image', 'preset_layered_image', 'preset_light', 'preset_material', 'preset_pose',
    'preset_render_settings', 'preset_shader', 'preset_simulation_settings', 'prop', 'scene_subset',
    'scene', 'script', 'shader', 'utility', 'uv_set', 'wearable',
+   /* e.g. dicktator */ 'preset_properties', 'preset_shape'
 ] as const
 
 const dazAssetType = type.enumerated(...dazAssetTypes).as<DazAssetType>()
