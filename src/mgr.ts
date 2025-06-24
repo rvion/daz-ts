@@ -1,14 +1,14 @@
 import chalk from 'chalk'
 import { DefaultMap } from 'mnemonist'
 import * as path from 'pathe'
-import { AnyDsonFile, DsonFile, KnownDazFile } from './core/_DsonFile.js'
+import { KnownDazFile } from './core/_DsonFile.js'
 import { DazCharacter } from './core/DazFileCharacter.js'
 import { DazFigure } from './core/DazFileFigure.js'
 import { DazFilePose } from './core/DazFilePose.js'
 import { DazWearable } from './core/DazFileWearable.js'
 import { GLOBAL } from './DI.js'
-import { $$, $$dson, DazAssetType, string_DazId } from './spec.js'
-import { any_, string_AbsPath, string_Ext, string_RelPath } from './types.js'
+import { $$, $$asset_info, $$dson, DazAssetType, string_DazId } from './spec.js'
+import { string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
 import { bang } from './utils/assert.js'
 import { FS } from './utils/fsNode.js'
@@ -16,7 +16,6 @@ import { FileMeta, walk } from './walk.js'
 
 export class DazMgr {
    // ---- files
-   filesSimple = new Map<string_AbsPath, DsonFile<any_>>()
    filesFull = new Map<string_AbsPath, KnownDazFile>()
 
    // ---- full objects loaded during the run
@@ -81,16 +80,12 @@ export class DazMgr {
    ) {}
 
    // ---- Load Simple
-   async loadSimple_FromRelPath(relPath: string_RelPath): Promise<DsonFile<any_>> {
+   async loadSimple_FromRelPath(relPath: string_RelPath): Promise<$$asset_info> {
       return this.loadSimple_fromMeta(this._getFileMeta(relPath)) // Store the file path in the manager
    }
 
    /** Only load as simple DSON file. do not hydrate graph. do not resolve URLs. */
-   private async loadSimple_fromMeta(meta: FileMeta): Promise<DsonFile<any_>> {
-      // use cached file if exists
-      if (this.filesSimple.has(meta.absPath)) return bang(this.filesSimple.get(meta.absPath))
-
-      // load dson
+   private async loadSimple_fromMeta(meta: FileMeta): Promise<$$asset_info> {
       // const json = await this.fs.readJSON(meta.absPath)
       const json = await this.fs.readPartialJSON(meta.absPath, 2000)
       const dson = check_orCrash($$.dson, json, meta.absPath)
@@ -98,9 +93,10 @@ export class DazMgr {
       this.count++
 
       // load simple
-      const file = new AnyDsonFile(this, meta, dson)
-      this.filesSimple.set(file.absPath, file)
-      return file
+      // if (dson.asset_info.type==='modifier')  {
+      //    x = new DsonMo
+      // }
+      return dson.asset_info
    }
 
    // ---- Load Full

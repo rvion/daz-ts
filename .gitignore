@@ -1,5 +1,5 @@
 node_modules
-data/*
+data/processed_files.txt
 !data/.gitkeep
 *.duf
 tsconfig.tsbuildinfo
