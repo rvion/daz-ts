@@ -44,6 +44,40 @@ This repository aims to provide a [TypeScript](https://www.typescriptlang.org/) 
 - [ ] geoshell - is a new layer surrounding the object with a slight offset. It has the same UV layout.
 - [ ] geocraft - is an object that integrtes with the base object, so it is one piece of mesh.
 
+
+-------------
+
+Explore daz folder:
+
+```sh
+$ bun src/scripts/summarize.ts
+
+Processed 6348 relevant files.
+Type                          |  .dsf |  .duf | total
+-----------------------------------------------------
+character                     |       |    12 |    12
+figure                        |    80 |       |    80
+material                      |    54 |       |    54
+modifier                      |  4526 |       |  4526
+preset_dform                  |       |     1 |     1
+preset_hierarchical_material  |       |   407 |   407
+preset_hierarchical_pose      |       |    39 |    39
+preset_layered_image          |       |   195 |   195
+preset_light                  |       |     3 |     3
+preset_material               |       |   196 |   196
+preset_pose                   |       |   211 |   211
+preset_properties             |       |     1 |     1
+preset_render_settings        |       |    24 |    24
+preset_shader                 |       |   136 |   136
+preset_shape                  |       |    92 |    92
+preset_simulation_settings    |       |     2 |     2
+prop                          |    29 |       |    29
+scene                         |       |    36 |    36
+scene_subset                  |       |    40 |    40
+uv_set                        |   121 |       |   121
+wearable                      |       |   143 |   143
+```
+
 -------------
 
 ## Technical overview of DAZ.

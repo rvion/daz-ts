@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+import { DefaultMap } from 'mnemonist'
 import * as path from 'pathe'
 import { AnyDsonFile, DsonFile, KnownDazFile } from './core/_DsonFile.js'
 import { DazCharacter } from './core/DazFileCharacter.js'
@@ -33,9 +34,44 @@ export class DazMgr {
 
    // ---- stats
    count = 0
-   countPerType = new Map<DazAssetType, number>()
-   incrementType = (type: DazAssetType): void => {
-      this.countPerType.set(type, (this.countPerType.get(type) ?? 0) + 1)
+   // countPerType = new DefaultMap<DazAssetType, number>(() => 0)
+   countPerTypePerExt = new DefaultMap<string_Ext | 'total', DefaultMap<DazAssetType, { x: number }>>(
+      () => new DefaultMap(() => ({ x: 0 })),
+   )
+
+   /**
+    *  outputs something like
+    * ```
+    *            | total | duf | dsf |
+    *  character |    10 |   5 |   5 |
+    *  figure    |    10 |   5 |   5 |
+    * ```
+    */
+   get statTable(): string {
+      const out: string[] = []
+      const exts = Array.from(this.countPerTypePerExt.keys()).sort()
+      const totalMap = this.countPerTypePerExt.get('total')
+      const types = Array.from(totalMap.keys()).sort()
+      const PAD_TYPE = Math.max(...types.map((t) => t.length)) + 1 // +1 for padding
+      const PAD_NUMBER = 5
+      const header = ['Type'.padEnd(PAD_TYPE), ...exts.map((ext) => ext.padStart(PAD_NUMBER))].join(' | ')
+      out.push(header)
+      out.push('-'.repeat(header.length))
+      for (const type of types) {
+         const counts = exts.map((ext) => this.countPerTypePerExt.get(ext).get(type).x)
+         const line = [
+            type.padEnd(PAD_TYPE),
+            ...counts.map((i) => (i === 0 ? '' : i.toString()).padStart(PAD_NUMBER)),
+         ].join(' | ')
+         out.push(line)
+      }
+      return out.join('\n')
+   }
+
+   incrementType = (type: DazAssetType, ext: string_Ext): void => {
+      this.countPerTypePerExt.get('total').get(type).x++
+      this.countPerTypePerExt.get(ext).get(type).x++
+      // this.countPerType.set(type, (this.countPerType.get(type) ?? 0) + 1)
    }
 
    constructor(
@@ -57,7 +93,7 @@ export class DazMgr {
       // load dson
       const json = await this.fs.readJSON(meta.absPath)
       const dson = check_orCrash($$.dson, json, meta.absPath)
-      this.incrementType(dson.asset_info.type)
+      this.incrementType(dson.asset_info.type, meta.fileExt)
       this.count++
 
       // load simple
@@ -80,7 +116,7 @@ export class DazMgr {
       // load dson
       const json = await this.fs.readJSON(meta.absPath)
       const dson = check_orCrash($$.dson, json, meta.absPath)
-      this.incrementType(dson.asset_info.type)
+      this.incrementType(dson.asset_info.type, meta.fileExt)
       this.count++
 
       // load full
@@ -107,18 +143,19 @@ export class DazMgr {
    }
 
    // ---- Summarize
-   async summarize() {
+   async summarize(): Promise<string> {
+      const logUnexpectedParseError = (f: FileMeta) => (_err: unknown) => {
+         if (f.fileName.startsWith('._')) return // skip hidden files
+         console.log(`[🤠] skipping ${f.fileName}`)
+      }
       const res = walk(this.absRootPath, this.absRootPath, {
-         onDufFile: (f) =>
-            this.loadSimple_fromMeta(f).catch((_err) => {
-               if (f.fileName.startsWith('._')) return // skip hidden files
-               console.log(`[🤠] skipping ${f.fileName}`)
-            }),
+         onDufFile: (f) => this.loadSimple_fromMeta(f).catch(logUnexpectedParseError(f)),
+         onDsfFile: (f) => this.loadSimple_fromMeta(f).catch(logUnexpectedParseError(f)),
          // onDsaFile: (f) => this.handleFile(f),
-         // onDsfFile: (f) => this.handleFile(f),
       })
       await Promise.all(res)
-      return this.saveSummary()
+      await this.saveSummary()
+      return this.statTable
    }
 
    async saveSummary() {
@@ -134,7 +171,7 @@ export class DazMgr {
          const outputDir = path.dirname(pathAssetList)
          await this.fs.mkdir(outputDir, { recursive: true })
          await this._writeFile(pathAssetList, summary)
-         await this._writeFile(pathStats, JSON.stringify(Object.fromEntries(this.countPerType), null, 2))
+         await this._writeFile(pathStats, this.statTable)
          console.log(`Processed ${this.count} relevant files.`)
       } catch (err: unknown) {
          console.error(`Error writing to ${pathAssetList}`, err)
