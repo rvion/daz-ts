@@ -79,26 +79,6 @@ export class DazMgr {
       public fs: FS,
    ) {}
 
-   // ---- Load Simple
-   async loadSimple_FromRelPath(relPath: string_RelPath): Promise<$$asset_info> {
-      return this.loadSimple_fromMeta(this._getFileMeta(relPath)) // Store the file path in the manager
-   }
-
-   /** Only load as simple DSON file. do not hydrate graph. do not resolve URLs. */
-   private async loadSimple_fromMeta(meta: FileMeta): Promise<$$asset_info> {
-      // const json = await this.fs.readJSON(meta.absPath)
-      const json = await this.fs.readPartialJSON(meta.absPath, 2000)
-      const dson = check_orCrash($$.dson, json, meta.absPath)
-      this.incrementType(dson.asset_info.type, meta.fileExt)
-      this.count++
-
-      // load simple
-      // if (dson.asset_info.type==='modifier')  {
-      //    x = new DsonMo
-      // }
-      return dson.asset_info
-   }
-
    // ---- Load Full
    /**  Load full Daz asset, from meta. */
    async loadFull_FromRelPath(relPath: string_RelPath) {
@@ -118,7 +98,6 @@ export class DazMgr {
 
       // load full
       const stuff = await this.loadStuff(meta, dson)
-      this.filesSimple.set(meta.absPath, stuff) // also store as simple file
       this.filesFull.set(meta.absPath, stuff)
       return stuff
    }
@@ -139,7 +118,7 @@ export class DazMgr {
       else throw new Error(`Invalid asset type: ${chalk.red(`'${assetType}'`)} in "${meta.absPath}"`)
    }
 
-   // ---- Summarize
+   // #region ---- Summarize
    async summarize(): Promise<string> {
       const logUnexpectedParseError = (f: FileMeta) => (_err: unknown) => {
          if (f.fileName.startsWith('._')) return // skip hidden files
@@ -155,11 +134,26 @@ export class DazMgr {
       return this.statTable
    }
 
-   async saveSummary() {
-      const summary = [...this.filesSimple.values()] //
-         .map((f) => `{${f.fileExt}} [${f.assetType}] ${f.relPath}`)
-         .sort()
-         .join('\n')
+   /** Only load as simple DSON file. do not hydrate graph. do not resolve URLs. */
+   private seenFiles: string[] = []
+   private async loadSimple_fromMeta(meta: FileMeta): Promise<$$asset_info> {
+      // const json = await this.fs.readJSON(meta.absPath)
+      const json = await this.fs.readPartialJSON(meta.absPath, 2000)
+      const dson = check_orCrash($$.dson, json, meta.absPath)
+      const assetType = dson.asset_info.type
+      this.incrementType(assetType, meta.fileExt)
+      this.seenFiles.push(`{${meta.fileExt}} [${assetType}] ${meta.relPath}`)
+      this.count++
+
+      // load simple
+      // if (dson.asset_info.type==='modifier')  {
+      //    x = new DsonMo
+      // }
+      return dson.asset_info
+   }
+
+   private async saveSummary() {
+      const summary = this.seenFiles.sort().join('\n')
 
       const pathAssetList = 'data/processed_files.txt' // More generic name
       const pathStats = 'data/stats.txt' // More generic name
@@ -175,7 +169,7 @@ export class DazMgr {
       }
    }
 
-   // ---- Utils
+   // #region ---- Utils
    private _writeFile(path: string, content: string): Promise<void> {
       console.log(`Output written to ${chalk.cyanBright(path)}`)
       return this.fs.writeFile(path, content)

@@ -1,5 +1,6 @@
 import { scope, type } from 'arktype'
 
+export type string_DazGroup = string & { __dazgroup: true }
 export type string_DazUrl = string & { __dazurl: true }
 export type string_DazId = string & { __dazid: true }
 
@@ -11,7 +12,7 @@ export type $$dson_character = typeof $$.dson_character.infer
 export type $$dson_wearable = typeof $$.dson_wearable.infer
 export type $$dson_figure = typeof $$.dson_figure.infer
 export type $$dson_pose = typeof $$.dson_pose.infer
-
+export type $$dson_modifier = typeof $$.dson_modifier.infer
 export type $$chanel = typeof $$.chanel.infer
 export type $$rotation_order = typeof $$.rotation_order.infer
 // core
@@ -62,6 +63,7 @@ export const $ = scope({
    // #region Core stuff ------------------------------------------------------------------------
    dazid: type('string').as<string_DazId>(),
    dazurl: type('string').as<string_DazUrl>(),
+   dazgroup: type('string').as<string_DazUrl>(),
 
    point2d: ['number', 'number'], // [ 0, 0, 0 ],
    point3d: ['number', 'number', 'number'], // [ 0, 0, 0 ],
@@ -102,6 +104,20 @@ export const $ = scope({
       // 'geometry_library?': 'geometry_inf[]', // .dsf figure defines its geometries
       // 'node_library?': 'node_inf[]', // .dsf figure defines its nodes (skeleton, etc.)
       // 'modifier_library?': 'modifier_inf[]', // And modifiers
+      // 🗑️❓ 'uv_set_library?': { '+': 'reject' }, // TODO: Define uv_set_library if needed
+      // 🗑️❓ 'material_library?': 'material[]', // Can also define materials
+      // 🗑️❓ 'image_library?': 'image[]', // And images
+   },
+
+   dson_modifier: {
+      '+': 'reject',
+      file_version: 'string',
+      asset_info: 'asset_info',
+      // scene: 'scene_pose', // .dsf figure files usually don't have a "scene" block in the same way .duf files do
+      // 'geometry_library?': 'geometry_inf[]', // .dsf figure defines its geometries
+      // 'node_library?': 'node_inf[]', // .dsf figure defines its nodes (skeleton, etc.)
+      'modifier_library?': 'dson_modifier_modifier', // And modifiers
+      scene: 'scene',
       // 🗑️❓ 'uv_set_library?': { '+': 'reject' }, // TODO: Define uv_set_library if needed
       // 🗑️❓ 'material_library?': 'material[]', // Can also define materials
       // 🗑️❓ 'image_library?': 'image[]', // And images
@@ -414,6 +430,18 @@ export const $ = scope({
       },
       'extra?': 'modifier_inf_extra[]',
       // 'channel?': 'chanel',
+   },
+   // the modifier data in modifier_libary found in asset type='modifier'
+   dson_modifier_modifier: {
+      '+': 'reject',
+      id: 'dazid',
+      'name?': 'string',
+      'parent?': 'string',
+      'presentation?': 'presentation',
+      'channel?': 'chanel',
+      group: 'dazgroup',
+      'formulas?': 'formula_item[]',
+      'extra?': 'modifier_inf_extra[]',
    },
    selMap: {
       id: 'dazid',

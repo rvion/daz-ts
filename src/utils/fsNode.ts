@@ -41,7 +41,7 @@ export const fs: FS = {
          }
 
          const out = parse(partialString, STR | OBJ)
-         console.log(JSON.stringify(out))
+         // console.log(JSON.stringify(out))
          return out
       } finally {
          await fileHandle.close()
