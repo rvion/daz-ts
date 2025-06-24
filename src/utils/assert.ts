@@ -19,6 +19,13 @@ export const bang = <T>(stuff: Maybe<T>, msg?: string): T => {
    return stuff as T
 }
 
+export const bong = <T>(stuff: Maybe<T>, msg?: string): T => {
+   if (stuff == null) {
+      console.error(`⁉️`, msg ?? 'Expected value to be defined, but it was null or undefined')
+   }
+   return stuff as T
+}
+
 export const NUMBER_OR_CRASH = (x: unknown, message: string): number => {
    if (typeof x !== 'number' || Number.isNaN(x) || !Number.isFinite(x)) {
       throw new Error(`Expected a valid number, but got: ${x}. ${message}`)
