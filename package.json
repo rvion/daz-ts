@@ -22,6 +22,7 @@
     "lil-gui": "^0.20.0",
     "magic-bytes.js": "^1.12.1",
     "mnemonist": "^0.40.3",
+    "partial-json": "^0.1.7",
     "pathe": "^2.0.3",
     "three": "^0.177.0",
     "typescript": "^5.8.3",

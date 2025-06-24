@@ -91,7 +91,8 @@ export class DazMgr {
       if (this.filesSimple.has(meta.absPath)) return bang(this.filesSimple.get(meta.absPath))
 
       // load dson
-      const json = await this.fs.readJSON(meta.absPath)
+      // const json = await this.fs.readJSON(meta.absPath)
+      const json = await this.fs.readPartialJSON(meta.absPath, 2000)
       const dson = check_orCrash($$.dson, json, meta.absPath)
       this.incrementType(dson.asset_info.type, meta.fileExt)
       this.count++
@@ -146,7 +147,7 @@ export class DazMgr {
    async summarize(): Promise<string> {
       const logUnexpectedParseError = (f: FileMeta) => (_err: unknown) => {
          if (f.fileName.startsWith('._')) return // skip hidden files
-         console.log(`[🤠] skipping ${f.fileName}`)
+         console.log(`[🔶] skipping ${f.absPath}: ${_err}`)
       }
       const res = walk(this.absRootPath, this.absRootPath, {
          onDufFile: (f) => this.loadSimple_fromMeta(f).catch(logUnexpectedParseError(f)),

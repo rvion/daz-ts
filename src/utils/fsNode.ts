@@ -1,7 +1,11 @@
 import * as fs_ from 'node:fs/promises'
 import zlib from 'node:zlib'
+import { filetypeinfo } from 'magic-bytes.js'
+import { OBJ, parse, STR } from 'partial-json'
+import { readPartialGzipped } from './readPartialGzipped.js'
 
 export type FS = {
+   readPartialJSON: (path: string, bytes: number) => Promise<unknown>
    readJSON: (path: string) => Promise<unknown>
    writeFile: typeof fs_.writeFile
    readdir: typeof fs_.readdir
@@ -11,7 +15,38 @@ export type FS = {
    copyFile: typeof fs_.copyFile
    rename: typeof fs_.rename
 }
+
 export const fs: FS = {
+   readPartialJSON: async (path: string, bytes: number): Promise<unknown> => {
+      const fileHandle = await fs_.open(path, 'r')
+      try {
+         // read first few bytes to detect file type
+         const headerBuffer = Buffer.alloc(Math.min(bytes, 1024))
+         const { bytesRead: headerBytesRead } = await fileHandle.read(headerBuffer, 0, headerBuffer.length, 0)
+         const headerPartial = headerBuffer.subarray(0, headerBytesRead)
+
+         // use magic-bytes.js to determine if the file is gzipped or not
+         const info = filetypeinfo(headerPartial)
+
+         let partialString: string
+         if (info.find((t) => t.typename === 'gz')) {
+            // For gzipped files, we need to decompress from the beginning
+            partialString = await readPartialGzipped(path, bytes)
+         } else {
+            // For non-gzipped files, read the requested bytes directly
+            const buffer = Buffer.alloc(bytes)
+            const { bytesRead } = await fileHandle.read(buffer, 0, bytes, 0)
+            const partialBuffer = buffer.subarray(0, bytesRead)
+            partialString = partialBuffer.toString('utf-8')
+         }
+
+         const out = parse(partialString, STR | OBJ)
+         console.log(JSON.stringify(out))
+         return out
+      } finally {
+         await fileHandle.close()
+      }
+   },
    readJSON: async (path: string): Promise<unknown> => {
       const fileBuffer = await fs_.readFile(path) // Read as Buffer
       try {

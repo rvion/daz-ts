@@ -1,6 +1,9 @@
 import type { FS } from './fsNode.js'
 
 export const fs: FS = {
+   readPartialJSON(_path, _bytes) {
+      throw new Error('readPartialJSON not implemented in fsWeb.js')
+   },
    // biome-ignore format: misc
    readJSON: async (path: string) => {
       if (path === '__test__') return Promise.resolve([1, 2, 3, 4, 5])
