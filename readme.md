@@ -10,18 +10,30 @@ This repository aims to provide a [TypeScript](https://www.typescriptlang.org/) 
 ## Project Scope
 
 1. [ ] Parse and validate Daz Libary files
-   1. [ ] Extract metadata from Daz Library files
-   2. [ ] resolve dependencies
-   3. [ ] index and map all morphs, poses, and other assets
+   1. [x] full validation for the whole `.duf`,`.dsf` files
+   2. [ ] Extract metadata from Daz Library files
+   3. [ ] resolve dependencies
+   4. [ ] index and map all morphs, poses, and other assets
+   5. [x] be fast
+      1. [x] peek into json files as efficiently as possible
+         1. [x] manuall [Buffer.alloc](src/utils/fsNode.ts:24)
+         2. [x] use [magic-bytes.js](https://github.com/LarsKoelpin/magic-bytes) to detect if [gzipped](https://www.daz3d.com/forums/discussion/531316/daz-studio-compressed-file-format?srsltid=AfmBOorlxB7Mi1U5UX9MKfLPcf91HoEMxLI_GSmdMZSreYmhCCjPmMoD)
+         3. [x] use [zlib](src/utils/readPartialGzipped.ts) efficiently to peek into first chunks of gzipped files
 
 2. [ ] Scene manager to pose daz characters, apply daz poses, etc.
-   1. [ ] add characters
+   1. [x] add characters
    2. [ ] apply poses
    3. [ ] apply manual morphs
    4. [ ] have all ERCs/MCMs/SCMs be applied automatically
    5. [ ] compute
 
 3. [ ] ThreeJS Renderer to visualize your scnees in the browser
+   1. [ ] debug info
+   2. [ ] render characters
+      1. [x] build a [SkinnedMesh](https://threejs.org/docs/#api/en/objects/SkinnedMesh)
+      2. [x] render base geometry
+      3. [ ] render textures
+      4. [ ] ....
 
 ![Image](https://github.com/user-attachments/assets/7f2f51c7-65cf-41b3-a455-89ef93e63a3e)
 
