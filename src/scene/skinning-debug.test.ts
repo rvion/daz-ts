@@ -1,8 +1,8 @@
 import '../DI.js'
 
 import { describe, expect, test } from 'bun:test'
+import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
-import { fs } from '../utils/fsNode.js'
 import { RVCharacter } from './Character.js'
 
 describe('Skinning Debug', () => {

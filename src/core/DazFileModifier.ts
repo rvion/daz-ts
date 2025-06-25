@@ -1,8 +1,8 @@
+import { PathInfo } from '../fs/walk.js'
 import { DazMgr } from '../mgr.js'
 import { $$, $$dson, $$dson_modifier, string_DazUrl } from '../spec.js'
 import { check_orCrash } from '../utils/arkutils.js'
 import { getDazUrlParts } from '../utils/parseDazUrl.js'
-import { PathInfo } from '../walk.js'
 import { DsonFile, KnownDazFile } from './_DsonFile.js'
 
 export class DazFileModifier extends DsonFile<$$dson_modifier> {

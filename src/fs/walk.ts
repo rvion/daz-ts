@@ -1,7 +1,7 @@
 import * as fs from 'node:fs'
 import * as path from 'pathe'
-import { asAbsPath, string_AbsPath, string_Ext, string_RelPath } from './types.js'
-import { ASSERT_ERROR } from './utils/assert.js'
+import { asAbsPath, string_AbsPath, string_Ext, string_RelPath } from '../types.js'
+import { ASSERT_ERROR } from '../utils/assert.js'
 
 export type PathInfo = {
    absPath: string_AbsPath

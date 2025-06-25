@@ -1,9 +1,9 @@
 import '../DI.js'
 
 import { describe, expect, test } from 'bun:test'
+import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { dazIds } from '../spec.js'
-import { fs } from '../utils/fsNode.js'
 import { RVCharacter } from './Character.js'
 
 describe('Bone Names Debug', () => {

@@ -1,7 +1,7 @@
+import { PathInfo } from '../fs/walk.js'
 import { $$dson, DazAssetType, string_DazId } from '../spec.js'
 import { string_AbsPath, string_Ext, string_RelPath } from '../types.js'
 import { fmtDazId } from '../utils/fmt.js'
-import { PathInfo } from '../walk.js'
 import { DazAbstraction } from './_DazAbstraction.js'
 import type { DazFileCharacter } from './DazFileCharacter.js'
 import type { DazFileFigure } from './DazFileFigure.js'

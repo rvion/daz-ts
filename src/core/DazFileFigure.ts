@@ -1,7 +1,7 @@
+import { PathInfo } from '../fs/walk.js'
 import { DazMgr } from '../mgr.js'
 import { $$, $$dson, $$dson_figure, string_DazId } from '../spec.js'
 import { check_orCrash } from '../utils/arkutils.js'
-import { PathInfo } from '../walk.js'
 import { DsonFile } from './_DsonFile.js'
 
 export class DazFileFigure extends DsonFile<$$dson_figure> {

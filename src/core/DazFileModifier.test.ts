@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'bun:test'
 import '../DI.js'
+import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { dazId, dazUrl, string_DazUrl } from '../spec.js'
-import { fs } from '../utils/fsNode.js'
 import { DazFileModifier } from './DazFileModifier.js'
 
 describe('DazFileModifier', () => {

@@ -8,14 +8,14 @@ import { DazFileModifier } from './core/DazFileModifier.js'
 import { DazFilePose } from './core/DazFilePose.js'
 import { DazWearable } from './core/DazFileWearable.js'
 import { checkpoint, GLOBAL } from './DI.js'
+import { FS } from './fs/fsNode.js'
+import { PathInfo, walk } from './fs/walk.js'
 import { $$, $$asset_info, $$dson, DazAssetType, string_DazId, string_DazUrl } from './spec.js'
 import { relPath, string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
 import { ASSERT_INSTANCE_OF, bang } from './utils/assert.js'
 import { fmtAbsPath } from './utils/fmt.js'
-import { FS } from './utils/fsNode.js'
 import { DazUrlParts, getDazUrlParts } from './utils/parseDazUrl.js'
-import { PathInfo, walk } from './walk.js'
 
 export class DazMgr {
    // ---- files

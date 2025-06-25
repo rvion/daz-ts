@@ -3,10 +3,10 @@ import '../DI.js'
 
 import * as THREE from 'three'
 import { DazFileCharacter } from '../core/DazFileCharacter.js'
+import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { dazId } from '../spec.js'
 import { bang } from '../utils/assert.js'
-import { fs } from '../utils/fsNode.js'
 import { RVCharacter } from './Character.js'
 
 async function loadGenesis9Character(): Promise<DazFileCharacter> {

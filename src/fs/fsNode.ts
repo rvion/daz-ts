@@ -3,7 +3,7 @@ import zlib from 'node:zlib'
 import chalk from 'chalk'
 import { filetypeinfo } from 'magic-bytes.js'
 import { OBJ, parse, STR } from 'partial-json'
-import { readPartialGzipped } from './readPartialGzipped.js'
+import { readPartialGzipped } from '../fs/readPartialGzipped.js'
 
 export type FS = {
    readPartialJSON: (path: string, bytes: number) => Promise<unknown>

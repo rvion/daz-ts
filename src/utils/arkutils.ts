@@ -1,7 +1,7 @@
 import type { ArkErrors } from 'arktype'
 import { Type, type } from 'arktype'
 import chalk from 'chalk'
-import { fs } from './fsNode.js'
+import { fs } from '../fs/fsNode.js'
 import { readableStringify } from './readableStringify.js'
 import { simplifyObject } from './simplifyObject.js'
 
