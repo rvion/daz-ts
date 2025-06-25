@@ -1,7 +1,6 @@
-import * as fs from 'node:fs'
+import fg from 'fast-glob'
 import * as path from 'pathe'
 import { asAbsPath, string_Ext } from '../types.js'
-import { ASSERT_ERROR } from '../utils/assert.js'
 import type { PathInfo } from './PathInfo.js'
 
 // Type definition for file processing callbacks
@@ -14,48 +13,99 @@ interface FileCallbacks<A> {
    onDufFile?: FileCallback<A>
 }
 
+// Options for file discovery
+export interface WalkOptions {
+   /** Glob patterns to match files (default: ['**\/*.{dsa,dsf,duf}']) */
+   patterns?: string[]
+   /** Additional fast-glob options */
+   globOptions?: fg.Options
+}
+
 /**
- * Recursively traverses a directory and executes callbacks for specified file types.
- * @param currentPath The current directory path to traverse.
- * @param rootDir The root directory of the traversal, used for calculating relative paths.
- * @param callbacks An object containing callback functions for different file extensions.
+ * Creates PathInfo from an absolute file path
  */
-export function walk<A>(
-   //
-   currentPath: string,
-   rootDir: string,
-   callbacks: FileCallbacks<A>,
-   out: A[] = [],
-): A[] {
-   const items = fs.readdirSync(currentPath)
-   for (const item of items) {
-      const absPath = asAbsPath(path.join(currentPath, item))
+function createPathInfo(absPath: string, rootDir: string): PathInfo {
+   const fileExt = path.extname(absPath).toLowerCase() as string_Ext
+   const relPath = path.relative(rootDir, absPath).replace(/\\/g, '/')
+   const fileName = path.basename(absPath)
+   const baseName = path.basename(absPath, fileExt) as string_Ext
 
-      // ensure itemPath is a valid absolute path
-      let stat: fs.Stats
-      try {
-         stat = fs.statSync(absPath)
-      } catch (err: unknown) {
-         console.error(`Error stating file/directory ${absPath}: ${ASSERT_ERROR(err).message}`)
-         continue // Skip if cannot stat
-      }
+   return { absPath: asAbsPath(absPath), relPath, rootDir, fileExt, baseName, fileName }
+}
 
-      // recursively walk directories
-      if (stat.isDirectory()) {
-         walk(absPath, rootDir, callbacks, out)
-      }
+/**
+ * Discovers files matching patterns using fast-glob
+ * @param rootDir The root directory to search in
+ * @param options Options for file discovery
+ * @returns Promise resolving to array of PathInfo objects
+ */
+export async function discoverFiles(rootDir: string, options: WalkOptions = {}): Promise<PathInfo[]> {
+   const { patterns = ['**/*.{dsa,dsf,duf}'], globOptions = {} } = options
 
-      // process files based on their extensions
-      else if (stat.isFile()) {
-         const fileExt = path.extname(item).toLowerCase() as string_Ext
-         const relPath = path.relative(rootDir, absPath).replace(/\\/g, '/')
-         const baseName = path.basename(item, fileExt) as string_Ext // Get the base name without extension
-         const fileName = path.basename(item) // Get the base name with extension
-         const fileMeta: PathInfo = { absPath, relPath, rootDir, fileExt, baseName, fileName }
-         if (fileExt === '.dsa' && callbacks.onDsaFile) out.push(callbacks.onDsaFile(fileMeta))
-         else if (fileExt === '.dsf' && callbacks.onDsfFile) out.push(callbacks.onDsfFile(fileMeta))
-         else if (fileExt === '.duf' && callbacks.onDufFile) out.push(callbacks.onDufFile(fileMeta))
+   const files = await fg(patterns, {
+      cwd: rootDir,
+      absolute: true,
+      onlyFiles: true,
+      ...globOptions,
+   })
+
+   return files.map((file) => createPathInfo(file, rootDir))
+}
+
+/**
+ * Processes discovered files through callbacks
+ * @param files Array of PathInfo objects to process
+ * @param callbacks Callback functions for different file types
+ * @returns Array of results from callbacks
+ */
+export function processFiles<A>(files: PathInfo[], callbacks: FileCallbacks<A>): A[] {
+   const results: A[] = []
+
+   for (const fileMeta of files) {
+      const { fileExt } = fileMeta
+
+      if (fileExt === '.dsa' && callbacks.onDsaFile) {
+         results.push(callbacks.onDsaFile(fileMeta))
+      } else if (fileExt === '.dsf' && callbacks.onDsfFile) {
+         results.push(callbacks.onDsfFile(fileMeta))
+      } else if (fileExt === '.duf' && callbacks.onDufFile) {
+         results.push(callbacks.onDufFile(fileMeta))
       }
    }
-   return out
+
+   return results
+}
+
+/**
+ * Async version of the original walk function using fast-glob
+ * @param rootDir The root directory to traverse
+ * @param callbacks Callback functions for different file types
+ * @param options Options for file discovery
+ * @returns Promise resolving to array of callback results
+ */
+export async function walkAsync<A>(
+   rootDir: string,
+   callbacks: FileCallbacks<A>,
+   options: WalkOptions = {},
+): Promise<A[]> {
+   const files = await discoverFiles(rootDir, options)
+   return processFiles(files, callbacks)
+}
+
+/**
+ * Legacy synchronous walk function (deprecated - use walkAsync instead)
+ * @deprecated Use walkAsync for better performance
+ */
+export function walkSync<A>(currentPath: string, rootDir: string, callbacks: FileCallbacks<A>): A[] {
+   // Convert to sync operation using fast-glob sync
+   const patterns = ['**/*.{dsa,dsf,duf}']
+
+   const files = fg.sync(patterns, {
+      cwd: currentPath,
+      absolute: true,
+      onlyFiles: true,
+   })
+
+   const pathInfos = files.map((file) => createPathInfo(file, rootDir))
+   return processFiles(pathInfos, callbacks)
 }
