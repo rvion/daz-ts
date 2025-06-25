@@ -1,9 +1,9 @@
 Type                          |  .dsf |  .duf | total
 -----------------------------------------------------
 character                     |       |    12 |    12
-figure                        |    80 |       |    80
+figure                        |   118 |       |   118
 material                      |    54 |       |    54
-modifier                      |  4526 |       |  4526
+modifier                      |  4563 |       |  4563
 preset_dform                  |       |     1 |     1
 preset_hierarchical_material  |       |   407 |   407
 preset_hierarchical_pose      |       |    39 |    39

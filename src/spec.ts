@@ -116,7 +116,7 @@ export const $ = scope({
       // scene: 'scene_pose', // .dsf figure files usually don't have a "scene" block in the same way .duf files do
       // 'geometry_library?': 'geometry_inf[]', // .dsf figure defines its geometries
       // 'node_library?': 'node_inf[]', // .dsf figure defines its nodes (skeleton, etc.)
-      'modifier_library?': 'dson_modifier_modifier', // And modifiers
+      'modifier_library?': 'dson_modifier_modifier[]', // And modifiers
       scene: 'scene',
       // 🗑️❓ 'uv_set_library?': { '+': 'reject' }, // TODO: Define uv_set_library if needed
       // 🗑️❓ 'material_library?': 'material[]', // Can also define materials
@@ -179,10 +179,10 @@ export const $ = scope({
    scene: {
       // Typically found in .duf files
       '+': 'reject',
-      nodes: 'node_ref[]', // Changed from node[] to node_ref[]
-      modifiers: 'modifier_ref[]',
-      materials: 'material[]',
-      extra: 'scene_extra[]',
+      'nodes?': 'node_ref[]', // Changed from node[] to node_ref[]
+      'modifiers?': 'modifier_ref[]',
+      'materials?': 'material[]',
+      'extra?': 'scene_extra[]',
    },
    scene_extra: {
       '+': 'reject',
@@ -404,7 +404,7 @@ export const $ = scope({
       '+': 'reject',
       id: 'dazid',
       url: 'string',
-      parent: 'string',
+      'parent?': 'string',
       'channel?': 'chanel',
       'name?': 'string',
       'extra?': 'modifier_ref_extra[]',

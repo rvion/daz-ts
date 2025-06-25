@@ -1,5 +1,6 @@
 Coding Guidelines & Preferences Summary:
 
+
 *   Modularity:
     *   `src/core/` - Core data model and parsing logic. ()`src/spec.ts` for the global schema and types. you can reexport more types from here if need be.)
     *   `src/scene/` - Runtime scene graph management with class that prepare all data for rendering.
@@ -28,6 +29,7 @@ Coding Guidelines & Preferences Summary:
         *   Existence and count of key components (e.g., number of bones).
         *   Correct hierarchical relationships (e.g., `pelvis` is a child of `hip`).
         *   Transformation accuracy (e.g., bone positions and rotations), being mindful of local vs. world space.
+    *   use real mgr, no fs mock: `const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)`
 
 *   3D Coordinate Spaces in Tests & Logic:
     *   When testing or manipulating 3D object positions, clearly distinguish between local coordinates (`object.position`) and world coordinates.

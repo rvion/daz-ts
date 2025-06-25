@@ -4,6 +4,7 @@ import * as path from 'pathe'
 import { KnownDazFile } from './core/_DsonFile.js'
 import { DazCharacter } from './core/DazFileCharacter.js'
 import { DazFigure } from './core/DazFileFigure.js'
+import { DazFileModifier } from './core/DazFileModifier.js'
 import { DazFilePose } from './core/DazFilePose.js'
 import { DazWearable } from './core/DazFileWearable.js'
 import { GLOBAL } from './DI.js'
@@ -30,6 +31,9 @@ export class DazMgr {
 
    wearablesByDazId: Map<string_DazId, DazWearable> = new Map()
    wearablesByRelPath: Map<string_RelPath, DazWearable> = new Map()
+
+   modifiersByDazId: Map<string_DazId, DazFileModifier> = new Map()
+   modifiersByRelPath: Map<string_RelPath, DazFileModifier> = new Map()
 
    // ---- stats
    count = 0
@@ -97,7 +101,7 @@ export class DazMgr {
       this.count++
 
       // load full
-      const stuff = await this.loadStuff(meta, dson)
+      const stuff = await this._hydrateDson(meta, dson)
       this.filesFull.set(meta.absPath, stuff)
       return stuff
    }
@@ -109,12 +113,13 @@ export class DazMgr {
       throw new Error(errMst)
    }
 
-   private loadStuff(meta: FileMeta, dson: $$dson): Promise<KnownDazFile> {
+   private _hydrateDson(meta: FileMeta, dson: $$dson): Promise<KnownDazFile> {
       const assetType = dson.asset_info.type
       if (assetType === 'wearable') return DazWearable.init(this, meta, dson)
       else if (assetType === 'character') return DazCharacter.init(this, meta, dson)
       else if (assetType === 'figure') return DazFigure.init(this, meta, dson)
       else if (assetType === 'preset_pose') return DazFilePose.init(this, meta, dson)
+      else if (assetType === 'modifier') return DazFileModifier.init(this, meta, dson)
       else throw new Error(`Invalid asset type: ${chalk.red(`'${assetType}'`)} in "${meta.absPath}"`)
    }
 
@@ -125,35 +130,35 @@ export class DazMgr {
          console.log(`[🔶] skipping ${f.absPath}: ${_err}`)
       }
       const res = walk(this.absRootPath, this.absRootPath, {
-         onDufFile: (f) => this.loadSimple_fromMeta(f).catch(logUnexpectedParseError(f)),
-         onDsfFile: (f) => this.loadSimple_fromMeta(f).catch(logUnexpectedParseError(f)),
+         onDufFile: (f) => this._peek(f).catch(logUnexpectedParseError(f)),
+         onDsfFile: (f) => this._peek(f).catch(logUnexpectedParseError(f)),
          // onDsaFile: (f) => this.handleFile(f),
       })
       await Promise.all(res)
-      await this.saveSummary()
+      await this._saveSummary()
       return this.statTable
    }
 
    /** Only load as simple DSON file. do not hydrate graph. do not resolve URLs. */
-   private seenFiles: string[] = []
-   private async loadSimple_fromMeta(meta: FileMeta): Promise<$$asset_info> {
+   private _seenFiles: string[] = []
+   private async _peek(meta: FileMeta): Promise<$$asset_info> {
       // const json = await this.fs.readJSON(meta.absPath)
       const json = await this.fs.readPartialJSON(meta.absPath, 2000)
       const dson = check_orCrash($$.dson, json, meta.absPath)
       const assetType = dson.asset_info.type
       this.incrementType(assetType, meta.fileExt)
-      this.seenFiles.push(`{${meta.fileExt}} [${assetType}] ${meta.relPath}`)
+      this._seenFiles.push(`{${meta.fileExt}} [${assetType}] ${meta.relPath}`)
       this.count++
 
-      // load simple
-      // if (dson.asset_info.type==='modifier')  {
-      //    x = new DsonMo
-      // }
+      // Parse modifiers completely to resolve their URLs
+      if (dson.asset_info.type === 'modifier') {
+         await DazFileModifier.init(this, meta, dson)
+      }
       return dson.asset_info
    }
 
-   private async saveSummary() {
-      const summary = this.seenFiles.sort().join('\n')
+   private async _saveSummary() {
+      const summary = this._seenFiles.sort().join('\n')
 
       const pathAssetList = 'data/processed_files.txt' // More generic name
       const pathStats = 'data/stats.txt' // More generic name
