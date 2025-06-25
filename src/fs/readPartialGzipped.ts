@@ -1,9 +1,8 @@
-import * as fsSync from 'node:fs'
-import zlib from 'node:zlib'
-
 export async function readPartialGzipped(path: string, targetBytes: number): Promise<string> {
+   const { createReadStream } = await import('node:fs')
+   const zlib = await import('node:zlib')
    return new Promise((resolve, reject) => {
-      const readStream = fsSync.createReadStream(path)
+      const readStream = createReadStream(path)
       const gunzip = zlib.createGunzip()
 
       let decompressedData = Buffer.alloc(0)

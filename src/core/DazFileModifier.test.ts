@@ -12,7 +12,7 @@ describe('DazFileModifier', () => {
       expect(mgr.countPerTypePerExt.get('total').get('modifier').x).toBe(0)
       // Initialize the modifier
       const entrypoint = 'data/DAZ 3D/Genesis 9/Base/Morphs/Daz 3D/Base Pose/body_ctrl_HipBend.dsf'
-      const modifier = await mgr.loadRelPath(entrypoint)
+      const modifier = await mgr.loadFile(entrypoint)
       // entrypoint should itself references
       expect(mgr.countPerTypePerExt.get('total').get('modifier').x).toBe(3)
 
@@ -76,7 +76,7 @@ describe('DazFileModifier', () => {
          srcPath: 'data/Daz 3D/G9ToonCommon/Genesis 9 Toon Floating Iris/G9ToonFloatingIris.dsf',
       })
 
-      await mgr.loadRelPath(`/data/AprilYSH/EirgridGenesis/EirgridHairG9/Morphs/AprilYSH/Base/body_cbs_head_x30n.dsf`)
+      await mgr.loadFile(`/data/AprilYSH/EirgridGenesis/EirgridHairG9/Morphs/AprilYSH/Base/body_cbs_head_x30n.dsf`)
       expect(1).toBe(1)
    })
 })

@@ -10,7 +10,7 @@ import { DazWearable } from './core/DazFileWearable.js'
 import { checkpoint, GLOBAL, registerMgrInstance } from './DI.js'
 import type { FS } from './fs/fsNode.js'
 import type { PathInfo } from './fs/PathInfo.js'
-import type { WalkOptions } from './fs/walk.js'
+import { processFiles, type WalkOptions } from './fs/walk.js'
 import { $$, $$asset_info, $$dson, DazAssetType, string_DazId, string_DazUrl } from './spec.js'
 import { relPath, string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
@@ -96,24 +96,24 @@ export class DazMgr {
 
    // ---- Load
    /**  Load full Daz asset, from meta. */
-   async loadRelPath(relPath: string_RelPath) {
+   async loadFile(relPath: string_RelPath) {
       return this._loadFromPathInfo(this._resolveRelPath(relPath)) // Store the file path in the manager
    }
 
-   async loadAbsPath(absPath: string_AbsPath) {
-      const relPath = path.relative(this.absRootPath, absPath) as string_RelPath
-      return this._loadFromPathInfo(this._resolveRelPath(relPath)) // Store the file path in the manager
-   }
+   // async loadAbsPath(absPath: string_AbsPath) {
+   //    const relPath = path.relative(this.absRootPath, absPath) as string_RelPath
+   //    return this._loadFromPathInfo(this._resolveRelPath(relPath)) // Store the file path in the manager
+   // }
 
    // ---- Load > Genesis 9 samples
    private genesis9baseDuf = relPath`People/Genesis 9/Genesis 9.duf`
    private genesis9baseDsf = relPath`data/DAZ 3D/Genesis 9/Base/Genesis9.dsf`
    async loadGenesis9CharacterFile(): Promise<DazFileCharacter> {
-      const f = await this.loadRelPath(this.genesis9baseDuf)
+      const f = await this.loadFile(this.genesis9baseDuf)
       return ASSERT_INSTANCE_OF(f, GLOBAL.DazFileCharacter)
    }
    async loadGenesis9FigureFile(): Promise<DazFileFigure> {
-      const f = await this.loadRelPath(this.genesis9baseDsf)
+      const f = await this.loadFile(this.genesis9baseDsf)
       return ASSERT_INSTANCE_OF(f, GLOBAL.DazFileFigure)
    }
 
@@ -136,7 +136,7 @@ export class DazMgr {
    }
 
    async loadDazFigureByRelPath_orCrash(relPath: string_RelPath): Promise<DazFileFigure> {
-      const file = await this.loadRelPath(relPath)
+      const file = await this.loadFile(relPath)
       if (file instanceof GLOBAL.DazFileFigure) return file
       const errMst = `Expected DazFigure at "${relPath}", but found ${file.constructor.name} (AssetType: ${file.assetType}, DazID: ${file.dazId})`
       throw new Error(errMst)
@@ -182,7 +182,7 @@ export class DazMgr {
       }
       const files = await this.fs.discoverFiles(this.absRootPath)
       checkpoint('summarize.walk-end')
-      const res = this.fs.processFiles(files, {
+      const res = processFiles(files, {
          onDufFile: (f) => this._peek(f).catch(logUnexpectedParseError(f)),
          onDsfFile: (f) => this._peek(f).catch(logUnexpectedParseError(f)),
       })

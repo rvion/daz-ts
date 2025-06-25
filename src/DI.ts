@@ -8,8 +8,8 @@ import { DazGeometry } from './core/DazGeometry.js'
 import { DazGeometryRef } from './core/DazGeometryRef.js'
 import { DazNode } from './core/DazNode.js' // New import
 import { DazNodeRef } from './core/DazNodeRef.js' // Corrected import path
-import { DazMgr } from './mgr.js'
-import { asTimestamp, number_Timestamp } from './types.js'
+import type { DazMgr } from './mgr.js'
+import type { number_Timestamp } from './types.js'
 
 // -------- Class DI utilities --------
 export const GLOBAL = {
@@ -39,9 +39,9 @@ export function checkpoint(fn: (delta: Delta) => void): void
 export function checkpoint(fn: string | ((delta: Delta) => void)): void {
    const now = Date.now()
    const delta: Delta = {
-      now: asTimestamp(now),
-      fromStart: asTimestamp(now - programStartedAt),
-      fromLastCheckpoint: asTimestamp(now - lastCheckpointAt),
+      now: now as number_Timestamp,
+      fromStart: (now - programStartedAt) as number_Timestamp,
+      fromLastCheckpoint: (now - lastCheckpointAt) as number_Timestamp,
    }
    if (typeof fn === 'string') console.log(chalk.gray(`[${delta.fromStart}] ${fn}`))
    else fn(delta)

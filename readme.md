@@ -28,6 +28,9 @@ This repository aims to provide a [TypeScript](https://www.typescriptlang.org/) 
          1. [x] manuall [Buffer.alloc](src/utils/fsNode.ts:24)
          2. [x] use [magic-bytes.js](https://github.com/LarsKoelpin/magic-bytes) to detect if [gzipped](https://www.daz3d.com/forums/discussion/531316/daz-studio-compressed-file-format?srsltid=AfmBOorlxB7Mi1U5UX9MKfLPcf91HoEMxLI_GSmdMZSreYmhCCjPmMoD)
          3. [x] use [zlib](src/utils/readPartialGzipped.ts) efficiently to peek into first chunks of gzipped files
+      4. [x] defer importing libraries as late as possible
+         1. [x] use `await import()` to load libraries only when needed
+         2. [x] use `import type` to import types only when needed
 
 2. [ ] Scene manager to pose daz characters, apply daz poses, etc.
    1. [x] add characters

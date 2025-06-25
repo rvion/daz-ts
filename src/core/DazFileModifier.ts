@@ -84,7 +84,7 @@ export class DazFileModifier extends DsonFile<$$dson_modifier> {
       // If no srcPath, this is a local reference (e.g., "#someId?property")
       // We can't resolve these to external files
       if (!parts.srcPath) return Promise.resolve(null)
-      return this.mgr.loadRelPath(parts.srcPath)
+      return this.mgr.loadFile(parts.srcPath)
    }
 
    // Getter for easy access to modifier library entries

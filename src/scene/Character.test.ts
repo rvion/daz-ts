@@ -14,7 +14,7 @@ async function loadGenesis9Character(): Promise<DazFileCharacter> {
    const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
 
    // Load Genesis 9 character from the same path as main.ts
-   const character = await mgr.loadRelPath('People/Genesis 9/Genesis 9.duf')
+   const character = await mgr.loadFile('People/Genesis 9/Genesis 9.duf')
    if (!(character instanceof DazFileCharacter))
       throw new Error(`Expected DazCharacter, got ${character.constructor.name}`)
    return character
