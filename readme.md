@@ -10,11 +10,18 @@ This repository aims to provide a [TypeScript](https://www.typescriptlang.org/) 
 ## Project Scope
 
 1. [ ] Parse and validate Daz Libary files
-   1. [x] full validation for the whole `.duf`,`.dsf` files
-   2. [ ] Extract metadata from Daz Library files
-   3. [ ] resolve dependencies
-   4. [ ] index and map all morphs, poses, and other assets
-   5. [x] be fast
+   1. [x] full **validation** for the whole `.duf`,`.dsf` files
+
+   2. [ ] multi-step library folder processing + cache
+      1. [ ] file-system mapping
+      2. [ ] duf/dsf parsing and content indexing
+      3. [ ] dependency resolution, topological sorting
+      4. [ ] index and map all morphs, poses, and other assets
+
+   3. [x] be flexible
+      1. [x] support glob patterns to select files
+
+   4. [x] be fast
       1. [x] peek into json files as efficiently as possible
          1. [x] manuall [Buffer.alloc](src/utils/fsNode.ts:24)
          2. [x] use [magic-bytes.js](https://github.com/LarsKoelpin/magic-bytes) to detect if [gzipped](https://www.daz3d.com/forums/discussion/531316/daz-studio-compressed-file-format?srsltid=AfmBOorlxB7Mi1U5UX9MKfLPcf91HoEMxLI_GSmdMZSreYmhCCjPmMoD)

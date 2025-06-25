@@ -78,34 +78,16 @@ export function processFiles<A>(files: PathInfo[], callbacks: FileCallbacks<A>):
 
 /**
  * Async version of the original walk function using fast-glob
- * @param rootDir The root directory to traverse
- * @param callbacks Callback functions for different file types
- * @param options Options for file discovery
  * @returns Promise resolving to array of callback results
  */
 export async function walkAsync<A>(
+   /** The root directory to traverse */
    rootDir: string,
+   /** Callback functions for different file types */
    callbacks: FileCallbacks<A>,
+   /** Options for file discovery */
    options: WalkOptions = {},
 ): Promise<A[]> {
    const files = await discoverFiles(rootDir, options)
    return processFiles(files, callbacks)
-}
-
-/**
- * Legacy synchronous walk function (deprecated - use walkAsync instead)
- * @deprecated Use walkAsync for better performance
- */
-export function walkSync<A>(currentPath: string, rootDir: string, callbacks: FileCallbacks<A>): A[] {
-   // Convert to sync operation using fast-glob sync
-   const patterns = ['**/*.{dsa,dsf,duf}']
-
-   const files = fg.sync(patterns, {
-      cwd: currentPath,
-      absolute: true,
-      onlyFiles: true,
-   })
-
-   const pathInfos = files.map((file) => createPathInfo(file, rootDir))
-   return processFiles(pathInfos, callbacks)
 }
