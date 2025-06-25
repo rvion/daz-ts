@@ -1,8 +1,8 @@
-import './DI.js'
-import { fs } from './fs/fsNode.js'
-import { DazMgr } from './mgr.js'
+import '../DI.js'
 
-// export const mgr = new DazMgr(`C:/Users/Public/Documents/My DAZ 3D Library/`)
+import { fs } from '../fs/fsNode.js'
+import { DazMgr } from '../mgr.js'
+
 const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
 
 // await mgr.summarize()

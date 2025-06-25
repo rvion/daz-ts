@@ -1,4 +1,4 @@
-import { PathInfo } from '../fs/walk.js'
+import type { PathInfo } from '../fs/PathInfo.js'
 import { $$dson, DazAssetType, string_DazId } from '../spec.js'
 import { string_AbsPath, string_Ext, string_RelPath } from '../types.js'
 import { fmtDazId } from '../utils/fmt.js'

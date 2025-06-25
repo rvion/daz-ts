@@ -1,16 +1,8 @@
 import * as fs from 'node:fs'
 import * as path from 'pathe'
-import { asAbsPath, string_AbsPath, string_Ext, string_RelPath } from '../types.js'
+import { asAbsPath, string_Ext } from '../types.js'
 import { ASSERT_ERROR } from '../utils/assert.js'
-
-export type PathInfo = {
-   absPath: string_AbsPath
-   relPath: string_RelPath
-   rootDir: string
-   fileExt: string_Ext
-   baseName: string
-   fileName: string
-}
+import type { PathInfo } from './PathInfo.js'
 
 // Type definition for file processing callbacks
 export type FileCallback<A> = (p: PathInfo) => A

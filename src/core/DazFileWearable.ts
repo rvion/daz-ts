@@ -1,4 +1,4 @@
-import { PathInfo } from '../fs/walk.js'
+import type { PathInfo } from '../fs/PathInfo.js'
 import { DazMgr } from '../mgr.js'
 import { $$, $$dson, $$dson_wearable } from '../spec.js'
 import { check_orCrash } from '../utils/arkutils.js'
