@@ -22,7 +22,9 @@ This repository aims to provide a [TypeScript](https://www.typescriptlang.org/) 
       1. [x] support glob patterns to select files
 
    4. [x] be fast
-      1. [x] peek into json files as efficiently as possible
+      1. [ ] use the [fastest validation library](https://arktype.io/) available
+      2. [x] use the [fastest glob libray](https://www.npmjs.com/package/fast-glob) available
+      3. [x] peek into json files as efficiently as possible
          1. [x] manuall [Buffer.alloc](src/utils/fsNode.ts:24)
          2. [x] use [magic-bytes.js](https://github.com/LarsKoelpin/magic-bytes) to detect if [gzipped](https://www.daz3d.com/forums/discussion/531316/daz-studio-compressed-file-format?srsltid=AfmBOorlxB7Mi1U5UX9MKfLPcf91HoEMxLI_GSmdMZSreYmhCCjPmMoD)
          3. [x] use [zlib](src/utils/readPartialGzipped.ts) efficiently to peek into first chunks of gzipped files

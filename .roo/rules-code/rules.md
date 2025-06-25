@@ -1,6 +1,5 @@
 Coding Guidelines & Preferences Summary:
 
-
 *   Modularity:
     *   `src/core/` - Core data model and parsing logic. ()`src/spec.ts` for the global schema and types. you can reexport more types from here if need be.)
     *   `src/scene/` - Runtime scene graph management with class that prepare all data for rendering.
@@ -48,3 +47,8 @@ Coding Guidelines & Preferences Summary:
 *   Misc
     *   imporpting the DI module `import '../DI.js'` is necessary in entrypoints / test files.
     *   installing packages is done with `bun install <package>`
+
+-----
+
+- Consider the server to always be running
+- Consider the frontend to always be running at `http://localhost:6660/` ; you never need to start it manually

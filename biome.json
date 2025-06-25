@@ -33,6 +33,7 @@
    },
    "files": {
       "includes": [
+         "vscode/*.json",
          "src/**/*.ts",
          "src/**/*.js",
          "src/**/*.mjs",
