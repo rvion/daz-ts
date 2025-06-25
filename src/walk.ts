@@ -1,8 +1,9 @@
 import * as fs from 'node:fs'
 import * as path from 'pathe'
 import { asAbsPath, string_AbsPath, string_Ext, string_RelPath } from './types.js'
+import { ASSERT_ERROR } from './utils/assert.js'
 
-export type FileMeta = {
+export type PathInfo = {
    absPath: string_AbsPath
    relPath: string_RelPath
    rootDir: string
@@ -12,7 +13,7 @@ export type FileMeta = {
 }
 
 // Type definition for file processing callbacks
-export type FileCallback<A> = (p: FileMeta) => A
+export type FileCallback<A> = (p: PathInfo) => A
 
 // Interface for callback handlers
 interface FileCallbacks<A> {
@@ -42,8 +43,8 @@ export function walk<A>(
       let stat: fs.Stats
       try {
          stat = fs.statSync(absPath)
-      } catch (err: any) {
-         console.error(`Error stating file/directory ${absPath}: ${err.message}`)
+      } catch (err: unknown) {
+         console.error(`Error stating file/directory ${absPath}: ${ASSERT_ERROR(err).message}`)
          continue // Skip if cannot stat
       }
 
@@ -58,7 +59,7 @@ export function walk<A>(
          const relPath = path.relative(rootDir, absPath).replace(/\\/g, '/')
          const baseName = path.basename(item, fileExt) as string_Ext // Get the base name without extension
          const fileName = path.basename(item) // Get the base name with extension
-         const fileMeta: FileMeta = { absPath, relPath, rootDir, fileExt, baseName, fileName }
+         const fileMeta: PathInfo = { absPath, relPath, rootDir, fileExt, baseName, fileName }
          if (fileExt === '.dsa' && callbacks.onDsaFile) out.push(callbacks.onDsaFile(fileMeta))
          else if (fileExt === '.dsf' && callbacks.onDsfFile) out.push(callbacks.onDsfFile(fileMeta))
          else if (fileExt === '.duf' && callbacks.onDufFile) out.push(callbacks.onDufFile(fileMeta))

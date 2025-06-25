@@ -1,10 +1,15 @@
 import '../DI.js'
+
 import { describe, expect, test } from 'bun:test'
-import { mgr } from '../main.js'
+import { DazMgr } from '../mgr.js'
+import { fs } from '../utils/fsNode.js'
 import { RVCharacter } from './Character.js'
 
 describe('Skinning Debug', () => {
    test('should debug skin data structure', async () => {
+      const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
+      await mgr.loadGenesis9CharacterFile()
+
       const characters = [...mgr.charactersByDazId.values()]
       expect(characters.length).toBeGreaterThan(0)
 

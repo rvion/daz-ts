@@ -2,28 +2,30 @@ import { beforeAll, describe, expect, test } from 'bun:test'
 import '../DI.js'
 
 import * as THREE from 'three'
-import { DazCharacter } from '../core/DazFileCharacter.js'
+import { DazFileCharacter } from '../core/DazFileCharacter.js'
 import { DazMgr } from '../mgr.js'
-import { asDazId } from '../spec.js'
+import { dazId } from '../spec.js'
 import { bang } from '../utils/assert.js'
 import { fs } from '../utils/fsNode.js'
 import { RVCharacter } from './Character.js'
 
-async function loadGenesis9Character(): Promise<DazCharacter> {
+async function loadGenesis9Character(): Promise<DazFileCharacter> {
    // Create DazMgr instance with the same path as main.ts
    const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
 
    // Load Genesis 9 character from the same path as main.ts
-   const character = await mgr.loadFull_FromRelPath('People/Genesis 9/Genesis 9.duf')
-   if (!(character instanceof DazCharacter)) throw new Error(`Expected DazCharacter, got ${character.constructor.name}`)
+   const character = await mgr.loadRelPath('People/Genesis 9/Genesis 9.duf')
+   if (!(character instanceof DazFileCharacter))
+      throw new Error(`Expected DazCharacter, got ${character.constructor.name}`)
    return character
 }
 
 describe('RVCharacter Skeleton Tests', () => {
-   let character: DazCharacter
+   let character: DazFileCharacter
    let rvCharacter: RVCharacter
 
    beforeAll(async () => {
+      console.log(`[🤠] 🔴`)
       character = await loadGenesis9Character()
       rvCharacter = new RVCharacter(character)
    })
@@ -71,8 +73,8 @@ describe('RVCharacter Skeleton Tests', () => {
 
    test('should have reasonable bone hierarchy structure', () => {
       // Check that head is higher than feet
-      const headBone = rvCharacter.bones.get(asDazId('head'))
-      const toeBone = rvCharacter.bones.get(asDazId('lToe'))
+      const headBone = rvCharacter.bones.get(dazId('head'))
+      const toeBone = rvCharacter.bones.get(dazId('lToe'))
 
       if (headBone && toeBone) {
          const headWorldPos = new THREE.Vector3()
@@ -88,8 +90,8 @@ describe('RVCharacter Skeleton Tests', () => {
    })
 
    test('should have proper parent-child relationships', () => {
-      const hipBone = bang(rvCharacter.bones.get(asDazId('hip')))
-      const pelvisBone = bang(rvCharacter.bones.get(asDazId('pelvis')))
+      const hipBone = bang(rvCharacter.bones.get(dazId('hip')))
+      const pelvisBone = bang(rvCharacter.bones.get(dazId('pelvis')))
       expect(hipBone.children).toContain(pelvisBone)
    })
 

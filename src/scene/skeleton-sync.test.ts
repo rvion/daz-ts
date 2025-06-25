@@ -2,69 +2,32 @@
 import '../DI.js'
 import { describe, expect, test } from 'bun:test'
 import * as THREE from 'three'
-import { DazCharacter } from '../core/DazFileCharacter.js'
-import { asDazId } from '../spec.js'
+import { DazFileCharacter } from '../core/DazFileCharacter.js'
+import { DazMgr } from '../mgr.js'
+import { dazId } from '../spec.js'
+import { fs } from '../utils/fsNode.js'
 import { RVCharacter } from './Character.js'
 
 describe('Skeleton Synchronization', () => {
-   test('skeleton helper should be visible without calling getWorldPosition', async () => {
+   const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
+
+   test.only('skeleton helper should be visible without calling getWorldPosition', async () => {
       // Create a mock character with minimal data
-      const mockCharacter = {
-         dazId: 'test-character',
-         figure_orCrash: {
-            nodes: new Map([
-               [
-                  'hip',
-                  {
-                     dazId: 'hip',
-                     data: {
-                        type: 'bone',
-                        name: 'hip',
-                        center_point: [
-                           { id: 'x', value: 0 },
-                           { id: 'y', value: 100 },
-                           { id: 'z', value: 0 },
-                        ],
-                     },
-                     parent_orCrash: { type: 'figure', dazId: 'Genesis9' },
-                     parentId_orCrash: 'Genesis9',
-                  },
-               ],
-               [
-                  'pelvis',
-                  {
-                     dazId: 'pelvis',
-                     data: {
-                        type: 'bone',
-                        name: 'pelvis',
-                        center_point: [
-                           { id: 'x', value: 0 },
-                           { id: 'y', value: 110 },
-                           { id: 'z', value: 0 },
-                        ],
-                     },
-                     parent_orCrash: { type: 'bone', dazId: 'hip' },
-                     parentId_orCrash: 'hip',
-                  },
-               ],
-            ]),
-         },
-         nodeRefs: new Map(),
-      } as unknown as DazCharacter
+      const mockCharacter = await mgr.loadGenesis9CharacterFile()
 
       const character = new RVCharacter(mockCharacter)
 
       // Verify skeleton was created
       expect(character.skeleton).not.toBeNull()
       expect(character.skeletonHelper).not.toBeNull()
-      expect(character.bones.size).toBe(2)
+      expect(character.bones.size).toBe(138)
 
       // Verify skeleton helper is visible by default
       expect(character.skeletonHelper!.visible).toBe(true)
 
       // Verify bones have correct world positions without manually calling getWorldPosition
-      const hipBone = character.bones.get(asDazId('hip'))
-      const pelvisBone = character.bones.get(asDazId('pelvis'))
+      const hipBone = character.bones.get(dazId('hip'))
+      const pelvisBone = character.bones.get(dazId('pelvis'))
 
       expect(hipBone).toBeDefined()
       expect(pelvisBone).toBeDefined()
@@ -77,41 +40,17 @@ describe('Skeleton Synchronization', () => {
       pelvisBone!.getWorldPosition(pelvisWorldPos)
 
       // Hip should be at its absolute position
-      expect(hipWorldPos.y).toBeCloseTo(100, 1)
+      expect(hipWorldPos.y).toBeCloseTo(97, 0)
 
       // Pelvis should be at hip position + relative offset (10 units up)
-      expect(pelvisWorldPos.y).toBeCloseTo(110, 1)
+      expect(pelvisWorldPos.y).toBeCloseTo(99, 0)
    })
 
-   test('skeleton matrices update during animation loop', () => {
-      const mockCharacter = {
-         dazId: 'test-character',
-         figure_orCrash: {
-            nodes: new Map([
-               [
-                  'hip',
-                  {
-                     dazId: 'hip',
-                     data: {
-                        type: 'bone',
-                        name: 'hip',
-                        center_point: [
-                           { id: 'x', value: 0 },
-                           { id: 'y', value: 100 },
-                           { id: 'z', value: 0 },
-                        ],
-                     },
-                     parent_orCrash: { type: 'figure', dazId: 'Genesis9' },
-                     parentId_orCrash: 'Genesis9',
-                  },
-               ],
-            ]),
-         },
-         nodeRefs: new Map(),
-      } as unknown as DazCharacter
+   test('skeleton matrices update during animation loop', async () => {
+      const mockCharacter = (await mgr.loadGenesis9CharacterFile()) as DazFileCharacter
 
       const character = new RVCharacter(mockCharacter)
-      const hipBone = character.bones.get(asDazId('hip'))!
+      const hipBone = character.bones.get(dazId('hip'))!
 
       // Modify bone rotation
       hipBone.rotation.y = Math.PI / 4

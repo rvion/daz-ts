@@ -1,11 +1,11 @@
 /** biome-ignore-all lint/style/noNonNullAssertion: ... */
 import * as THREE from 'three'
-import { DazCharacter } from '../core/DazFileCharacter.js'
-import { DazFigure } from '../core/DazFileFigure.js'
+import { DazFileCharacter } from '../core/DazFileCharacter.js'
+import { DazFileFigure } from '../core/DazFileFigure.js'
 import { DazFilePose } from '../core/DazFilePose.js'
 import { DazGeometryRef } from '../core/DazGeometryRef.js'
 import { DazNode } from '../core/DazNode.js'
-import { asDazId, string_DazId } from '../spec.js'
+import { dazId, string_DazId } from '../spec.js'
 import { Maybe } from '../types.js'
 import { ASSERT_, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
 import { getFallbackMaterial } from './misc.js'
@@ -24,9 +24,9 @@ export class RVCharacter {
       return this.boneNameToIndex
    }
 
-   get figure_orCrash(): DazFigure { return this.character.figure_orCrash } // biome-ignore format: misc
+   get figure_orCrash(): DazFileFigure { return this.character.figure_orCrash } // biome-ignore format: misc
 
-   constructor(public readonly character: DazCharacter) {
+   constructor(public readonly character: DazFileCharacter) {
       this.group = new THREE.Group()
       this.group.name = `Character_${character.dazId}`
 
@@ -355,7 +355,7 @@ export class RVCharacter {
       if (!urlMatch) return
 
       const [, boneName, property, axis] = urlMatch
-      const bone = this.bones.get(asDazId(boneName))
+      const bone = this.bones.get(dazId(boneName))
       if (!bone) return
 
       // Apply the transformation based on property and axis
@@ -453,7 +453,7 @@ export class RVCharacter {
          if (visited.has(boneId)) return
          visited.add(boneId)
 
-         const bone = this.bones.get(asDazId(boneId))
+         const bone = this.bones.get(dazId(boneId))
          if (!bone) return
 
          const indent = '  '.repeat(depth)
@@ -500,8 +500,8 @@ export class RVCharacter {
       const time = Date.now() * 0.003 // Convert to seconds
       const armAngle = Math.sin(time * 0.8) * 0.4 // Oscillate between -0.8 and 0.8 radians
       // Animate shoulder bones for arm raising/lowering
-      const leftShoulder = this.bones.get(asDazId('l_shoulder'))
-      const rightShoulder = this.bones.get(asDazId('r_shoulder'))
+      const leftShoulder = this.bones.get(dazId('l_shoulder'))
+      const rightShoulder = this.bones.get(dazId('r_shoulder'))
       if (leftShoulder) leftShoulder.rotation.z = armAngle
       if (rightShoulder) rightShoulder.rotation.z = -armAngle // Mirror for right arm
    }

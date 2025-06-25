@@ -4,7 +4,31 @@ export type string_DazGroup = string & { __dazgroup: true }
 export type string_DazUrl = string & { __dazurl: true }
 export type string_DazId = string & { __dazid: true }
 
-export const asDazId = (s: string): string_DazId => s as string_DazId
+export function dazIds(ids: string[]): string_DazId[] {
+   return ids as string_DazId[]
+}
+// Function overloads to support both template literal and regular function usage
+export function dazId(strings: TemplateStringsArray, ...values: unknown[]): string_DazId
+export function dazId(s: string): string_DazId
+export function dazId(stringsOrString: TemplateStringsArray | string, ...values: unknown[]): string_DazId {
+   return typeof stringsOrString === 'string'
+      ? (stringsOrString as string_DazId)
+      : (String.raw(stringsOrString, ...values) as string_DazId)
+}
+export function dazUrl(strings: TemplateStringsArray, ...values: unknown[]): string_DazUrl
+export function dazUrl(s: string): string_DazUrl
+export function dazUrl(stringsOrString: TemplateStringsArray | string, ...values: unknown[]): string_DazUrl {
+   return typeof stringsOrString === 'string'
+      ? (stringsOrString as string_DazUrl)
+      : (String.raw(stringsOrString, ...values) as string_DazUrl)
+}
+export function dazGroup(strings: TemplateStringsArray, ...values: unknown[]): string_DazGroup
+export function dazGroup(s: string): string_DazGroup
+export function dazGroup(stringsOrString: TemplateStringsArray | string, ...values: unknown[]): string_DazGroup {
+   return typeof stringsOrString === 'string'
+      ? (stringsOrString as string_DazGroup)
+      : (String.raw(stringsOrString, ...values) as string_DazGroup)
+}
 
 // files
 export type $$dson = typeof $$.dson.infer
@@ -23,8 +47,13 @@ export type $$geometry_ref = typeof $$.geometry_ref.infer
 export type $$geometry = typeof $$.geometry_inf.infer
 export type $$modifier_inf = typeof $$.modifier_inf.infer
 // export type $$skin = typeof $$.skin.infer
+
+// tupples
 export type $$point2d = typeof $$.point2d.infer
 export type $$point3d = typeof $$.point3d.infer
+export type $$point4d = typeof $$.point4d.infer
+export type $$point5d = typeof $$.point5d.infer
+export type $$point5or6d = typeof $$.point5or6d.infer
 export type $$point6d = typeof $$.point6d.infer
 
 // misc
@@ -65,9 +94,13 @@ export const $ = scope({
    dazurl: type('string').as<string_DazUrl>(),
    dazgroup: type('string').as<string_DazUrl>(),
 
-   point2d: ['number', 'number'], // [ 0, 0, 0 ],
-   point3d: ['number', 'number', 'number'], // [ 0, 0, 0 ],
-   point6d: ['number', 'number', 'number', 'number', 'number', 'number'], // [ 0, 0, 0 ],
+   point1d: ['number'],
+   point2d: ['number', 'number'],
+   point3d: ['number', 'number', 'number'],
+   point4d: ['number', 'number', 'number', 'number'],
+   point5d: ['number', 'number', 'number', 'number', 'number'],
+   point6d: ['number', 'number', 'number', 'number', 'number', 'number'],
+   point5or6d: 'point5d | point6d',
    rotation_order: type.enumerated('ZYX', 'YXZ', 'XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX'),
 
    // #region Core files- ------------------------------------------------------------------------
@@ -84,7 +117,7 @@ export const $ = scope({
    },
 
    dson_figure: {
-      // '+': 'reject',
+      '+': 'reject',
       file_version: 'string',
       asset_info: 'asset_info',
       // scene: 'scene', // .dsf figure files usually don't have a "scene" block in the same way .duf files do
@@ -214,34 +247,57 @@ export const $ = scope({
    },
 
    // #region Geometry.Inf ------------------------------------------------------------------------
-   geometry_inf: {
+   geometry_inf: 'geometry_subdivision_surface | geometry_polygon_mesh',
+   geometry_polygon_mesh: {
       '+': 'reject',
       id: 'dazid', // "Genesis9-1",
-      // url: 'dazurl', // "name://@selection#geometries/Genesis9:"
       name: 'string',
-      // label: 'string',
-      type: "'subdivision_surface'",
-      // current_subdivision_level: 'number',
-      edge_interpolation_mode: "'edges_only'",
-      subd_normal_smoothing_mode: "'smooth_all_normals'",
-      'vertices?': {
-         count: 'number',
-         values: 'point3d[]',
-      },
-      'polygon_groups?': {
-         count: 'number',
-         values: 'string[]', // "l_forearm", "l_upperarm", "r_forearm", ...
-      },
-      'polygon_material_groups?': {
-         count: 'number',
-         values: 'string[]', // "Fingernails", "Toenails", "Legs", ...
-      },
-      'polylist?': {
-         count: 'number',
-         values: 'point6d[]', // [ 27, 0, 2184, 2186, 2210, 2208 ], ...
-      },
-      default_uv_set: 'dazurl', // "default_uv_set" : "/data/Daz%203D/Genesis%209/Base/UV%20Sets/Daz%203D/Base/Base%20Multi%20UDIM.dsf#Base%20Multi%20UDIM",
+      // type specific
+      type: "'polygon_mesh'",
+      rigidity: 'geometry_polygon_mesh_rigidity',
+      // 'edge_interpolation_mode?': "'edges_only'",
+      // 'subd_normal_smoothing_mode?': "'smooth_all_normals'",
+
+      // regular stuff
+      'vertices?': { count: 'number', values: 'point3d[]' },
+      'polygon_groups?': { count: 'number', values: 'string[]' /* "l_forearm", "l_upperarm"... */ },
+      'polygon_material_groups?': { count: 'number', values: 'string[]' /* "Fingernails", "Legs", ... */ },
+      'polylist?': { count: 'number', values: 'point5or6d[]' /* [ 27, 0, 2184, 2186, 2210, 2208 ], ... */ },
       'root_region?': 'root_region',
+      default_uv_set: 'dazurl', // "default_uv_set" : "/data/Daz%203D/Genesis%209/Base/UV%20Sets/Daz%203D/Base/Base%20Multi%20UDIM.dsf#Base%20Multi%20UDIM",
+      graft: { '+': 'reject' },
+      extra: 'geometry_extra[]',
+   },
+   geometry_polygon_mesh_rigidity: {
+      '+': 'reject',
+      weights: { count: 'number', values: 'point2d[]' /* [ [vertex_index, weight], ... ] */ },
+      groups: 'rigidity_group[]',
+   },
+   rigidity_group: {
+      '+': 'reject',
+      id: 'dazid',
+      rotation_mode: "'none'",
+      scale_modes: ["'none'", "'none'", "'none'"],
+      reference_vertices: { count: 'number', values: 'number[]' },
+      mask_vertices: { count: 'number', values: 'number[]' },
+      transform_nodes: 'dazurl[]',
+      use_tranform_bones_for_scale: 'boolean',
+   },
+   geometry_subdivision_surface: {
+      '+': 'reject',
+      id: 'dazid', // "Genesis9-1",
+      name: 'string',
+      // type specific
+      type: "'subdivision_surface'",
+      'edge_interpolation_mode?': "'edges_only'",
+      'subd_normal_smoothing_mode?': "'smooth_all_normals'",
+      // regular stuff
+      'vertices?': { count: 'number', values: 'point3d[]' },
+      'polygon_groups?': { count: 'number', values: 'string[]' /* "l_forearm", "l_upperarm"... */ },
+      'polygon_material_groups?': { count: 'number', values: 'string[]' /* "Fingernails", "Legs", ... */ },
+      'polylist?': { count: 'number', values: 'point6d[]' /* [ 27, 0, 2184, 2186, 2210, 2208 ], ... */ },
+      'root_region?': 'root_region',
+      default_uv_set: 'dazurl', // "default_uv_set" : "/data/Daz%203D/Genesis%209/Base/UV%20Sets/Daz%203D/Base/Base%20Multi%20UDIM.dsf#Base%20Multi%20UDIM",
       graft: { '+': 'reject' },
       extra: 'geometry_extra[]',
       // 'skin?': 'skin',
@@ -252,23 +308,31 @@ export const $ = scope({
    // },
    // skin_weights: ['string', 'point2d[]'], // [ "bone_name", [ [vertex_index, weight], ... ] ]
    root_region: {
-      id: 'string',
+      id: 'dazid',
       label: 'string',
       display_hint: "'cards_on' | 'cards_off'",
       'children?': 'root_region[]',
       'map?': { count: 'number', values: 'number[]' },
    },
-   geometry_extra: {
+   // #region Geometry.Extra ------------------------------------------------------------------------
+   geometry_extra: 'geometry_extra_material_selection_sets | geometry_extra_studio_geometry_channels',
+   geometry_extra_material_selection_sets: {
       '+': 'reject',
-      type: "'studio_geometry_channels' | 'material_selection_sets'",
-      'material_selection_sets?': 'material_selection_sets[]',
       'version?': 'string | number',
+      type: "'material_selection_sets'",
+      material_selection_sets: 'material_selection_sets[]',
+   },
+   geometry_extra_studio_geometry_channels: {
+      '+': 'reject',
+      'version?': 'string | number',
+      type: "'studio_geometry_channels'",
       'channels?': 'channel_container[]', // Updated
    },
    material_selection_sets: { name: 'string', 'materials?': 'string[]' },
+
    // #region Nodes.Ref ------------------------------------------------------------------------
+   // Represents a node reference, typically in .duf files
    node_ref: {
-      // Represents a node reference, typically in .duf files
       '+': 'reject',
       id: 'dazid',
       url: 'dazurl', // Changed from string to dazurl
@@ -280,7 +344,7 @@ export const $ = scope({
       'extra?': 'node_ref_extra[]', // extra is optional in some contexts
    },
    node_ref_preview: {
-      // For .duf style node preview
+      '+': 'reject',
       type: "'figure' | 'bone'",
       'oriented_box?': { min: 'point3d', max: 'point3d' },
       'center_point?': 'point3d',
@@ -289,7 +353,6 @@ export const $ = scope({
       'rotation?': 'point3d',
    },
    node_ref_extra: {
-      // For simple extra in node_ref
       '+': 'reject',
       type: "'studio_node_channels'",
       version: 'string | number',
@@ -359,6 +422,7 @@ export const $ = scope({
       'icon_large?': 'string',
       'colors?': type({}),
       'auto_fit_base?': 'dazurl',
+      'preferred_base?': 'dazurl',
    },
    chanel: {
       '+': 'reject',
@@ -394,6 +458,7 @@ export const $ = scope({
       'node?': 'null | string | dazid', // For "Point At" like channels
    },
    channel_container: {
+      '+': 'reject',
       // Used in lists like geometry_extra.channels or node_inf_extra.channels
       channel: 'chanel',
       'group?': 'string', // e.g. "/General/Transforms"
@@ -413,7 +478,7 @@ export const $ = scope({
       '+': 'reject',
       'type?': 'string',
       'push_post_smooth?': 'boolean',
-      'channels?': () => $.type('chanel').array(),
+      'channels?': 'chanel[]',
    },
    // #region Modifier.Inf ------------------------------------------------------------------------
    modifier_inf: {
@@ -421,15 +486,17 @@ export const $ = scope({
       id: 'dazid',
       'name?': 'string',
       'parent?': 'string',
-      skin: {
-         node: 'dazurl',
-         geometry: 'dazurl',
-         vertex_count: 'number',
-         joints: 'joint[]',
-         selection_map: 'selMap[]',
-      },
-      'extra?': 'modifier_inf_extra[]',
+      'skin?': 'skin',
+      'extra?': 'modifier_extra[]',
       // 'channel?': 'chanel',
+   },
+   skin: {
+      '+': 'reject',
+      node: 'dazurl',
+      geometry: 'dazurl',
+      vertex_count: 'number',
+      joints: 'joint[]',
+      selection_map: 'selMap[]',
    },
    // the modifier data in modifier_libary found in asset type='modifier'
    dson_modifier_modifier: {
@@ -440,36 +507,39 @@ export const $ = scope({
       'presentation?': 'presentation',
       'channel?': 'chanel',
       group: 'dazgroup',
+      'morph?': 'morph',
       'formulas?': 'formula_item[]',
-      'extra?': 'modifier_inf_extra[]',
+      'extra?': 'modifier_extra[]',
    },
-   selMap: {
-      id: 'dazid',
-      mappings: type(['string', 'string']).array(),
-   },
-   joint: {
-      id: 'dazid',
-      node: 'dazurl',
-      node_weights: {
-         count: 'number',
-         values: 'point2d[]', // e.g. [ 0.5, 0.5, 0.5 ]
-      },
-   },
-   modifier_inf_extra: {
+   morph: { vertex_count: 'number', deltas: { count: 'number', values: 'number_delta_value[]' } },
+   number_delta_value: ['number', 'number', 'number', 'number'],
+   selMap: { id: 'dazid', mappings: type(['string', 'string']).array() },
+   joint: { id: 'dazid', node: 'dazurl', node_weights: { count: 'number', values: 'point2d[]' } },
+   modifier_extra:
+      'modifier_extra_studio_modifier_channels | modifier_extra_skin_settings | modifier_extra_studio_modifier_dynamic_simulation',
+   modifier_extra_studio_modifier_channels: {
       '+': 'reject',
-      'type?': "'skin_settings'",
+      type: "'studio_modifier_channels'",
+      channels: 'channel_container[]',
+   },
+   modifier_extra_studio_modifier_dynamic_simulation: {
+      '+': 'reject',
+      type: "'studio/modifier/dynamic_simulation'",
+      vertex_count: 'number',
+      influence_weights: { count: 'number', values: 'point2d[]' }, // [ [vertex_index, weight], ... ]
+   },
+   modifier_extra_skin_settings: {
+      '+': 'reject',
+      type: "'skin_settings'",
       auto_normalize_general: 'boolean', // true,
       auto_normalize_local: 'boolean', // true,
       auto_normalize_scale: 'boolean', // true,
       binding_mode: "'General'", // "General",
       general_map_mode: "'DualQuat'", // "DualQuat",
-      blend_mode: "'BlendLinearDualQuat'", // "BlendLinearDualQuat",
+      blend_mode: "'BlendLinearDualQuat' | 'BlendLocalGeneral'", // "BlendLinearDualQuat",
       scale_mode: "'BindingMaps'", // "BindingMaps",
       blend_vertex_count: 'number',
-      blend_weights: {
-         count: 'number',
-         values: 'point2d[]',
-      },
+      blend_weights: { count: 'number', values: 'point2d[]' },
    },
 
    // #region Matérial ------------------------------------------------------------------------

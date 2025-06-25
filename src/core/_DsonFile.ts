@@ -1,17 +1,17 @@
 import { $$dson, DazAssetType, string_DazId } from '../spec.js'
 import { string_AbsPath, string_Ext, string_RelPath } from '../types.js'
-import { fmtAbsPath, fmtDazId, fmtRelPath } from '../utils/fmt.js'
-import { FileMeta } from '../walk.js'
+import { fmtDazId } from '../utils/fmt.js'
+import { PathInfo } from '../walk.js'
 import { DazAbstraction } from './_DazAbstraction.js'
-import type { DazCharacter } from './DazFileCharacter.js'
-import type { DazFigure } from './DazFileFigure.js'
+import type { DazFileCharacter } from './DazFileCharacter.js'
+import type { DazFileFigure } from './DazFileFigure.js'
 import type { DazFileModifier } from './DazFileModifier.js'
 import type { DazFilePose } from './DazFilePose.js'
 import type { DazWearable } from './DazFileWearable.js'
 
-export type KnownDazFile = DazCharacter | DazWearable | DazFigure | DazFilePose | DazFileModifier
+export type KnownDazFile = DazFileCharacter | DazWearable | DazFileFigure | DazFilePose | DazFileModifier
 
-export abstract class DsonFile<DATA extends $$dson> extends DazAbstraction<FileMeta, DATA> {
+export abstract class DsonFile<DATA extends $$dson> extends DazAbstraction<PathInfo, DATA> {
    get dazId(): string_DazId {
       return this.data.asset_info.id
    }
@@ -38,7 +38,7 @@ export abstract class DsonFile<DATA extends $$dson> extends DazAbstraction<FileM
 
    // ---- print methods
    override printHeader(): void {
-      console.log(fmtAbsPath(this.absPath))
-      console.log(`[${this.emoji} ${this.assetType} #${fmtDazId(this.dazId)} @ ${fmtRelPath(this.relPath)}] `)
+      // console.log(`[${this.emoji} ${this.assetType} #${fmtDazId(this.dazId)}] ${fmtAbsPath(this.absPath)} `)
+      console.log(`[${this.emoji} ${this.assetType} #${fmtDazId(this.dazId)}]`)
    }
 }

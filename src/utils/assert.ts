@@ -32,3 +32,22 @@ export const NUMBER_OR_CRASH = (x: unknown, message: string): number => {
    }
    return x
 }
+
+export const ASSERT_ERROR = (err: unknown): Error => {
+   if (!(err instanceof Error)) {
+      throw new Error(`Expected an Error, but got: ${typeof err} - ${err}`)
+   }
+   return err
+}
+
+export const ASSERT_INSTANCE_OF = <T>(
+   //
+   obj: unknown,
+   cls: new (...args: any[]) => T,
+   message?: string,
+): T => {
+   if (!(obj instanceof cls)) {
+      throw new Error(`Expected instance of ${cls.name}, but got: ${typeof obj} - ${obj}. ${message}`)
+   }
+   return obj
+}

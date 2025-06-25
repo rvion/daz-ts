@@ -1,12 +1,12 @@
 import GUI from 'lil-gui'
-import { DazCharacter } from '../../core/DazFileCharacter.js'
+import { DazFileCharacter } from '../../core/DazFileCharacter.js'
 import { RVCharacter } from '../../scene/Character.js'
 import { RuntimeScene } from '../../scene/RuntimeScene.js'
 
 export let runtimeScene: RuntimeScene | null = null
 let gui: GUI | null = null
 
-export async function initSceneGenesis9(characterData: DazCharacter) {
+export async function initSceneGenesis9(characterData: DazFileCharacter) {
    // If a scene already exists, dispose of it properly
    if (runtimeScene) {
       runtimeScene.dispose()

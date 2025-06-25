@@ -15,12 +15,17 @@ export type EmptyRecord = Record<never, never>
 
 // #region Misc
 export type number_Timestamp = Tagged<number, 'Timestamp'>
+export function asTimestamp(ts: number): number_Timestamp {
+   return ts as number_Timestamp
+}
 
 // #region Paths
 export type string_AbsPath = Tagged<string, { AbsolutePath: true }>
 export type string_RelPath = Tagged<string, { RelativePath: true }>
 export const asAbsPath = (path: string): string_AbsPath => path as string_AbsPath
 export const asRelPath = (path: string): string_RelPath => path as string_RelPath
+export const absPath = (strings: TemplateStringsArray, ...values: unknown[]): string_AbsPath => String.raw(strings, ...values) as string_AbsPath // biome-ignore format: misc
+export const relPath = (strings: TemplateStringsArray, ...values: unknown[]): string_RelPath => String.raw(strings, ...values) as string_RelPath // biome-ignore format: misc
 
 export type string_Ext = Tagged<`.${string}`, { Extension: true }>
 export const asExt = (ext: string): string_Ext => ext as string_Ext

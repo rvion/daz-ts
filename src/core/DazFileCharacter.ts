@@ -1,26 +1,26 @@
 import { DazMgr } from '../mgr.js'
-import { $$, $$dson, $$dson_character, asDazId, string_DazId } from '../spec.js'
+import { $$, $$dson, $$dson_character, dazId, string_DazId } from '../spec.js'
 import { string_RelPath } from '../types.js'
 import { check_orCrash } from '../utils/arkutils.js'
 import { getDazPathAndIdFromDazURL_orCrash } from '../utils/parseDazUrl.js'
-import { FileMeta } from '../walk.js'
+import { PathInfo } from '../walk.js'
 import { DsonFile } from './_DsonFile.js'
-import { DazFigure } from './DazFileFigure.js'
+import { DazFileFigure } from './DazFileFigure.js'
 import { DazNodeRef } from './DazNodeRef.js'
 
-export class DazCharacter extends DsonFile<$$dson_character> {
+export class DazFileCharacter extends DsonFile<$$dson_character> {
    emoji = '👤'
    kind = 'character'
 
-   figure: DazFigure | null = null
-   get figure_orCrash(): DazFigure {
+   figure: DazFileFigure | null = null
+   get figure_orCrash(): DazFileFigure {
       if (!this.figure) throw new Error(`[DazCharacter:${this.dazId}] No DazFigure associated with this character.`)
       return this.figure
    }
 
-   static async init(mgr: DazMgr, meta: FileMeta, dson: $$dson): Promise<DazCharacter> {
+   static async init(mgr: DazMgr, meta: PathInfo, dson: $$dson): Promise<DazFileCharacter> {
       const json = check_orCrash($$.dson_character, dson, dson.asset_info.id)
-      const self = new DazCharacter(mgr, meta, json)
+      const self = new DazFileCharacter(mgr, meta, json)
       self.printHeader()
       mgr.charactersByDazId.set(self.dazId, self)
       mgr.charactersByRelPath.set(self.relPath, self)
@@ -34,14 +34,14 @@ export class DazCharacter extends DsonFile<$$dson_character> {
 
       // Attempt to find and load the associated DazFigure
       const commonFigureNodeIds: string_DazId[] = [
-         asDazId('Genesis9'),
-         asDazId('Genesis8Male'),
-         asDazId('Genesis8Female'),
-         asDazId('Genesis3Male'),
-         asDazId('Genesis3Female'),
-         asDazId('Genesis2Male'),
-         asDazId('Genesis2Female'),
-         asDazId('Genesis'),
+         dazId`Genesis9`,
+         dazId`Genesis8Male`,
+         dazId`Genesis8Female`,
+         dazId`Genesis3Male`,
+         dazId`Genesis3Female`,
+         dazId`Genesis2Male`,
+         dazId`Genesis2Female`,
+         dazId`Genesis`,
       ]
 
       let figureNodeRef: DazNodeRef | undefined
@@ -49,7 +49,7 @@ export class DazCharacter extends DsonFile<$$dson_character> {
       // Try common IDs first
       for (const id of commonFigureNodeIds) {
          const nodeRef = self.nodeRefs.get(id)
-         if (nodeRef?.data?.preview?.type === 'figure' || (nodeRef && id === asDazId('Genesis9'))) {
+         if (nodeRef?.data?.preview?.type === 'figure' || (nodeRef && id === dazId('Genesis9'))) {
             figureNodeRef = nodeRef
             break
          }

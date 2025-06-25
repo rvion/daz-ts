@@ -2,14 +2,14 @@ import { DazMgr } from '../mgr.js'
 import { $$, $$dson, $$dson_pose } from '../spec.js'
 import { check_orCrash } from '../utils/arkutils.js'
 import { ASSERT_, bang } from '../utils/assert.js'
-import { FileMeta } from '../walk.js'
+import { PathInfo } from '../walk.js'
 import { DsonFile } from './_DsonFile.js'
 
 export class DazFilePose extends DsonFile<$$dson_pose> {
    emoji = '👤'
    kind = 'character'
 
-   static async init(mgr: DazMgr, meta: FileMeta, dson: $$dson): Promise<DazFilePose> {
+   static async init(mgr: DazMgr, meta: PathInfo, dson: $$dson): Promise<DazFilePose> {
       const json = check_orCrash($$.dson_pose, dson, dson.asset_info.id)
       const self = new DazFilePose(mgr, meta, json)
       self.printHeader()

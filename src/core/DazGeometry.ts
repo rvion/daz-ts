@@ -1,11 +1,11 @@
 import { DazMgr } from '../mgr.js'
-import { $$geometry, $$point3d, $$point6d, string_DazId } from '../spec.js'
+import { $$geometry, $$point3d, $$point5or6d, $$point6d, string_DazId } from '../spec.js'
 import { bang } from '../utils/assert.js'
 import { AnyDazAbstraction, DazAbstraction } from './_DazAbstraction.js'
 
 export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
    emoji = '🔻'
-   kind = 'geometry_inf'
+   kind = 'geometry'
    get dazId(): string_DazId { return this.data.id } // biome-ignore format: misc
    override get summary(): string {
       const infos: string[] = []
@@ -39,11 +39,11 @@ export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
          return null
       }
       const threeIndices: number[] = []
-      this.data.polylist.values.forEach((poly: $$point6d) => {
+      this.data.polylist.values.forEach((poly: $$point5or6d) => {
          // Assuming poly is [meta1, meta2, v0_idx, v1_idx, v2_idx, v3_idx] for a quad.
          // Daz Studio primarily uses quads. Triangulate quad (v0,v1,v2,v3) into (v0,v1,v2) and (v0,v2,v3).
          threeIndices.push(poly[2], poly[3], poly[4]) // Triangle 1: (v0, v1, v2)
-         threeIndices.push(poly[2], poly[4], poly[5]) // Triangle 2: (v0, v2, v3)
+         threeIndices.push(poly[2], poly[4], poly[5] ?? 0) // Triangle 2: (v0, v2, v3)
       })
       return threeIndices.length > 0 ? threeIndices : null
    }

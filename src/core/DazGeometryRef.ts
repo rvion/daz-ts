@@ -3,7 +3,7 @@ import { $$geometry_ref, string_DazId, string_DazUrl } from '../spec.js'
 import { fmtDazUrl } from '../utils/fmt.js'
 import { getDazPathAndIdFromDazURL_orCrash } from '../utils/parseDazUrl.js' // Changed to crash-first version
 import { AnyDazAbstraction, DazAbstraction } from './_DazAbstraction.js'
-import { DazFigure } from './DazFileFigure.js' // DazFigure is used by mgr.loadDazFigureByRelPath_orCrash implicitly, but keep for clarity if needed by other parts or for type safety
+import { DazFileFigure } from './DazFileFigure.js' // DazFigure is used by mgr.loadDazFigureByRelPath_orCrash implicitly, but keep for clarity if needed by other parts or for type safety
 import { DazGeometry } from './DazGeometry.js'
 
 export class DazGeometryRef extends DazAbstraction<AnyDazAbstraction, $$geometry_ref> {
@@ -38,7 +38,7 @@ export class DazGeometryRef extends DazAbstraction<AnyDazAbstraction, $$geometry
 
    private async loadAndResolve(): Promise<void> {
       const { srcPath: dsfPath, idInFile: geometryIdInDsf } = getDazPathAndIdFromDazURL_orCrash(this.data.url)
-      const dazFigureFile: DazFigure = await this.mgr.loadDazFigureByRelPath_orCrash(dsfPath)
+      const dazFigureFile: DazFileFigure = await this.mgr.loadDazFigureByRelPath_orCrash(dsfPath)
       const geomInf = dazFigureFile.geometries.get(geometryIdInDsf)
 
       if (geomInf) {

@@ -1,5 +1,6 @@
 import * as fs_ from 'node:fs/promises'
 import zlib from 'node:zlib'
+import chalk from 'chalk'
 import { filetypeinfo } from 'magic-bytes.js'
 import { OBJ, parse, STR } from 'partial-json'
 import { readPartialGzipped } from './readPartialGzipped.js'
@@ -66,7 +67,14 @@ export const fs: FS = {
          }
       }
    },
-   writeFile: fs_.writeFile,
+   writeFile: (
+      file: Arg0<typeof fs_.writeFile>,
+      data: Arg1<typeof fs_.writeFile>,
+      options?: Arg2<typeof fs_.writeFile> | undefined,
+   ) => {
+      console.log(`Output written to ${chalk.cyanBright(file)}`)
+      return fs_.writeFile(file, data, options)
+   },
    readdir: fs_.readdir,
    stat: fs_.stat,
    mkdir: fs_.mkdir,
@@ -74,3 +82,10 @@ export const fs: FS = {
    copyFile: fs_.copyFile,
    rename: fs_.rename,
 }
+
+// biome-ignore lint/suspicious/noExplicitAny: ok
+type Arg0<F> = F extends (arg0: infer A, ...args: any[]) => any ? A : never
+// biome-ignore lint/suspicious/noExplicitAny: ok
+type Arg1<F> = F extends (arg0: any, arg1: infer A, ...args: any[]) => any ? A : never
+// biome-ignore lint/suspicious/noExplicitAny: ok
+type Arg2<F> = F extends (arg0: any, arg1: any, arg2: infer A, ...args: any[]) => any ? A : never

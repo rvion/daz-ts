@@ -2,29 +2,31 @@ import chalk from 'chalk'
 import { DefaultMap } from 'mnemonist'
 import * as path from 'pathe'
 import { KnownDazFile } from './core/_DsonFile.js'
-import { DazCharacter } from './core/DazFileCharacter.js'
-import { DazFigure } from './core/DazFileFigure.js'
+import { DazFileCharacter } from './core/DazFileCharacter.js'
+import { DazFileFigure } from './core/DazFileFigure.js'
 import { DazFileModifier } from './core/DazFileModifier.js'
 import { DazFilePose } from './core/DazFilePose.js'
 import { DazWearable } from './core/DazFileWearable.js'
-import { GLOBAL } from './DI.js'
-import { $$, $$asset_info, $$dson, DazAssetType, string_DazId } from './spec.js'
-import { string_AbsPath, string_Ext, string_RelPath } from './types.js'
+import { checkpoint, GLOBAL } from './DI.js'
+import { $$, $$asset_info, $$dson, DazAssetType, string_DazId, string_DazUrl } from './spec.js'
+import { relPath, string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
-import { bang } from './utils/assert.js'
+import { ASSERT_INSTANCE_OF, bang } from './utils/assert.js'
+import { fmtAbsPath } from './utils/fmt.js'
 import { FS } from './utils/fsNode.js'
-import { FileMeta, walk } from './walk.js'
+import { DazUrlParts, getDazUrlParts } from './utils/parseDazUrl.js'
+import { PathInfo, walk } from './walk.js'
 
 export class DazMgr {
    // ---- files
    filesFull = new Map<string_AbsPath, KnownDazFile>()
 
    // ---- full objects loaded during the run
-   charactersByDazId: Map<string_DazId, DazCharacter> = new Map()
-   charactersByRelPath: Map<string_RelPath, DazCharacter> = new Map()
+   charactersByDazId: Map<string_DazId, DazFileCharacter> = new Map()
+   charactersByRelPath: Map<string_RelPath, DazFileCharacter> = new Map()
 
-   figuresByDazId: Map<string_DazId, DazFigure> = new Map()
-   figuresByRelPath: Map<string_RelPath, DazFigure> = new Map()
+   figuresByDazId: Map<string_DazId, DazFileFigure> = new Map()
+   figuresByRelPath: Map<string_RelPath, DazFileFigure> = new Map()
 
    poseByDazId: Map<string_DazId, DazFilePose> = new Map()
    poseByRelPath: Map<string_RelPath, DazFilePose> = new Map()
@@ -83,16 +85,33 @@ export class DazMgr {
       public fs: FS,
    ) {}
 
-   // ---- Load Full
+   // ---- Load
    /**  Load full Daz asset, from meta. */
-   async loadFull_FromRelPath(relPath: string_RelPath) {
-      return this.loadFull_fromMeta(this._getFileMeta(relPath)) // Store the file path in the manager
+   async loadRelPath(relPath: string_RelPath) {
+      return this._loadFromPathInfo(this._resolveRelPath(relPath)) // Store the file path in the manager
+   }
+   async loadAbsPath(absPath: string_AbsPath) {
+      const relPath = path.relative(this.absRootPath, absPath) as string_RelPath
+      return this._loadFromPathInfo(this._resolveRelPath(relPath)) // Store the file path in the manager
+   }
+
+   // ---- Load > Genesis 9 samples
+   private genesis9baseDuf = relPath`People/Genesis 9/Genesis 9.duf`
+   private genesis9baseDsf = relPath`data/DAZ 3D/Genesis 9/Base/Genesis9.dsf`
+   async loadGenesis9CharacterFile(): Promise<DazFileCharacter> {
+      const f = await this.loadRelPath(this.genesis9baseDuf)
+      return ASSERT_INSTANCE_OF(f, GLOBAL.DazFileCharacter)
+   }
+   async loadGenesis9FigureFile(): Promise<DazFileFigure> {
+      const f = await this.loadRelPath(this.genesis9baseDsf)
+      return ASSERT_INSTANCE_OF(f, GLOBAL.DazFileFigure)
    }
 
    /**  Load full Daz asset, hydrate graph, resolve URLs. */
-   private async loadFull_fromMeta(meta: FileMeta): Promise<KnownDazFile> {
+   private async _loadFromPathInfo(meta: PathInfo): Promise<KnownDazFile> {
       // use cached file if exists
       if (this.filesFull.has(meta.absPath)) return bang(this.filesFull.get(meta.absPath))
+      console.log(`[💿] loading ${fmtAbsPath(meta.absPath)} `)
 
       // load dson
       const json = await this.fs.readJSON(meta.absPath)
@@ -106,26 +125,43 @@ export class DazMgr {
       return stuff
    }
 
-   async loadDazFigureByRelPath_orCrash(relPath: string_RelPath): Promise<DazFigure> {
-      const file = await this.loadFull_FromRelPath(relPath)
-      if (file instanceof GLOBAL.DazFigure) return file
+   async loadDazFigureByRelPath_orCrash(relPath: string_RelPath): Promise<DazFileFigure> {
+      const file = await this.loadRelPath(relPath)
+      if (file instanceof GLOBAL.DazFileFigure) return file
       const errMst = `Expected DazFigure at "${relPath}", but found ${file.constructor.name} (AssetType: ${file.assetType}, DazID: ${file.dazId})`
       throw new Error(errMst)
    }
 
-   private _hydrateDson(meta: FileMeta, dson: $$dson): Promise<KnownDazFile> {
+   private _hydrateDson(meta: PathInfo, dson: $$dson): Promise<KnownDazFile> {
       const assetType = dson.asset_info.type
       if (assetType === 'wearable') return DazWearable.init(this, meta, dson)
-      else if (assetType === 'character') return DazCharacter.init(this, meta, dson)
-      else if (assetType === 'figure') return DazFigure.init(this, meta, dson)
+      else if (assetType === 'character') return DazFileCharacter.init(this, meta, dson)
+      else if (assetType === 'figure') return DazFileFigure.init(this, meta, dson)
       else if (assetType === 'preset_pose') return DazFilePose.init(this, meta, dson)
       else if (assetType === 'modifier') return DazFileModifier.init(this, meta, dson)
       else throw new Error(`Invalid asset type: ${chalk.red(`'${assetType}'`)} in "${meta.absPath}"`)
    }
 
+   parseUrl(url: string_DazUrl): DazUrlParts {
+      return getDazUrlParts(url)
+   }
+
+   // #region ---- Inspect Library
+   getAllAssetAbsPaths(): { duf: string_AbsPath[]; dsf: string_AbsPath[] } {
+      const duf: string_AbsPath[] = []
+      const dsf: string_AbsPath[] = []
+      walk(this.absRootPath, this.absRootPath, {
+         onDufFile: (f) => duf.push(f.absPath),
+         onDsfFile: (f) => dsf.push(f.absPath),
+         // onDsaFile: (f) => this.handleFile(f),
+      })
+      return { duf, dsf }
+   }
+
    // #region ---- Summarize
    async summarize(): Promise<string> {
-      const logUnexpectedParseError = (f: FileMeta) => (_err: unknown) => {
+      checkpoint('summarize.start')
+      const logUnexpectedParseError = (f: PathInfo) => (_err: unknown) => {
          if (f.fileName.startsWith('._')) return // skip hidden files
          console.log(`[🔶] skipping ${f.absPath}: ${_err}`)
       }
@@ -134,14 +170,18 @@ export class DazMgr {
          onDsfFile: (f) => this._peek(f).catch(logUnexpectedParseError(f)),
          // onDsaFile: (f) => this.handleFile(f),
       })
+      checkpoint('summarize.walk-end')
       await Promise.all(res)
+      checkpoint('summarize.parse-end')
       await this._saveSummary()
+      checkpoint('summarize.summary-end')
       return this.statTable
    }
 
    /** Only load as simple DSON file. do not hydrate graph. do not resolve URLs. */
    private _seenFiles: string[] = []
-   private async _peek(meta: FileMeta): Promise<$$asset_info> {
+   private async _peek(meta: PathInfo): Promise<$$asset_info> {
+      // process.stdout.write('.')
       // const json = await this.fs.readJSON(meta.absPath)
       const json = await this.fs.readPartialJSON(meta.absPath, 2000)
       const dson = check_orCrash($$.dson, json, meta.absPath)
@@ -149,11 +189,11 @@ export class DazMgr {
       this.incrementType(assetType, meta.fileExt)
       this._seenFiles.push(`{${meta.fileExt}} [${assetType}] ${meta.relPath}`)
       this.count++
-
-      // Parse modifiers completely to resolve their URLs
-      if (dson.asset_info.type === 'modifier') {
-         await DazFileModifier.init(this, meta, dson)
-      }
+      // process.stdout.write('✅')
+      // // Parse modifiers completely to resolve their URLs
+      // if (dson.asset_info.type === 'modifier') {
+      //    await DazFileModifier.init(this, meta, dson)
+      // }
       return dson.asset_info
    }
 
@@ -176,16 +216,25 @@ export class DazMgr {
 
    // #region ---- Utils
    private _writeFile(path: string, content: string): Promise<void> {
-      console.log(`Output written to ${chalk.cyanBright(path)}`)
       return this.fs.writeFile(path, content)
    }
 
-   private _getFileMeta(relPath: string_RelPath): FileMeta {
+   private _resolveAbsPath(absPath: string_AbsPath): PathInfo {
+      const relPath = path.relative(this.absRootPath, absPath) as string_RelPath
+      return this.__resolveInteral(relPath, absPath)
+   }
+
+   private _resolveRelPath(relPath: string_RelPath): PathInfo {
       const absPath = path.join(this.absRootPath, relPath)
+      return this.__resolveInteral(relPath, absPath)
+   }
+
+   /** @internal */
+   private __resolveInteral(relPath: string_RelPath, absPath: string_AbsPath): PathInfo {
       const fileExt = path.extname(absPath) as string_Ext // Ensure this is a valid extension
       const baseName = path.basename(absPath, fileExt) // Get the base name without extension
       const fileName = path.basename(absPath) // Get the base name without extension
-      const fileMeta: FileMeta = {
+      const fileMeta: PathInfo = {
          absPath: absPath as string_AbsPath,
          relPath: relPath as string_RelPath,
          fileExt: fileExt,
