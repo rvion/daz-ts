@@ -10,7 +10,7 @@ import { DazWearable } from './core/DazFileWearable.js'
 import { checkpoint, GLOBAL } from './DI.js'
 import { FS } from './fs/fsNode.js'
 import type { PathInfo } from './fs/PathInfo.js'
-import { walkSync } from './fs/walk.js'
+import { discoverFiles, processFiles, WalkOptions, walkSync } from './fs/walk.js'
 import { $$, $$asset_info, $$dson, DazAssetType, string_DazId, string_DazUrl } from './spec.js'
 import { relPath, string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
@@ -148,14 +148,14 @@ export class DazMgr {
    }
 
    // #region ---- Inspect Library
-   getAllAssetAbsPaths(): { duf: string_AbsPath[]; dsf: string_AbsPath[] } {
+   async getAllAssetAbsPaths(options?: WalkOptions): Promise<{ duf: string_AbsPath[]; dsf: string_AbsPath[] }> {
       const duf: string_AbsPath[] = []
       const dsf: string_AbsPath[] = []
-      walkSync(this.absRootPath, this.absRootPath, {
-         onDufFile: (f) => duf.push(f.absPath),
-         onDsfFile: (f) => dsf.push(f.absPath),
-         // onDsaFile: (f) => this.handleFile(f),
-      })
+      const files = await discoverFiles(this.absRootPath, options)
+      for (const file of files) {
+         if (file.fileExt === '.duf') duf.push(file.absPath)
+         else if (file.fileExt === '.dsf') dsf.push(file.absPath)
+      }
       return { duf, dsf }
    }
 
@@ -166,12 +166,13 @@ export class DazMgr {
          if (f.fileName.startsWith('._')) return // skip hidden files
          console.log(`[🔶] skipping ${f.absPath}: ${_err}`)
       }
-      const res = walkSync(this.absRootPath, this.absRootPath, {
+      const files = await discoverFiles(this.absRootPath)
+      checkpoint('summarize.walk-end')
+      const res = processFiles(files, {
          onDufFile: (f) => this._peek(f).catch(logUnexpectedParseError(f)),
          onDsfFile: (f) => this._peek(f).catch(logUnexpectedParseError(f)),
-         // onDsaFile: (f) => this.handleFile(f),
       })
-      checkpoint('summarize.walk-end')
+      checkpoint('summarize.parse-spawn')
       await Promise.all(res)
       checkpoint('summarize.parse-end')
       await this._saveSummary()
