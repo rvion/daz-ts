@@ -1,5 +1,5 @@
 import { DazMgr } from '../mgr.js'
-import { $$geometry, $$point3d, $$point5or6d, $$point6d, string_DazId } from '../spec.js'
+import { $$geometry, $$point3d, $$point5or6d, string_DazId } from '../spec.js'
 import { bang } from '../utils/assert.js'
 import { AnyDazAbstraction, DazAbstraction } from './_DazAbstraction.js'
 

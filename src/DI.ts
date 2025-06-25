@@ -8,6 +8,7 @@ import { DazGeometry } from './core/DazGeometry.js'
 import { DazGeometryRef } from './core/DazGeometryRef.js'
 import { DazNode } from './core/DazNode.js' // New import
 import { DazNodeRef } from './core/DazNodeRef.js' // Corrected import path
+import { DazMgr } from './mgr.js'
 import { asTimestamp, number_Timestamp } from './types.js'
 
 // -------- Class DI utilities --------
@@ -44,4 +45,15 @@ export function checkpoint(fn: string | ((delta: Delta) => void)): void {
    }
    if (typeof fn === 'string') console.log(chalk.gray(`[${delta.fromStart}] ${fn}`))
    else fn(delta)
+}
+
+// -------- DazMgr instance --------
+const mgrRef: { mgr: DazMgr | null } = { mgr: null }
+export const registerMgrInstance = (mgr: DazMgr) => {
+   if (mgrRef.mgr) console.warn(chalk.yellow('DazMgr instance already registered. Overwriting.'))
+   mgrRef.mgr = mgr
+}
+export const getMgr = () => {
+   if (!mgrRef.mgr) throw new Error('DazMgr instance not registered. Call registerMgrInstance first.')
+   return mgrRef.mgr
 }

@@ -14,22 +14,29 @@ export const fs: FS = {
    writeFile: () => {
       throw new Error('writeFile not implemented in fsWeb.js')
    },
-   readdir: () => {
-      throw new Error('readdir not implemented in fsWeb.js')
+   discoverFiles: () => {
+      throw new Error('discoverFiles not implemented in fsWeb.js')
    },
-   stat: () => {
-      throw new Error('stat not implemented in fsWeb.js')
+   processFiles: () => {
+      throw new Error('processFiles not implemented in fsWeb.js')
    },
+
+   // readdir: () => {
+   //    throw new Error('readdir not implemented in fsWeb.js')
+   // },
+   // stat: () => {
+   //    throw new Error('stat not implemented in fsWeb.js')
+   // },
    mkdir: () => {
       throw new Error('mkdir not implemented in fsWeb.js')
    },
-   unlink: () => {
-      throw new Error('unlink not implemented in fsWeb.js')
-   },
-   copyFile: () => {
-      throw new Error('copyFile not implemented in fsWeb.js')
-   },
-   rename: () => {
-      throw new Error('rename not implemented in fsWeb.js')
-   },
+   // unlink: () => {
+   //    throw new Error('unlink not implemented in fsWeb.js')
+   // },
+   // copyFile: () => {
+   //    throw new Error('copyFile not implemented in fsWeb.js')
+   // },
+   // rename: () => {
+   //    throw new Error('rename not implemented in fsWeb.js')
+   // },
 }

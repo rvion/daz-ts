@@ -20,6 +20,8 @@ export interface WalkOptions {
    /** Additional fast-glob options */
    globOptions?: fg.Options
 }
+export type DiscoverFilesFn = typeof discoverFiles
+export type ProcessFilesFn = typeof processFiles
 
 /**
  * Creates PathInfo from an absolute file path

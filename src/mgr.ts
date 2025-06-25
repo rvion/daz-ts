@@ -7,18 +7,27 @@ import { DazFileFigure } from './core/DazFileFigure.js'
 import { DazFileModifier } from './core/DazFileModifier.js'
 import { DazFilePose } from './core/DazFilePose.js'
 import { DazWearable } from './core/DazFileWearable.js'
-import { checkpoint, GLOBAL } from './DI.js'
-import { FS } from './fs/fsNode.js'
+import { checkpoint, GLOBAL, registerMgrInstance } from './DI.js'
+import type { FS } from './fs/fsNode.js'
 import type { PathInfo } from './fs/PathInfo.js'
-import { discoverFiles, processFiles, WalkOptions } from './fs/walk.js'
+import type { WalkOptions } from './fs/walk.js'
 import { $$, $$asset_info, $$dson, DazAssetType, string_DazId, string_DazUrl } from './spec.js'
 import { relPath, string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
 import { ASSERT_INSTANCE_OF, bang } from './utils/assert.js'
 import { fmtAbsPath } from './utils/fmt.js'
 import { DazUrlParts, getDazUrlParts } from './utils/parseDazUrl.js'
+import { readableStringify } from './utils/readableStringify.js'
+
+type CachedLibraryFiles = {
+   assetType: DazAssetType
+   relPath: string
+   ext: string_Ext
+}
 
 export class DazMgr {
+   /** @internal */ private ____DI____ = (() => registerMgrInstance(this))()
+
    // ---- files
    filesFull = new Map<string_AbsPath, KnownDazFile>()
 
@@ -81,7 +90,6 @@ export class DazMgr {
    }
 
    constructor(
-      //
       public absRootPath: string_AbsPath,
       public fs: FS,
    ) {}
@@ -91,6 +99,7 @@ export class DazMgr {
    async loadRelPath(relPath: string_RelPath) {
       return this._loadFromPathInfo(this._resolveRelPath(relPath)) // Store the file path in the manager
    }
+
    async loadAbsPath(absPath: string_AbsPath) {
       const relPath = path.relative(this.absRootPath, absPath) as string_RelPath
       return this._loadFromPathInfo(this._resolveRelPath(relPath)) // Store the file path in the manager
@@ -148,10 +157,15 @@ export class DazMgr {
    }
 
    // #region ---- Inspect Library
+   async getCachedFiles(): Promise<CachedLibraryFiles[]> {
+      const out = await this.fs.readJSON('data/processed_files.json')
+      return out as CachedLibraryFiles[]
+   }
+
    async getAllAssetAbsPaths(options?: WalkOptions): Promise<{ duf: string_AbsPath[]; dsf: string_AbsPath[] }> {
       const duf: string_AbsPath[] = []
       const dsf: string_AbsPath[] = []
-      const files = await discoverFiles(this.absRootPath, options)
+      const files = await this.fs.discoverFiles(this.absRootPath, options)
       for (const file of files) {
          if (file.fileExt === '.duf') duf.push(file.absPath)
          else if (file.fileExt === '.dsf') dsf.push(file.absPath)
@@ -166,9 +180,9 @@ export class DazMgr {
          if (f.fileName.startsWith('._')) return // skip hidden files
          console.log(`[🔶] skipping ${f.absPath}: ${_err}`)
       }
-      const files = await discoverFiles(this.absRootPath)
+      const files = await this.fs.discoverFiles(this.absRootPath)
       checkpoint('summarize.walk-end')
-      const res = processFiles(files, {
+      const res = this.fs.processFiles(files, {
          onDufFile: (f) => this._peek(f).catch(logUnexpectedParseError(f)),
          onDsfFile: (f) => this._peek(f).catch(logUnexpectedParseError(f)),
       })
@@ -181,28 +195,23 @@ export class DazMgr {
    }
 
    /** Only load as simple DSON file. do not hydrate graph. do not resolve URLs. */
-   private _seenFiles: string[] = []
+   private _seenFiles: CachedLibraryFiles[] = []
+
    private async _peek(meta: PathInfo): Promise<$$asset_info> {
-      // process.stdout.write('.')
-      // const json = await this.fs.readJSON(meta.absPath)
       const json = await this.fs.readPartialJSON(meta.absPath, 2000)
       const dson = check_orCrash($$.dson, json, meta.absPath)
-      const assetType = dson.asset_info.type
+      const assetType: DazAssetType = dson.asset_info.type
       this.incrementType(assetType, meta.fileExt)
-      this._seenFiles.push(`{${meta.fileExt}} [${assetType}] ${meta.relPath}`)
+      const { relPath, fileExt: ext } = meta
+      this._seenFiles.push({ relPath, assetType, ext })
       this.count++
-      // process.stdout.write('✅')
-      // // Parse modifiers completely to resolve their URLs
-      // if (dson.asset_info.type === 'modifier') {
-      //    await DazFileModifier.init(this, meta, dson)
-      // }
       return dson.asset_info
    }
 
    private async _saveSummary() {
-      const summary = this._seenFiles.sort().join('\n')
-
-      const pathAssetList = 'data/processed_files.txt' // More generic name
+      const sortedFiles = this._seenFiles.sort((a, b) => a.relPath.localeCompare(b.relPath))
+      const summary = readableStringify(sortedFiles, 0)
+      const pathAssetList = 'data/processed_files.json' // More generic name
       const pathStats = 'data/stats.txt' // More generic name
       try {
          // Ensure the data directory exists

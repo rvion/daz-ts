@@ -4,20 +4,25 @@ import chalk from 'chalk'
 import { filetypeinfo } from 'magic-bytes.js'
 import { OBJ, parse, STR } from 'partial-json'
 import { readPartialGzipped } from '../fs/readPartialGzipped.js'
+import { type DiscoverFilesFn, discoverFiles, type ProcessFilesFn, processFiles } from './walk.js'
 
 export type FS = {
    readPartialJSON: (path: string, bytes: number) => Promise<unknown>
    readJSON: (path: string) => Promise<unknown>
    writeFile: typeof fs_.writeFile
-   readdir: typeof fs_.readdir
-   stat: typeof fs_.stat
+   // readdir: typeof fs_.readdir
+   // stat: typeof fs_.stat
    mkdir: typeof fs_.mkdir
-   unlink: typeof fs_.unlink
-   copyFile: typeof fs_.copyFile
-   rename: typeof fs_.rename
+   // unlink: typeof fs_.unlink
+   // copyFile: typeof fs_.copyFile
+   // rename: typeof fs_.rename
+   discoverFiles: DiscoverFilesFn
+   processFiles: ProcessFilesFn
 }
 
 export const fs: FS = {
+   discoverFiles: discoverFiles,
+   processFiles: processFiles,
    readPartialJSON: async (path: string, bytes: number): Promise<unknown> => {
       const fileHandle = await fs_.open(path, 'r')
       try {
@@ -75,12 +80,12 @@ export const fs: FS = {
       console.log(`Output written to ${chalk.cyanBright(file)}`)
       return fs_.writeFile(file, data, options)
    },
-   readdir: fs_.readdir,
-   stat: fs_.stat,
+   // readdir: fs_.readdir,
+   // stat: fs_.stat,
    mkdir: fs_.mkdir,
-   unlink: fs_.unlink,
-   copyFile: fs_.copyFile,
-   rename: fs_.rename,
+   // unlink: fs_.unlink,
+   // copyFile: fs_.copyFile,
+   // rename: fs_.rename,
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: ok

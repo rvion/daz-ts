@@ -6,7 +6,23 @@ const tab: string = '  '
 export function readableStringify(obj: any, maxLevel = 3, level = 0): string {
    if (level > maxLevel) return JSON.stringify(obj)
    if (typeof obj !== 'object' || obj === null) return JSON.stringify(obj)
+
    const indent = tab.repeat(level + 1)
+
+   // Handle arrays at top level
+   if (Array.isArray(obj)) {
+      let result = '[\n'
+      for (let i = 0; i < obj.length; i++) {
+         const value = obj[i]
+         const comma = i < obj.length - 1 ? ',' : ''
+         result += `${indent}${readableStringify(value, maxLevel, level + 1)}${comma}`
+         result += '\n'
+      }
+      result += `${tab.repeat(Math.max(0, level))}]`
+      return result
+   }
+
+   // Handle objects
    let result = '{\n'
    const keys = Object.keys(obj)
    for (let i = 0; i < keys.length; i++) {

@@ -1,12 +1,16 @@
 import type { ArkErrors } from 'arktype'
 import { Type, type } from 'arktype'
 import chalk from 'chalk'
-import { fs } from '../fs/fsNode.js'
+import { getMgr } from '../DI.js'
 import { readableStringify } from './readableStringify.js'
 import { simplifyObject } from './simplifyObject.js'
 
-// biome-ignore lint/suspicious/noExplicitAny: ...
-export const check = <T>(typ: Type<T, any>, obj: unknown, id: string): T => {
+export const check = <T>(
+   // biome-ignore lint/suspicious/noExplicitAny: ...
+   typ: Type<T, any>,
+   obj: unknown,
+   id: string,
+): T => {
    const t = typ(obj)
    if (t instanceof type.errors) {
       printArkResultInConsole(t, id, obj)
@@ -14,8 +18,12 @@ export const check = <T>(typ: Type<T, any>, obj: unknown, id: string): T => {
    return t as T
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: ...
-export const check_orCrash = <T>(typ: Type<T, any>, obj: unknown, id: string): T => {
+export const check_orCrash = <T>(
+   // biome-ignore lint/suspicious/noExplicitAny: ...
+   typ: Type<T, any>,
+   obj: unknown,
+   id: string,
+): T => {
    const t = typ(obj)
    if (t instanceof type.errors) {
       printArkResultInConsole(t, id, obj)
@@ -27,9 +35,14 @@ export const check_orCrash = <T>(typ: Type<T, any>, obj: unknown, id: string): T
 const dbg = (obj: unknown) => readableStringify(simplifyObject(obj, { maxObjListElements: 3 /* 1000 */ }), 5)
 
 let maxErrors = 100
-function printArkResultInConsole(res: ArkErrors, id: string, obj: unknown) {
+function printArkResultInConsole(
+   //
+   res: ArkErrors,
+   id: string,
+   obj: unknown,
+) {
    console.log(chalk.red(`   ❌ Ark validation failed for "${id}":`))
-   fs.writeFile('tmp/ark-errors.json', dbg(obj))
+   getMgr().fs.writeFile('tmp/ark-errors.json', dbg(obj))
    // console.log(chalk.cyan(readableStringify(simplifyObject(obj))))
    for (const error of res) {
       maxErrors--

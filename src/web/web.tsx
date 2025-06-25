@@ -1,11 +1,12 @@
 import '../DI.js'
 
-import { fs } from '../utils/fsWeb.js'
 import './web.css'
 
 import { DazFileCharacter } from '../core/DazFileCharacter.js'
 import { DazMgr } from '../mgr.js'
 import { initSceneGenesis9 } from './scenes/genesis9.js';
+import { fs } from '../fs/fsWeb.js';
+
 export const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
 
 async function main() {
