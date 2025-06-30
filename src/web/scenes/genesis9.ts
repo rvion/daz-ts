@@ -1,7 +1,11 @@
 import GUI from 'lil-gui'
+import * as path from 'pathe'
 import { DazFileCharacter } from '../../core/DazFileCharacter.js'
+import { getMgr } from '../../DI.js'
 import { RVCharacter } from '../../scene/Character.js'
 import { RuntimeScene } from '../../scene/RuntimeScene.js'
+import { DazAssetType } from '../../spec.js'
+import { string_RelPath } from '../../types.js'
 
 export let runtimeScene: RuntimeScene | null = null
 let gui: GUI | null = null
@@ -36,7 +40,7 @@ export async function initSceneGenesis9(characterData: DazFileCharacter) {
    runtimeScene.camera.updateProjectionMatrix()
 
    // 4. Setup debug GUI
-   setupDebugGUI(character)
+   await setupDebugGUI(character)
 
    // 5. Start the rendering loop
    runtimeScene.start()
@@ -44,7 +48,7 @@ export async function initSceneGenesis9(characterData: DazFileCharacter) {
    console.log('RuntimeScene initialized with RVCharacter.')
 }
 
-function setupDebugGUI(character1: RVCharacter) {
+async function setupDebugGUI(character1: RVCharacter) {
    // Dispose existing GUI if present
    if (gui) {
       gui.destroy()
@@ -61,6 +65,35 @@ function setupDebugGUI(character1: RVCharacter) {
    char1Folder
       .add({ logHierarchy: () => console.log(character1.skeletonHierarchyString) }, 'logHierarchy')
       .name('Log Skeleton')
+
+   // Pose selection
+   const mgr = getMgr()
+   type CachedFile = { assetType: DazAssetType; relPath: string_RelPath }
+   const poses = (await mgr.getCachedFiles()).filter((f: CachedFile) => f.assetType === 'preset_pose')
+   const poseMap = new Map<string, string>()
+   poseMap.set('None', 'none') // Special value for no pose
+   poses.forEach((p: CachedFile) => poseMap.set(path.basename(p.relPath), p.relPath))
+
+   const state = {
+      pose: 'none',
+   }
+
+   const allowedPoses = Array.from(poseMap.keys().filter((i) => i.toLowerCase().includes('seated'))).sort()
+   char1Folder
+      .add(state, 'pose', allowedPoses)
+      .name('Select Pose')
+      .onChange(async (poseName: string) => {
+         const posePath = poseMap.get(poseName)
+         if (!posePath || posePath === 'none') {
+            // TODO: reset pose
+            return
+         }
+
+         const poseFile = await mgr.loadPoseFile(posePath as string_RelPath)
+         if (poseFile) {
+            character1.applyPose(poseFile)
+         }
+      })
 
    // Open folders by default
    char1Folder.open()

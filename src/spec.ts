@@ -92,7 +92,7 @@ export const $ = scope({
    // #region Core stuff ------------------------------------------------------------------------
    dazid: type('string').as<string_DazId>(),
    dazurl: type('string').as<string_DazUrl>(),
-   dazgroup: type('string').as<string_DazUrl>(),
+   dazgroup: type('string').as<string_DazGroup>(),
 
    point1d: ['number'],
    point2d: ['number', 'number'],

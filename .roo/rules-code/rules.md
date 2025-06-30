@@ -52,3 +52,7 @@ Coding Guidelines & Preferences Summary:
 
 - Consider the server to always be running
 - Consider the frontend to always be running at `http://localhost:6660/` ; you never need to start it manually
+
+---
+
+you can always access the mgr by calling `getMgr` from @src/DI.ts

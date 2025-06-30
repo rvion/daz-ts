@@ -340,6 +340,8 @@ export class RVCharacter {
          return
       }
 
+      console.log(`[RVCharacter] Applying pose ${pose.dazId} to ${this.character.dazId}`)
+
       for (const change of pose.changes) {
          this.applyPoseChange(change)
       }
@@ -352,11 +354,17 @@ export class RVCharacter {
       // Parse the pose URL to extract bone name and property
       // Example URL: "name://@selection/l_bigtoe2:?rotation/x/value"
       const urlMatch = change.url.match(/name:\/\/@selection\/([^:]+):\?([^/]+)\/([^/]+)\/value/)
-      if (!urlMatch) return
+      if (!urlMatch) {
+         console.warn(`[RVCharacter] Could not parse pose URL: ${change.url}`)
+         return
+      }
 
       const [, boneName, property, axis] = urlMatch
       const bone = this.bones.get(dazId(boneName))
-      if (!bone) return
+      if (!bone) {
+         console.warn(`[RVCharacter] Bone not found: ${boneName}`)
+         return
+      }
 
       // Apply the transformation based on property and axis
       if (property === 'rotation') {
