@@ -22,7 +22,7 @@ let ix = 0
 for (const a of modfiers /* .slice(1300) */) {
    checkpoint(`loading morph ${ix++}/${modfiers.length}`)
    try {
-      const x = await mgr.loadFile(a.relPath)
+      const _x = await mgr.loadFile(a.relPath)
       // console.log(`[🤠] --------------------------------------------------`, x.constructor.name)
    } catch (err) {
       if (err instanceof Error) {

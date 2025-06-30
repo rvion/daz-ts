@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import { DefaultMap } from 'mnemonist'
 import * as path from 'pathe'
-import { DsonFile, KnownDazFile } from './core/_DsonFile.js'
+import { KnownDazFile } from './core/_DsonFile.js'
 import { DazFileCharacter } from './core/DazFileCharacter.js'
 import { DazFileFigure } from './core/DazFileFigure.js'
 import { DazFileModifier } from './core/DazFileModifier.js'
@@ -15,7 +15,6 @@ import { $$, $$asset_info, $$dson, DazAssetType, string_DazId, string_DazUrl } f
 import { relPath, string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
 import { ASSERT_INSTANCE_OF, bang } from './utils/assert.js'
-import { fmtAbsPath } from './utils/fmt.js'
 import { DazUrlParts, getDazUrlParts } from './utils/parseDazUrl.js'
 import { readableStringify } from './utils/readableStringify.js'
 
