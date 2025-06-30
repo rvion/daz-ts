@@ -14,25 +14,26 @@ export class DazFileFigure extends DsonFile<$$dson_figure> {
       self.printHeader()
       mgr.figuresByDazId.set(self.dazId, self)
       mgr.figuresByRelPath.set(self.relPath, self)
-
-      // init
-      if (self.data.geometry_library) {
-         for (const geometryInfData of self.data.geometry_library) {
-            await self.hydrateGeometry(geometryInfData)
-         }
-      }
-      if (self.data.node_library) {
-         for (const nodeInfData of self.data.node_library) {
-            await self.hydrateNode(nodeInfData) // Use hydrateNodeInf for node_inf types
-         }
-      }
-      if (self.data.modifier_library) {
-         for (const modifierInfData of self.data.modifier_library) {
-            await self.hydrateModifier(modifierInfData)
-         }
-      }
-
       return self
+   }
+
+   async resolve(): Promise<void> {
+      // init
+      if (this.data.geometry_library) {
+         for (const geometryInfData of this.data.geometry_library) {
+            await this.hydrateGeometry(geometryInfData)
+         }
+      }
+      if (this.data.node_library) {
+         for (const nodeInfData of this.data.node_library) {
+            await this.hydrateNode(nodeInfData) // Use hydrateNodeInf for node_inf types
+         }
+      }
+      if (this.data.modifier_library) {
+         for (const modifierInfData of this.data.modifier_library) {
+            await this.hydrateModifier(modifierInfData)
+         }
+      }
    }
 
    get availableGeometryIds(): string_DazId[] {

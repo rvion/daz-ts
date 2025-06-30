@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import { DefaultMap } from 'mnemonist'
 import * as path from 'pathe'
-import { KnownDazFile } from './core/_DsonFile.js'
+import { DsonFile, KnownDazFile } from './core/_DsonFile.js'
 import { DazFileCharacter } from './core/DazFileCharacter.js'
 import { DazFileFigure } from './core/DazFileFigure.js'
 import { DazFileModifier } from './core/DazFileModifier.js'
@@ -30,6 +30,9 @@ export class DazMgr {
 
    // ---- files
    filesFull = new Map<string_AbsPath, KnownDazFile>()
+   register(file: KnownDazFile) {
+      this.filesFull.set(file.absPath, file)
+   }
 
    // ---- full objects loaded during the run
    charactersByDazId: Map<string_DazId, DazFileCharacter> = new Map()
@@ -131,7 +134,9 @@ export class DazMgr {
 
       // load full
       const stuff = await this._hydrateDson(meta, dson)
+      // 💬 2025-06-30 rvion: have to remove this from here,
       this.filesFull.set(meta.absPath, stuff)
+      await stuff.resolve()
       return stuff
    }
 
@@ -149,6 +154,7 @@ export class DazMgr {
       else if (assetType === 'figure') return DazFileFigure.init(this, meta, dson)
       else if (assetType === 'preset_pose') return DazFilePose.init(this, meta, dson)
       else if (assetType === 'modifier') return DazFileModifier.init(this, meta, dson)
+      else if (assetType === 'prop') return DazFileFigure.init(this, meta, dson)
       else throw new Error(`Invalid asset type: ${chalk.red(`'${assetType}'`)} in "${meta.absPath}"`)
    }
 

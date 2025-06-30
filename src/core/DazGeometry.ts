@@ -7,6 +7,8 @@ export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
    emoji = '🔻'
    kind = 'geometry'
    get dazId(): string_DazId { return this.data.id } // biome-ignore format: misc
+   async resolve(): Promise<void> {}
+
    override get summary(): string {
       const infos: string[] = []
       if (this.data.polylist) infos.push(`polylist:${this.data.polylist.count}`)

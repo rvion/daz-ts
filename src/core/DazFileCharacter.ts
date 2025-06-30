@@ -24,11 +24,14 @@ export class DazFileCharacter extends DsonFile<$$dson_character> {
       self.printHeader()
       mgr.charactersByDazId.set(self.dazId, self)
       mgr.charactersByRelPath.set(self.relPath, self)
+      return self
+   }
 
+   async resolve(): Promise<void> {
       // Hydrate own node references first
-      if (self.data.scene?.nodes) {
-         for (const nodeData of self.data.scene.nodes) {
-            await self.hydrateNodeRef(nodeData)
+      if (this.data.scene?.nodes) {
+         for (const nodeData of this.data.scene.nodes) {
+            await this.hydrateNodeRef(nodeData)
          }
       }
 
@@ -48,7 +51,7 @@ export class DazFileCharacter extends DsonFile<$$dson_character> {
 
       // Try common IDs first
       for (const id of commonFigureNodeIds) {
-         const nodeRef = self.nodeRefs.get(id)
+         const nodeRef = this.nodeRefs.get(id)
          if (nodeRef?.data?.preview?.type === 'figure' || (nodeRef && id === dazId('Genesis9'))) {
             figureNodeRef = nodeRef
             break
@@ -57,7 +60,7 @@ export class DazFileCharacter extends DsonFile<$$dson_character> {
 
       // If not found by common ID, try iterating all nodeRefs to find one with preview.type 'figure'
       if (!figureNodeRef) {
-         for (const nodeRef of self.nodeRefs.values()) {
+         for (const nodeRef of this.nodeRefs.values()) {
             if (nodeRef.data?.preview?.type === 'figure') {
                figureNodeRef = nodeRef
                break
@@ -68,19 +71,17 @@ export class DazFileCharacter extends DsonFile<$$dson_character> {
       if (figureNodeRef?.data.url) {
          try {
             const { srcPath: dsfPath } = getDazPathAndIdFromDazURL_orCrash(figureNodeRef.data.url)
-            self.figure = await mgr.loadDazFigureByRelPath_orCrash(dsfPath as string_RelPath)
+            this.figure = await this.mgr.loadDazFigureByRelPath_orCrash(dsfPath as string_RelPath)
          } catch (e) {
             console.error(
-               `[DazCharacter:${self.dazId}] Error loading or resolving DazFigure for nodeRef ${figureNodeRef.dazId} (URL: ${figureNodeRef.data.url}):`,
+               `[DazCharacter:${this.dazId}] Error loading or resolving DazFigure for nodeRef ${figureNodeRef.dazId} (URL: ${figureNodeRef.data.url}):`,
                e,
             )
          }
       } else {
          console.warn(
-            `[DazCharacter:${self.dazId}] Could not identify a primary figure NodeReference to load DazFigure. Skeleton features might be unavailable.`,
+            `[DazCharacter:${this.dazId}] Could not identify a primary figure NodeReference to load DazFigure. Skeleton features might be unavailable.`,
          )
       }
-
-      return self
    }
 }

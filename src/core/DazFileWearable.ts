@@ -13,20 +13,21 @@ export class DazWearable extends DsonFile<$$dson_wearable> {
       self.printHeader()
       mgr.wearablesByDazId.set(self.dazId, self)
       mgr.wearablesByRelPath.set(self.relPath, self)
-
-      // init
-      if (self.data.scene?.nodes) {
-         // scene or nodes might be optional
-         for (const nodeRefData of self.data.scene.nodes) {
-            await self.hydrateNodeRef(nodeRefData) // Changed from hydrateNode
-         }
-      }
-      if (self.data.node_library) {
-         for (const nodeRefData of self.data.node_library) {
-            await self.hydrateNodeRef(nodeRefData)
-         }
-      }
-
       return self
+   }
+
+   async resolve(): Promise<void> {
+      // init
+      if (this.data.scene?.nodes) {
+         // scene or nodes might be optional
+         for (const nodeRefData of this.data.scene.nodes) {
+            await this.hydrateNodeRef(nodeRefData) // Changed from hydrateNode
+         }
+      }
+      if (this.data.node_library) {
+         for (const nodeRefData of this.data.node_library) {
+            await this.hydrateNodeRef(nodeRefData)
+         }
+      }
    }
 }

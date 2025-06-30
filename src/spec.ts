@@ -121,6 +121,17 @@ export const $ = scope({
       // 🗑️❓ 'modifier_library?': 'modifier_ref[]',
    },
 
+   dson_prop: {
+      '+': 'reject',
+      file_version: 'string',
+      asset_info: 'asset_info',
+      // scene: 'scene', // scene is a bunch of refs
+      'geometry_library?': 'geometry_ref[]', // Prop .duf might reference geometries
+      'node_library?': 'node_ref[]', // Prop .duf might also have a node_library of node_refs
+      // 'material_library?': 'material[]',
+      // 'modifier_library?': 'modifier_ref[]',
+      // 'image_library?': 'image[]',
+   },
    dson_figure: {
       '+': 'reject',
       file_version: 'string',
@@ -391,7 +402,7 @@ export const $ = scope({
    },
    node_ref_preview: {
       '+': 'reject',
-      type: "'figure' | 'bone'",
+      type: 'node_type',
       'oriented_box?': { min: 'point3d', max: 'point3d' },
       'center_point?': 'point3d',
       'end_point?': 'point3d',
@@ -444,7 +455,7 @@ export const $ = scope({
       'inherits_selected_channels?': 'boolean',
       // 'geometries?': 'geometry_inf[]', // Geometries are usually in geometry_library for .dsf figures
    },
-   node_type: "'bone' | 'figure'",
+   node_type: "'bone' | 'figure' | 'node'",
    //
    node_inf_extra: 'node_inf_extra_studio_node_channels | node_inf_extra_studio_follower_projection_options',
    node_inf_extra_studio_follower_projection_options: {
@@ -460,7 +471,9 @@ export const $ = scope({
       consider_lines_as_rigid: 'boolean', //true,
       adaptive_tolerance: 'number', //0.01,
       source_subdivision_mode: "'auto'", //"auto",
-      follower_projection_morph: "'MorphProjectionShape'|''", //"MorphProjectionShape"
+      follower_projection_morph:
+         "'MorphProjectionShape'|'head_bs_EyelashesProjectionShape'|'head_bs_TearProjectionShape'|''", //"MorphProjectionShape"
+      'hidden?': 'boolean',
    },
    node_inf_extra_studio_node_channels: {
       // For richer extra in node_inf, potentially with channels
@@ -468,6 +481,7 @@ export const $ = scope({
       type: "'studio_node_channels'", // Add other types if necessary
       'version?': 'string | number',
       'channels?': 'channel_container[]',
+      'hidden?': 'boolean',
    },
    formula_item: {
       // Basic structure for formula items, expand as needed
@@ -476,11 +490,13 @@ export const $ = scope({
       'stage?': "'mult'",
       'operations?': 'formula_op[]', // Define operations structure if needed
    },
-   formula_op: 'formula_op_push_url| formula_op_push_val| formula_op_mult|formula_op_push_vals|formula_op_spline_tcb',
+   formula_op:
+      'formula_op_push_url | formula_op_push_val | formula_op_mult|formula_op_push_vals | formula_op_spline_tcb | formula_op_spline_linear',
    formula_op_push_url: { op: "'push'", url: 'dazurl', '+': 'reject' },
    formula_op_push_val: { op: "'push'", val: 'number', '+': 'reject' },
    formula_op_push_vals: { op: "'push'", val: 'number[]', '+': 'reject' },
    formula_op_spline_tcb: { op: "'spline_tcb'" },
+   formula_op_spline_linear: { op: "'spline_linear'" },
    formula_op_mult: { op: "'mult'" },
 
    chanelType: type.enumerated(
@@ -514,6 +530,7 @@ export const $ = scope({
       type: "'alias'",
       'name?': 'string',
       label: 'string',
+      'visible?': 'boolean',
       target_channel: 'dazurl',
    },
    chanel_float: {
@@ -577,7 +594,7 @@ export const $ = scope({
       // enum specific
       'enum_values?': 'unknown[]',
       // file specific
-      'file_type?': "'file_open'",
+      'file_type?': "'file_open'|'file_load'",
       'file_display_text?': 'string',
       'file_filter?': 'string',
       'channel?': 'chanel',
@@ -635,7 +652,7 @@ export const $ = scope({
       'parent?': 'string',
       'presentation?': 'presentation',
       'channel?': 'chanel',
-      'region?': "'Actor'|'Head'|'Face'|'Ears'|'Eyes'|'Mouth'|'Nose'|'Chest'|'Legs'|'Waist'|'Arms'|''",
+      'region?': "'Actor'|'Head'|'Face'|'Ears'|'Eyes'|'Mouth'|'Nose'|'Chest'|'Legs'|'Waist'|'Arms'|'Hands'|'Feet'|''",
       'group?': 'dazgroup',
       'morph?': 'morph',
       'formulas?': 'formula_item[]',

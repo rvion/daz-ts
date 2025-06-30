@@ -1,7 +1,7 @@
 import type { PathInfo } from '../fs/PathInfo.js'
 import { $$dson, DazAssetType, string_DazId } from '../spec.js'
 import { string_AbsPath, string_Ext, string_RelPath } from '../types.js'
-import { fmtAbsPath, fmtDazId } from '../utils/fmt.js'
+import { fmtAbsPath } from '../utils/fmt.js'
 import { DazAbstraction } from './_DazAbstraction.js'
 import type { DazFileCharacter } from './DazFileCharacter.js'
 import type { DazFileFigure } from './DazFileFigure.js'
@@ -12,6 +12,8 @@ import type { DazWearable } from './DazFileWearable.js'
 export type KnownDazFile = DazFileCharacter | DazWearable | DazFileFigure | DazFilePose | DazFileModifier
 
 export abstract class DsonFile<DATA extends $$dson> extends DazAbstraction<PathInfo, DATA> {
+   abstract resolve(): Promise<void>
+
    get dazId(): string_DazId {
       return this.data.asset_info.id
    }

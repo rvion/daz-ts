@@ -22,12 +22,11 @@ export class DazFileModifier extends DsonFile<$$dson_modifier> {
       mgr.modifiersByRelPath.set(self.relPath, self)
 
       // Resolve all URLs found in the modifier
-      await self.resolveUrls()
 
       return self
    }
 
-   private async resolveUrls(): Promise<void> {
+   async resolve(): Promise<void> {
       // Collect all URLs that need resolution
       const urlsToResolve = new Set<string_DazUrl>()
 
