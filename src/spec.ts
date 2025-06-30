@@ -273,7 +273,7 @@ export const $ = scope({
       name: 'string',
       // type specific
       type: "'polygon_mesh'",
-      rigidity: 'geometry_polygon_mesh_rigidity',
+      'rigidity?': 'geometry_polygon_mesh_rigidity',
       // 'edge_interpolation_mode?': "'edges_only'",
       // 'subd_normal_smoothing_mode?': "'smooth_all_normals'",
 
@@ -289,26 +289,27 @@ export const $ = scope({
    },
    geometry_polygon_mesh_rigidity: {
       '+': 'reject',
-      weights: { count: 'number', values: 'point2d[]' /* [ [vertex_index, weight], ... ] */ },
+      'weights?': { count: 'number', values: 'point2d[]' /* [ [vertex_index, weight], ... ] */ },
       groups: 'rigidity_group[]',
    },
    rigidity_group: {
       '+': 'reject',
       id: 'dazid',
       rotation_mode: "'none'",
-      scale_modes: ["'none'", "'none'", "'none'"],
+      scale_modes: ['rigidity_group_scale_mode', 'rigidity_group_scale_mode', 'rigidity_group_scale_mode'],
       reference_vertices: { count: 'number', values: 'number[]' },
       mask_vertices: { count: 'number', values: 'number[]' },
-      transform_nodes: 'dazurl[]',
+      'transform_nodes?': 'dazurl[]',
       use_tranform_bones_for_scale: 'boolean',
    },
-   rigidity_group_scale_mode: "'none'|'secondary'",
+   rigidity_group_scale_mode: "'none'|'primary'|'secondary'",
    geometry_subdivision_surface: {
       '+': 'reject',
       id: 'dazid', // "Genesis9-1",
       name: 'string',
       // type specific
       type: "'subdivision_surface'",
+      'rigidity?': 'geometry_polygon_mesh_rigidity',
       'edge_interpolation_mode?': "'edges_only'",
       'subd_normal_smoothing_mode?': "'smooth_all_normals'",
       // regular stuff
@@ -318,9 +319,23 @@ export const $ = scope({
       'polylist?': { count: 'number', values: 'point5or6d[]' /* [ 27, 0, 2184, 2186, 2210, 2208 ], ... */ },
       'root_region?': 'root_region',
       default_uv_set: 'dazurl', // "default_uv_set" : "/data/Daz%203D/Genesis%209/Base/UV%20Sets/Daz%203D/Base/Base%20Multi%20UDIM.dsf#Base%20Multi%20UDIM",
-      graft: { '+': 'reject' },
+      'graft?': 'graft | emptyObject',
       extra: 'geometry_extra[]',
       // 'skin?': 'skin',
+   },
+   emptyObject: { '+': 'reject' }, // Used to reject empty objects in some contexts
+   graft: {
+      '+': 'reject',
+      vertex_count: 'number',
+      poly_count: 'number',
+      vertex_pairs: {
+         count: 'number',
+         values: 'point2d[]', // [ [vertex_index, grafted_vertex_index], ... ]
+      },
+      'hidden_polys?': {
+         count: 'number',
+         values: 'number[]', // [ poly_index, ... ] - indices of polygons that are hidden in the graft
+      },
    },
    // skin: {
    //    'vertex_weights?': 'skin_weights[]',
@@ -385,13 +400,13 @@ export const $ = scope({
    scene_node_extra__studio_node_channels: {
       '+': 'reject',
       type: "'studio_node_channels'",
-      version: 'string | number',
+      'version?': 'string | number',
       'channels?': 'chanel[]',
    },
    scene_node_extra__studio_element_data_easy_pose: {
       '+': 'reject',
       type: "'studio/element_data/easy_pose'",
-      version: 'string | number',
+      'version?': 'string | number',
       'channels?': 'chanel[]',
    },
    // #region Nodes.Inf ------------------------------------------------------------------------
@@ -421,17 +436,35 @@ export const $ = scope({
       // 'geometries?': 'geometry_inf[]', // Geometries are usually in geometry_library for .dsf figures
    },
    node_type: "'bone' | 'figure'",
-   node_inf_extra: {
+   //
+   node_inf_extra: 'node_inf_extra_studio_node_channels | node_inf_extra_studio_follower_projection_options',
+   node_inf_extra_studio_follower_projection_options: {
+      '+': 'reject',
+      type: "'studio_follower_projection_options'",
+      distance_squared_tolerance: 'number', //1e-7,
+      use_near: 'boolean', //false,
+      disable_morph_projection: 'boolean', //false,
+      nearness_factor: 'number', //0,
+      smart_left_right_handling: 'boolean', //true,
+      uv_space_projection: 'boolean', //false,
+      vertex_first_projection: 'boolean', //false,
+      consider_lines_as_rigid: 'boolean', //true,
+      adaptive_tolerance: 'number', //0.01,
+      source_subdivision_mode: "'auto'", //"auto",
+      follower_projection_morph: "'MorphProjectionShape'", //"MorphProjectionShape"
+   },
+   node_inf_extra_studio_node_channels: {
       // For richer extra in node_inf, potentially with channels
       '+': 'reject',
       type: "'studio_node_channels'", // Add other types if necessary
-      version: 'string | number',
+      'version?': 'string | number',
       'channels?': 'channel_container[]',
    },
    formula_item: {
       // Basic structure for formula items, expand as needed
       '+': 'reject',
       'output?': 'dazurl', // e.g., "Genesis9:/data/Daz%203D/Genesis%209/Base/Genesis9.dsf#l_hand?value"
+      'stage?': "'mult'",
       'operations?': 'formula_op[]', // Define operations structure if needed
    },
    formula_op: 'formula_op_push_url| formula_op_push_val| formula_op_mult',
@@ -536,6 +569,7 @@ export const $ = scope({
       // Used in lists like geometry_extra.channels or node_inf_extra.channels
       channel: 'chanel',
       'group?': 'string', // e.g. "/General/Transforms"
+      'presentation?': 'presentation',
    },
 
    // #region Modifier.Ref ------------------------------------------------------------------------
@@ -580,8 +614,8 @@ export const $ = scope({
       'parent?': 'string',
       'presentation?': 'presentation',
       'channel?': 'chanel',
-      'region?': "'Actor'|'Head'",
-      group: 'dazgroup',
+      'region?': "'Actor'|'Head'|'Face'|'Ears'|'Eyes'|'Mouth'|'Nose'|'Chest'|'Legs'",
+      'group?': 'dazgroup',
       'morph?': 'morph',
       'formulas?': 'formula_item[]',
       'extra?': 'modifier_extra[]',
@@ -589,9 +623,21 @@ export const $ = scope({
    morph: { vertex_count: 'number', deltas: { count: 'number', values: 'number_delta_value[]' } },
    number_delta_value: ['number', 'number', 'number', 'number'],
    selMap: { id: 'dazid', mappings: type(['string', 'string']).array() },
-   joint: { id: 'dazid', node: 'dazurl', node_weights: { count: 'number', values: 'point2d[]' } },
+   joint: { id: 'dazid', node: 'dazurl', 'node_weights?': { count: 'number', values: 'point2d[]' } },
    modifier_extra:
-      'modifier_extra_studio_modifier_channels | modifier_extra_skin_settings | modifier_extra_studio_modifier_dynamic_simulation',
+      'modifier_extra_studio_modifier_channels | modifier_extra_skin_settings | modifier_extra_studio_modifier_dynamic_simulation | modifier_extra_studio_modifier_smoothing | modifier_extra_studio_modifier_push',
+   modifier_extra_studio_modifier_push: {
+      '+': 'reject',
+      type: "'studio/modifier/push'",
+      push_post_smooth: 'boolean',
+      // influence
+      'influence_vertex_count?': 'number',
+      'influence_weights?': { count: 'number', values: 'point2d[]' },
+   },
+   modifier_extra_studio_modifier_smoothing: {
+      '+': 'reject',
+      type: "'studio/modifier/smoothing'",
+   },
    modifier_extra_studio_modifier_channels: {
       '+': 'reject',
       type: "'studio_modifier_channels'",
@@ -601,7 +647,7 @@ export const $ = scope({
       '+': 'reject',
       type: "'studio/modifier/dynamic_simulation'",
       vertex_count: 'number',
-      influence_weights: { count: 'number', values: 'point2d[]' }, // [ [vertex_index, weight], ... ]
+      'influence_weights?': { count: 'number', values: 'point2d[]' }, // [ [vertex_index, weight], ... ]
    },
    modifier_extra_skin_settings: {
       '+': 'reject',
@@ -610,11 +656,13 @@ export const $ = scope({
       auto_normalize_local: 'boolean', // true,
       auto_normalize_scale: 'boolean', // true,
       binding_mode: "'General'", // "General",
-      general_map_mode: "'DualQuat'", // "DualQuat",
-      blend_mode: "'BlendLinearDualQuat' | 'BlendLocalGeneral'", // "BlendLinearDualQuat",
+      general_map_mode: "'DualQuat'|'Linear'", // "DualQuat",
+      // scale
       scale_mode: "'BindingMaps'", // "BindingMaps",
-      blend_vertex_count: 'number',
-      blend_weights: { count: 'number', values: 'point2d[]' },
+      // blend
+      'blend_mode?': "'BlendLinearDualQuat' | 'BlendLocalGeneral'", // "BlendLinearDualQuat",
+      'blend_vertex_count?': 'number',
+      'blend_weights?': { count: 'number', values: 'point2d[]' },
    },
 
    // #region Matérial ------------------------------------------------------------------------

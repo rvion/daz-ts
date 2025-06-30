@@ -21,10 +21,8 @@ export class DazFileModifier extends DsonFile<$$dson_modifier> {
       mgr.modifiersByDazId.set(self.dazId, self)
       mgr.modifiersByRelPath.set(self.relPath, self)
 
-      console.log(`[🔴]`)
       // Resolve all URLs found in the modifier
       await self.resolveUrls()
-      console.log(`[🔴]`)
 
       return self
    }

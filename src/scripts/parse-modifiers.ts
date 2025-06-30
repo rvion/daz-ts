@@ -17,7 +17,7 @@ console.log(
    modfiers.map((i) => basename(i.relPath)),
 )
 let ix = 0
-for (const a of modfiers) {
+for (const a of modfiers.slice(800)) {
    checkpoint(`loading morph ${ix++}/${modfiers.length} ---------------------------------------------`)
    const x = await mgr.loadFile(a.relPath)
    console.log(`[🤠] --------------------------------------------------`, x.constructor.name)

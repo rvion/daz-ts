@@ -54,10 +54,10 @@ async function printArkResultInConsole(
          throw new Error(`   - Too many errors, stopping output to avoid clutter.`)
       }
       console.log(chalk.red(`   - ${error.path.join('.')}:`))
-      console.log(chalk.red(`      👉 ${error.message}`))
-      // error.message.split(' or ').forEach((msg) => {
-      //    console.log(chalk.red(`      or: ${msg.trim()}`))
-      // })
+      // console.log(chalk.red(`      👉 ${error.message}`))
+      error.message.split(', ').forEach((msg) => {
+         console.log(chalk.red(`      or: ${msg.trim()}`))
+      })
       // console.log(chalk.red.underline(`data: ${dbg(error.)}`))
    }
    console.log(chalk.red(`   - ${res.length} errors found`))

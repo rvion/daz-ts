@@ -36,9 +36,12 @@ export abstract class DsonFile<DATA extends $$dson> extends DazAbstraction<PathI
       return this.source.rootDir
    }
 
+   get dazId_nice(): string {
+      return this.dazId.replaceAll('%20', ' ')
+   }
    // ---- print methods
    override printHeader(): void {
       // console.log(`[${this.emoji} ${this.assetType} #${fmtDazId(this.dazId)}] ${fmtAbsPath(this.absPath)} `)
-      console.log(`[${this.emoji} ${this.assetType} #${fmtDazId(this.dazId)}]`)
+      console.log(`[${this.emoji} ${this.assetType} #${fmtDazId(this.dazId_nice)}]`)
    }
 }
