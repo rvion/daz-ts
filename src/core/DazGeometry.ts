@@ -53,7 +53,7 @@ export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
    // #region Skinning
    hasSkinData(figure: AnyDazAbstraction): boolean {
       const skinModifier = figure.getSkinBindingModifier()
-      return !!(skinModifier && skinModifier.skin.joints.length > 0)
+      return !!(skinModifier?.skin && skinModifier.skin.joints.length > 0)
    }
 
    getSkinWeightsForThree(
@@ -66,12 +66,14 @@ export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
       // Get skin data from the figure's modifier library
       const skinModifier = this.source.getSkinBindingModifier()
       if (!skinModifier) {
-         console.warn(`No SkinBinding modifier found for geometry: ${this.dazId}`)
+         console.warn(`❌ No SkinBinding modifier found for geometry: ${this.dazId}`)
          return null
       }
 
+      const SKIN = bang(skinModifier.skin)
+
       // Check if this modifier applies to our geometry
-      const geometryUrl = skinModifier.skin.geometry
+      const geometryUrl = SKIN.geometry
       if (geometryUrl !== `#${this.dazId}`) {
          // if (!geometryUrl.includes(geometryId)) {
          console.warn(`SkinBinding modifier apply to "${geometryUrl}", not to requested: ${this.dazId}`)
@@ -85,7 +87,7 @@ export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
       const boneNames: string[] = []
       const boneNameToIndex = new Map<string, number>()
 
-      for (const joint of skinModifier.skin.joints) {
+      for (const joint of SKIN.joints) {
          const boneName = joint.id
          if (!boneNameToIndex.has(boneName)) {
             boneNameToIndex.set(boneName, boneNames.length)
@@ -98,11 +100,14 @@ export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
       const boneWeights = new Array(vertexCount * 4).fill(0)
 
       // Process each joint's vertex weights
-      for (const joint of skinModifier.skin.joints) {
+      for (const joint of SKIN.joints) {
          const boneName = joint.id
          const boneIndex = bang(boneNameToIndex.get(boneName))
 
-         for (const [vertexIndex, weight] of joint.node_weights.values) {
+         // some weird "figures" like hairs have no node_weights
+         const NODE_WEIGHTS = bang(joint.node_weights)
+
+         for (const [vertexIndex, weight] of NODE_WEIGHTS.values) {
             if (vertexIndex >= vertexCount) continue
 
             // Find an empty slot for this vertex (up to 4 influences)

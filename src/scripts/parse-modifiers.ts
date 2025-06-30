@@ -27,7 +27,7 @@ for (const a of modfiers /* .slice(1300) */) {
    } catch (err) {
       if (err instanceof Error) {
          if (err.message.startsWith('ENOENT')) {
-            console.error(chalk.red(`[🟡] File not found: ${a.relPath} !!!!!`))
+            console.error(chalk.red(`[🟡] File not found: "${a.relPath}" ⁉️`))
             NOT_FOUND.push(a.relPath)
             continue
          }
