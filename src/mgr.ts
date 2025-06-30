@@ -111,6 +111,7 @@ export class DazMgr {
    // ---- Load > Genesis 9 samples
    private genesis9baseDuf = relPath`People/Genesis 9/Genesis 9.duf`
    private genesis9baseDsf = relPath`data/DAZ 3D/Genesis 9/Base/Genesis9.dsf`
+
    async loadGenesis9CharacterFile(): Promise<DazFileCharacter> {
       const f = await this.loadFile(this.genesis9baseDuf)
       return ASSERT_INSTANCE_OF(f, GLOBAL.DazFileCharacter)
@@ -119,7 +120,10 @@ export class DazMgr {
       const f = await this.loadFile(this.genesis9baseDsf)
       return ASSERT_INSTANCE_OF(f, GLOBAL.DazFileFigure)
    }
-
+   async loadPoseFile(relPath: string_RelPath): Promise<DazFilePose> {
+      const f = await this.loadFile(relPath)
+      return ASSERT_INSTANCE_OF(f, GLOBAL.DazFilePose)
+   }
    /**  Load full Daz asset, hydrate graph, resolve URLs. */
    private async _loadFromPathInfo(meta: PathInfo): Promise<KnownDazFile> {
       // use cached file if exists

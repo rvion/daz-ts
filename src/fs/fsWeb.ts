@@ -9,6 +9,7 @@ export const fs: FS = {
       if (path === '__test__') return Promise.resolve([1, 2, 3, 4, 5])
       if (path === '/Volumes/ssd4t1/daz-lib/People/Genesis 9/Genesis 9.duf') return (await (import('../../tmp/genesis9-duf.json'))).default
       if (path === '/Volumes/ssd4t1/daz-lib/data/Daz 3D/Genesis 9/Base/Genesis9.dsf') return (await (import('../../tmp/genesis9-dsf.json'))).default
+      if (path === 'data/processed_files.json') return (await (import('../../data/processed_files.json'))).default
       throw new Error(`'${path}' not implemented in readJSON`)
    },
    writeFile: () => {

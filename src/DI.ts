@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import { DazFileCharacter } from './core/DazFileCharacter.js'
 import { DazFileFigure } from './core/DazFileFigure.js'
 import { DazFileModifier } from './core/DazFileModifier.js'
+import { DazFilePose } from './core/DazFilePose.js'
 import { DazGeometry } from './core/DazGeometry.js'
 import { DazGeometryRef } from './core/DazGeometryRef.js'
 import { DazNode } from './core/DazNode.js' // New import
@@ -14,6 +15,7 @@ import type { number_Timestamp } from './types.js'
 // -------- Class DI utilities --------
 export const GLOBAL = {
    // files
+   DazFilePose: DazFilePose,
    DazFileFigure: DazFileFigure,
    DazFileCharacter: DazFileCharacter,
    DazFileModifier: DazFileModifier,
