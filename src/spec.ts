@@ -100,7 +100,11 @@ export const $ = scope({
    point4d: ['number', 'number', 'number', 'number'],
    point5d: ['number', 'number', 'number', 'number', 'number'],
    point6d: ['number', 'number', 'number', 'number', 'number', 'number'],
+   point7d: ['number', 'number', 'number', 'number', 'number', 'number', 'number'],
+   point8d: ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number'],
+   point9d: ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number'],
    point5or6d: 'point5d | point6d',
+   point7or8or9d: 'number[]',
    rotation_order: type.enumerated('ZYX', 'YXZ', 'XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX'),
 
    // #region Core files- ------------------------------------------------------------------------
@@ -281,6 +285,11 @@ export const $ = scope({
       'vertices?': { count: 'number', values: 'point3d[]' },
       'polygon_groups?': { count: 'number', values: 'string[]' /* "l_forearm", "l_upperarm"... */ },
       'polygon_material_groups?': { count: 'number', values: 'string[]' /* "Fingernails", "Legs", ... */ },
+      'polyline_list?': {
+         count: 'number',
+         segment_count: 'number',
+         values: 'point7or8or9d[]',
+      },
       'polylist?': { count: 'number', values: 'point5or6d[]' /* [ 27, 0, 2184, 2186, 2210, 2208 ], ... */ },
       'root_region?': 'root_region',
       default_uv_set: 'dazurl', // "default_uv_set" : "/data/Daz%203D/Genesis%209/Base/UV%20Sets/Daz%203D/Base/Base%20Multi%20UDIM.dsf#Base%20Multi%20UDIM",
@@ -451,7 +460,7 @@ export const $ = scope({
       consider_lines_as_rigid: 'boolean', //true,
       adaptive_tolerance: 'number', //0.01,
       source_subdivision_mode: "'auto'", //"auto",
-      follower_projection_morph: "'MorphProjectionShape'", //"MorphProjectionShape"
+      follower_projection_morph: "'MorphProjectionShape'|''", //"MorphProjectionShape"
    },
    node_inf_extra_studio_node_channels: {
       // For richer extra in node_inf, potentially with channels
@@ -467,9 +476,11 @@ export const $ = scope({
       'stage?': "'mult'",
       'operations?': 'formula_op[]', // Define operations structure if needed
    },
-   formula_op: 'formula_op_push_url| formula_op_push_val| formula_op_mult',
+   formula_op: 'formula_op_push_url| formula_op_push_val| formula_op_mult|formula_op_push_vals|formula_op_spline_tcb',
    formula_op_push_url: { op: "'push'", url: 'dazurl', '+': 'reject' },
    formula_op_push_val: { op: "'push'", val: 'number', '+': 'reject' },
+   formula_op_push_vals: { op: "'push'", val: 'number[]', '+': 'reject' },
+   formula_op_spline_tcb: { op: "'spline_tcb'" },
    formula_op_mult: { op: "'mult'" },
 
    chanelType: type.enumerated(
@@ -490,11 +501,21 @@ export const $ = scope({
       'label?': 'string',
       'description?': 'string',
       'icon_large?': 'string',
+      'icon_small?': 'string',
       'colors?': type({}),
       'auto_fit_base?': 'dazurl',
       'preferred_base?': 'dazurl',
    },
-   chanel: 'chanel_misc | chanel_float_color | chanel_image | chanel_float',
+   chanel: 'chanel_misc | chanel_float_color | chanel_image | chanel_float | chanel_alias',
+   chanel_alias: {
+      // mandatory
+      '+': 'reject',
+      id: 'string',
+      type: "'alias'",
+      'name?': 'string',
+      label: 'string',
+      target_channel: 'dazurl',
+   },
    chanel_float: {
       // mandatory
       '+': 'reject',
@@ -614,7 +635,7 @@ export const $ = scope({
       'parent?': 'string',
       'presentation?': 'presentation',
       'channel?': 'chanel',
-      'region?': "'Actor'|'Head'|'Face'|'Ears'|'Eyes'|'Mouth'|'Nose'|'Chest'|'Legs'",
+      'region?': "'Actor'|'Head'|'Face'|'Ears'|'Eyes'|'Mouth'|'Nose'|'Chest'|'Legs'|'Waist'|'Arms'|''",
       'group?': 'dazgroup',
       'morph?': 'morph',
       'formulas?': 'formula_item[]',
@@ -625,7 +646,23 @@ export const $ = scope({
    selMap: { id: 'dazid', mappings: type(['string', 'string']).array() },
    joint: { id: 'dazid', node: 'dazurl', 'node_weights?': { count: 'number', values: 'point2d[]' } },
    modifier_extra:
-      'modifier_extra_studio_modifier_channels | modifier_extra_skin_settings | modifier_extra_studio_modifier_dynamic_simulation | modifier_extra_studio_modifier_smoothing | modifier_extra_studio_modifier_push',
+      'modifier_extra_studio_modifier_channels | modifier_extra_skin_settings | modifier_extra_studio_modifier_dynamic_simulation | modifier_extra_studio_modifier_smoothing | modifier_extra_studio_modifier_push | modifier_extra_studio_modifier_dynamic_hair_follow | modifier_extra_studio_modifier_dynamic_generate_hair | modifier_extra_studio_modifier_line_tessellation',
+   modifier_extra_studio_modifier_dynamic_generate_hair: {
+      type: "'studio/modifier/dynamic_generate_hair'",
+      generates_for_render: 'boolean',
+   },
+   modifier_extra_studio_modifier_line_tessellation: {
+      '+': 'reject',
+      type: "'studio/modifier/line_tessellation'",
+   },
+   modifier_extra_studio_modifier_dynamic_hair_follow: {
+      '+': 'reject',
+      type: "'studio/modifier/dynamic_hair_follow'",
+      'push_post_smooth?': 'boolean',
+      // influence
+      // 'influence_vertex_count?': 'number',
+      // 'influence_weights?': { count: 'number', values: 'point2d[]' }, // [ [vertex_index, weight], ... ]
+   },
    modifier_extra_studio_modifier_push: {
       '+': 'reject',
       type: "'studio/modifier/push'",
@@ -648,6 +685,7 @@ export const $ = scope({
       type: "'studio/modifier/dynamic_simulation'",
       vertex_count: 'number',
       'influence_weights?': { count: 'number', values: 'point2d[]' }, // [ [vertex_index, weight], ... ]
+      'hair_simulation_info?': 'string',
    },
    modifier_extra_skin_settings: {
       '+': 'reject',

@@ -13,7 +13,7 @@ export class DazFileModifier extends DsonFile<$$dson_modifier> {
    resolvedUrls: Map<string, KnownDazFile> = new Map()
 
    static async init(mgr: DazMgr, meta: PathInfo, dson: $$dson): Promise<DazFileModifier> {
-      console.log(`[🟢]`)
+      // console.log(`[🟢]`)
       const json = await check_orCrash($$.dson_modifier, dson, dson.asset_info.id)
       const self = new DazFileModifier(mgr, meta, json)
       self.printHeader()

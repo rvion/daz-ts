@@ -1,7 +1,7 @@
 import type { PathInfo } from '../fs/PathInfo.js'
 import { $$dson, DazAssetType, string_DazId } from '../spec.js'
 import { string_AbsPath, string_Ext, string_RelPath } from '../types.js'
-import { fmtDazId } from '../utils/fmt.js'
+import { fmtAbsPath, fmtDazId } from '../utils/fmt.js'
 import { DazAbstraction } from './_DazAbstraction.js'
 import type { DazFileCharacter } from './DazFileCharacter.js'
 import type { DazFileFigure } from './DazFileFigure.js'
@@ -42,6 +42,6 @@ export abstract class DsonFile<DATA extends $$dson> extends DazAbstraction<PathI
    // ---- print methods
    override printHeader(): void {
       // console.log(`[${this.emoji} ${this.assetType} #${fmtDazId(this.dazId)}] ${fmtAbsPath(this.absPath)} `)
-      console.log(`[${this.emoji} ${this.assetType} #${fmtDazId(this.dazId_nice)}]`)
+      console.log(`[${this.emoji} ${this.assetType}] ${fmtAbsPath(this.absPath)}`)
    }
 }

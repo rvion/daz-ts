@@ -121,7 +121,7 @@ export class DazMgr {
    private async _loadFromPathInfo(meta: PathInfo): Promise<KnownDazFile> {
       // use cached file if exists
       if (this.filesFull.has(meta.absPath)) return bang(this.filesFull.get(meta.absPath))
-      console.log(`[💿] loading ${fmtAbsPath(meta.absPath)} `)
+      // console.log(`[💿] loading ${fmtAbsPath(meta.absPath)} `)
 
       // load dson
       const json = await this.fs.readJSON(meta.absPath)
