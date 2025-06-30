@@ -9,7 +9,7 @@ import { DazFileFigure } from './DazFileFigure.js'
 import { DazNodeRef } from './DazNodeRef.js'
 
 export class DazFileCharacter extends DsonFile<$$dson_character> {
-   emoji = '👤'
+   emoji = '😄'
    kind = 'character'
 
    figure: DazFileFigure | null = null
@@ -19,7 +19,7 @@ export class DazFileCharacter extends DsonFile<$$dson_character> {
    }
 
    static async init(mgr: DazMgr, meta: PathInfo, dson: $$dson): Promise<DazFileCharacter> {
-      const json = check_orCrash($$.dson_character, dson, dson.asset_info.id)
+      const json = await check_orCrash($$.dson_character, dson, dson.asset_info.id)
       const self = new DazFileCharacter(mgr, meta, json)
       self.printHeader()
       mgr.charactersByDazId.set(self.dazId, self)

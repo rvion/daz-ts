@@ -125,7 +125,7 @@ export class DazMgr {
 
       // load dson
       const json = await this.fs.readJSON(meta.absPath)
-      const dson = check_orCrash($$.dson, json, meta.absPath)
+      const dson = await check_orCrash($$.dson, json, meta.absPath)
       this.incrementType(dson.asset_info.type, meta.fileExt)
       this.count++
 
@@ -199,7 +199,7 @@ export class DazMgr {
 
    private async _peek(meta: PathInfo): Promise<$$asset_info> {
       const json = await this.fs.readPartialJSON(meta.absPath, 2000)
-      const dson = check_orCrash($$.dson, json, meta.absPath)
+      const dson = await check_orCrash($$.dson, json, meta.absPath)
       const assetType: DazAssetType = dson.asset_info.type
       this.incrementType(assetType, meta.fileExt)
       const { relPath, fileExt: ext } = meta

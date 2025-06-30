@@ -8,18 +8,19 @@ import { fmtNumber } from '../utils/fmt.js'
 
 checkpoint('1')
 export const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
-checkpoint('2')
 const assets = await mgr.getCachedFiles()
-checkpoint('3')
 console.log(assets.length)
-checkpoint('4')
-const charAssets = assets.filter((a) => a.assetType === 'character')
+const modfiers = assets.filter((a) => a.assetType === 'modifier')
+checkpoint('2')
 console.log(
-   `found ${fmtNumber(charAssets.length)} character assets:`,
-   charAssets.map((i) => basename(i.relPath)),
+   `found ${fmtNumber(modfiers.length)} character assets:`,
+   modfiers.map((i) => basename(i.relPath)),
 )
-for (const a of charAssets) {
-   await mgr.loadFile(a.relPath)
+let ix = 0
+for (const a of modfiers) {
+   checkpoint(`loading morph ${ix++}/${modfiers.length} ---------------------------------------------`)
+   const x = await mgr.loadFile(a.relPath)
+   console.log(`[🤠] --------------------------------------------------`, x.constructor.name)
 }
 checkpoint('✅ done')
 // // duf are user files

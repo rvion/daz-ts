@@ -110,6 +110,7 @@ export const $ = scope({
       asset_info: 'asset_info',
       'material_library?': 'material[]',
       scene: 'scene', // scene is a bunch of refs
+      'image_library?': 'image[]',
       // 🗑️❓ 'image_library?': 'image[]',
       // 🗑️❓ 'node_library?': 'node_ref[]', // Character .duf might also have a node_library of node_refs
       // 🗑️❓ 'geometry_library?': 'geometry_ref[]', // Character .duf might reference geometries
@@ -149,6 +150,7 @@ export const $ = scope({
       // scene: 'scene_pose', // .dsf figure files usually don't have a "scene" block in the same way .duf files do
       // 'geometry_library?': 'geometry_inf[]', // .dsf figure defines its geometries
       // 'node_library?': 'node_inf[]', // .dsf figure defines its nodes (skeleton, etc.)
+      'geometry_library?': 'geometry_inf[]', // .dsf figure defines its geometries
       'modifier_library?': 'dson_modifier_modifier[]', // And modifiers
       scene: 'scene',
       // 🗑️❓ 'uv_set_library?': { '+': 'reject' }, // TODO: Define uv_set_library if needed
@@ -206,17 +208,34 @@ export const $ = scope({
       'xoffset?': 'number', // 0,
       'yoffset?': 'number', // 0,
       'operation?': "'blend_source_over'", // "blend_source_over"
+      'mask?': 'image_map_mask',
+   },
+   image_map_mask: {
+      url: 'dazurl', // '/Runtime/Textures/DAZ/Characters/Genesis9/Toon/Skin/AnimeBase9_Eyelids01_CM_1001.jpg',
+      label: 'string', // 'Mask',
+      active: 'boolean', // true,
+      color: 'point3d', // [1, 1, 1],
+      transparency: 'number', // 1,
+      invert: 'boolean', // false,
+      rotation: 'number', // 0,
+      xmirror: 'boolean', // false,
+      ymirror: 'boolean', // false,
+      xscale: 'number', // 1,
+      yscale: 'number', // 1,
+      xoffset: 'number', // 0,
+      yoffset: 'number', // 0,
    },
 
    // #region Scene ------------------------------------------------------------------------
    scene: {
       // Typically found in .duf files
       '+': 'reject',
-      'nodes?': 'node_ref[]', // Changed from node[] to node_ref[]
+      'nodes?': 'scene_nodes[]', // Changed from node[] to node_ref[]
       'modifiers?': 'modifier_ref[]',
       'materials?': 'material[]',
       'extra?': 'scene_extra[]',
    },
+   scene_nodes: 'node_ref',
    scene_extra: {
       '+': 'reject',
       type: "'scene_post_load_script'",
@@ -283,6 +302,7 @@ export const $ = scope({
       transform_nodes: 'dazurl[]',
       use_tranform_bones_for_scale: 'boolean',
    },
+   rigidity_group_scale_mode: "'none'|'secondary'",
    geometry_subdivision_surface: {
       '+': 'reject',
       id: 'dazid', // "Genesis9-1",
@@ -295,7 +315,7 @@ export const $ = scope({
       'vertices?': { count: 'number', values: 'point3d[]' },
       'polygon_groups?': { count: 'number', values: 'string[]' /* "l_forearm", "l_upperarm"... */ },
       'polygon_material_groups?': { count: 'number', values: 'string[]' /* "Fingernails", "Legs", ... */ },
-      'polylist?': { count: 'number', values: 'point6d[]' /* [ 27, 0, 2184, 2186, 2210, 2208 ], ... */ },
+      'polylist?': { count: 'number', values: 'point5or6d[]' /* [ 27, 0, 2184, 2186, 2210, 2208 ], ... */ },
       'root_region?': 'root_region',
       default_uv_set: 'dazurl', // "default_uv_set" : "/data/Daz%203D/Genesis%209/Base/UV%20Sets/Daz%203D/Base/Base%20Multi%20UDIM.dsf#Base%20Multi%20UDIM",
       graft: { '+': 'reject' },
@@ -341,7 +361,9 @@ export const $ = scope({
       label: 'string',
       'parent?': 'dazurl',
       'preview?': 'node_ref_preview', // Adjusted preview structure
-      'extra?': 'node_ref_extra[]', // extra is optional in some contexts
+      'rotation?': 'chanel_float[]',
+      'translation?': 'chanel_float[]',
+      'extra?': 'scene_node_extra[]', // extra is optional in some contexts
    },
    node_ref_preview: {
       '+': 'reject',
@@ -352,10 +374,25 @@ export const $ = scope({
       'rotation_order?': 'rotation_order',
       'rotation?': 'point3d',
    },
-   node_ref_extra: {
+
+   scene_node_extra:
+      'scene_node_extra__studio_node_channels | scene_node_extra__studio_element_data_easy_pose | scene_node_extra_studio_element_data_easy_pose',
+   scene_node_extra_studio_element_data_easy_pose: {
+      pin: 'boolean',
+      mass: 'number',
+      stiffness: 'number',
+   },
+   scene_node_extra__studio_node_channels: {
       '+': 'reject',
       type: "'studio_node_channels'",
       version: 'string | number',
+      'channels?': 'chanel[]',
+   },
+   scene_node_extra__studio_element_data_easy_pose: {
+      '+': 'reject',
+      type: "'studio/element_data/easy_pose'",
+      version: 'string | number',
+      'channels?': 'chanel[]',
    },
    // #region Nodes.Inf ------------------------------------------------------------------------
    node_inf: {
@@ -424,7 +461,43 @@ export const $ = scope({
       'auto_fit_base?': 'dazurl',
       'preferred_base?': 'dazurl',
    },
-   chanel: {
+   chanel: 'chanel_misc | chanel_float_color | chanel_image | chanel_float',
+   chanel_float: {
+      // mandatory
+      '+': 'reject',
+      id: 'string',
+      type: "'float'",
+      'name?': 'string',
+      // value
+      current_value: 'number',
+      // image
+      'image_file?': 'dazurl | null',
+      // misc
+      'clamped?': 'boolean',
+   },
+   chanel_float_color: {
+      '+': 'reject',
+      id: 'string',
+      type: "'float_color'",
+      'name?': 'string',
+      // either?
+      'value?': 'point3d',
+      current_value: 'point3d',
+      // either?
+      'image_file?': 'dazurl | null',
+      'image?': 'dazurl | null',
+   },
+   chanel_image: {
+      '+': 'reject',
+      id: 'string',
+      type: "'image'",
+      image: 'dazurl | null',
+      // name: 'string',
+      // value: 'point3d',
+      // current_value: 'point3d',
+      // image_file: 'dazurl',
+   },
+   chanel_misc: {
       '+': 'reject',
       'id?': 'string',
       'name?': 'string',
@@ -446,6 +519,7 @@ export const $ = scope({
       'mappable?': 'boolean',
       'presentation?': 'presentation',
       'image?': 'null',
+      'image_file?': 'null',
       // enum specific
       'enum_values?': 'unknown[]',
       // file specific
@@ -506,6 +580,7 @@ export const $ = scope({
       'parent?': 'string',
       'presentation?': 'presentation',
       'channel?': 'chanel',
+      'region?': "'Actor'|'Head'",
       group: 'dazgroup',
       'morph?': 'morph',
       'formulas?': 'formula_item[]',
@@ -556,7 +631,10 @@ export const $ = scope({
       // misc
       'groups?': 'string[]', // [ "Fingernails" ]
       diffuse: {
+         '+': 'reject',
          channel: 'chanel',
+         'group?': 'dazgroup',
+         'presentation?': 'presentation',
       },
       extra: 'material_extra[]',
       // 'parent?': 'string',
@@ -566,7 +644,7 @@ export const $ = scope({
    },
    material_extra: {
       '+': 'reject',
-      type: "'studio/material/uber_iray' | 'studio_material_channels'",
+      type: "'studio/material/uber_iray' | 'studio_material_channels' | 'studio/material/daz_brick'",
       'version?': 'string | number',
       'channels?': 'chanel[]',
    },

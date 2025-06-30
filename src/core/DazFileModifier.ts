@@ -13,16 +13,18 @@ export class DazFileModifier extends DsonFile<$$dson_modifier> {
    resolvedUrls: Map<string, KnownDazFile> = new Map()
 
    static async init(mgr: DazMgr, meta: PathInfo, dson: $$dson): Promise<DazFileModifier> {
-      const json = check_orCrash($$.dson_modifier, dson, dson.asset_info.id)
+      console.log(`[🟢]`)
+      const json = await check_orCrash($$.dson_modifier, dson, dson.asset_info.id)
       const self = new DazFileModifier(mgr, meta, json)
       self.printHeader()
-
       // Store in manager maps
       mgr.modifiersByDazId.set(self.dazId, self)
       mgr.modifiersByRelPath.set(self.relPath, self)
 
+      console.log(`[🔴]`)
       // Resolve all URLs found in the modifier
       await self.resolveUrls()
+      console.log(`[🔴]`)
 
       return self
    }
@@ -67,23 +69,19 @@ export class DazFileModifier extends DsonFile<$$dson_modifier> {
 
       // Resolve each URL
       for (const url of urlsToResolve) {
-         try {
-            const resolved = await this.resolveUrl(url)
-            if (resolved) {
-               this.resolvedUrls.set(url, resolved)
-            }
-         } catch (error) {
-            console.warn(`[DazFileModifier] Failed to resolve URL "${url}":`, error)
+         const resolved = await this.resolveUrl(url)
+         if (resolved) {
+            this.resolvedUrls.set(url, resolved)
          }
       }
    }
 
-   private resolveUrl(dazUrl: string_DazUrl): Promise<KnownDazFile | null> {
+   private resolveUrl(dazUrl: string_DazUrl): Promise<KnownDazFile> {
       const parts = getDazUrlParts(dazUrl)
 
       // If no srcPath, this is a local reference (e.g., "#someId?property")
       // We can't resolve these to external files
-      if (!parts.srcPath) return Promise.resolve(null)
+      if (!parts.srcPath) return Promise.resolve(this)
       return this.mgr.loadFile(parts.srcPath)
    }
 

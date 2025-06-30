@@ -10,7 +10,7 @@ export class DazFilePose extends DsonFile<$$dson_pose> {
    kind = 'character'
 
    static async init(mgr: DazMgr, meta: PathInfo, dson: $$dson): Promise<DazFilePose> {
-      const json = check_orCrash($$.dson_pose, dson, dson.asset_info.id)
+      const json = await check_orCrash($$.dson_pose, dson, dson.asset_info.id)
       const self = new DazFilePose(mgr, meta, json)
       self.printHeader()
       mgr.poseByDazId.set(self.dazId, self)

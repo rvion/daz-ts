@@ -8,7 +8,7 @@ export class DazWearable extends DsonFile<$$dson_wearable> {
    emoji = '👗'
    kind = 'wearable'
    static async init(mgr: DazMgr, meta: PathInfo, dson: $$dson): Promise<DazWearable> {
-      const json = check_orCrash($$.dson_wearable, dson, dson.asset_info.id)
+      const json = await check_orCrash($$.dson_wearable, dson, dson.asset_info.id)
       const self = new DazWearable(mgr, meta, json)
       self.printHeader()
       mgr.wearablesByDazId.set(self.dazId, self)

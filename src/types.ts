@@ -47,7 +47,7 @@ export const resultFailure = <T>(value: T): Either<T, never> => ({ success: fals
 export type ResultFailure = { success: false; message: string; error: unknown; value: undefined }
 export type Result<R> = { success: true; value: R } | ResultFailure
 export const __OK = <T>(value: T): Result<T> => ({ success: true, value })
-export const __FAIL = <T>(message: string, error?: unknown): Result<any> => ({
+export const __FAIL = (message: string, error?: unknown): Result<unknown> => ({
    success: false,
    message,
    error,

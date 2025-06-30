@@ -9,7 +9,7 @@ export class DazFileFigure extends DsonFile<$$dson_figure> {
    kind = 'character'
 
    static async init(mgr: DazMgr, meta: PathInfo, dson: $$dson): Promise<DazFileFigure> {
-      const json = check_orCrash($$.dson_figure, dson, dson.asset_info.id)
+      const json = await check_orCrash($$.dson_figure, dson, dson.asset_info.id)
       const self = new DazFileFigure(mgr, meta, json)
       self.printHeader()
       mgr.figuresByDazId.set(self.dazId, self)
