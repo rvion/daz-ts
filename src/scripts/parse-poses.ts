@@ -11,16 +11,19 @@ checkpoint('1')
 export const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
 const assets = await mgr.getCachedFiles()
 console.log(assets.length)
-const modfiers = assets.filter((a) => a.assetType === 'modifier')
+const poses = assets.filter((a) => a.assetType === 'pose')
+const preset_poses = assets.filter((a) => a.assetType === 'preset_pose')
 checkpoint('2')
 console.log(
-   `found ${fmtNumber(modfiers.length)} character assets:`,
-   modfiers.map((i) => basename(i.relPath)),
+   `found ${fmtNumber(poses.length)} poses and ${fmtNumber(preset_poses.length)} preset_poses:`,
+   poses.map((i) => basename(i.relPath)),
+   preset_poses.map((i) => basename(i.relPath)),
 )
 const NOT_FOUND: string[] = []
 let ix = 0
-for (const a of modfiers /* .slice(1300) */) {
-   checkpoint(`loading morph ${ix++}/${modfiers.length}`)
+
+for (const a of preset_poses /* .slice(1300) */) {
+   checkpoint(`loading preset_pose ${ix++}/${preset_poses.length}`)
    try {
       const x = await mgr.loadFile(a.relPath)
       // console.log(`[🤠] --------------------------------------------------`, x.constructor.name)

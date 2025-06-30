@@ -188,9 +188,17 @@ export const $ = scope({
    // #region Pose ------------------------------------------------------------------------
    scene_pose: {
       '+': 'reject',
-      animations: 'animation[]',
+      animations: 'pose_scene_animation[]',
+      // when present,
+      'nodes?': 'pose_scene_node[]',
    },
-   animation: {
+   pose_scene_node: {
+      id: 'dazid', // "r_ear",
+      url: 'dazurl', // "name://@selection/r_ear:",
+      // first entry has no parent
+      'parent?': 'dazurl', // "#head"
+   },
+   pose_scene_animation: {
       '+': 'reject',
       url: 'dazurl',
       keys: 'point2d[]',

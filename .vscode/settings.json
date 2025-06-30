@@ -31,5 +31,37 @@
    "files.associations": {
       "*.duf": "json",
       "*.dsf": "json"
-   }
+   },
+
+   // --- Core AI Feature Enablement ---
+   // This is the cornerstone setting. It enables the proactive, multi-line
+   // "Next Edit Suggestions" that replicate Cursor's tab-completion workflow.
+   "github.copilot.nextEditSuggestions.enabled": true,
+
+   // Activates the autonomous agent mode in the Copilot Chat view,
+   // allowing for multi-step, self-correcting task completion.
+   "chat.agent.enabled": true,
+
+   // Enables deeper codebase indexing to power @workspace and #codebase queries,
+   // giving the AI full project context.
+   "github.copilot.chat.codesearch.enabled": true,
+
+   // --- UI/UX Tweaks for a Seamless Feel ---
+   // The "seamless" feel of an AI-native editor comes from reducing friction
+   // and visual noise. These settings help achieve that.
+
+   // Hides the inline suggestion toolbar until you hover over it,
+   // keeping the editor clean and focused.
+   "editor.inlineSuggest.showToolbar": "onHover",
+   // "editor.inlineSuggest.showToolbar": "always",
+
+   // This key setting prevents Next Edit Suggestions from appearing until
+   // you actively navigate to them with Tab. This makes the feature
+   // powerful but not visually distracting during normal typing.
+   "editor.inlineSuggest.edits.showCollapsed": true,
+   "editor.inlineSuggest.edits.allowCodeShifting": "always",
+   "editor.inlineSuggest.enabled": true,
+   "editor.inlineSuggest.syntaxHighlightingEnabled": true,
+   // -------------------
+
 }
