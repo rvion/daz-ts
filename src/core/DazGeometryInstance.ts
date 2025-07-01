@@ -1,12 +1,13 @@
 import { DazMgr } from '../mgr.js'
-import { $$geometry_ref, string_DazId, string_DazUrl } from '../spec.js'
+import { $$geometry_instance, string_DazId, string_DazUrl } from '../spec.js'
+import { bang } from '../utils/assert.js'
 import { fmtDazUrl } from '../utils/fmt.js'
 import { getDazPathAndIdFromDazURL_orCrash } from '../utils/parseDazUrl.js' // Changed to crash-first version
 import { AnyDazAbstraction, DazAbstraction } from './_DazAbstraction.js'
 import { DazFileFigure } from './DazFileFigure.js' // DazFigure is used by mgr.loadDazFigureByRelPath_orCrash implicitly, but keep for clarity if needed by other parts or for type safety
 import { DazGeometry } from './DazGeometry.js'
 
-export class DazGeometryRef extends DazAbstraction<AnyDazAbstraction, $$geometry_ref> {
+export class DazGeometryInstance extends DazAbstraction<AnyDazAbstraction, $$geometry_instance> {
    emoji = '🔺'
 
    kind = 'geometry_ref'
@@ -14,7 +15,7 @@ export class DazGeometryRef extends DazAbstraction<AnyDazAbstraction, $$geometry
    private _resolvedGeometryInf: DazGeometry | null = null
 
    get dazId(): string_DazId {
-      return this.data.id
+      return bang(this.data.id)
    }
 
    override get summary(): string {
@@ -29,8 +30,13 @@ export class DazGeometryRef extends DazAbstraction<AnyDazAbstraction, $$geometry
       return this._resolvedGeometryInf
    }
 
-   static async init(mgr: DazMgr, parent: AnyDazAbstraction, json: $$geometry_ref): Promise<DazGeometryRef> {
-      const self = new DazGeometryRef(mgr, parent, json)
+   static async init(
+      //
+      mgr: DazMgr,
+      parent: AnyDazAbstraction,
+      json: $$geometry_instance,
+   ): Promise<DazGeometryInstance> {
+      const self = new DazGeometryInstance(mgr, parent, json)
       self.printHeader()
       await self.loadAndResolve() // Changed from self.load()
       return self

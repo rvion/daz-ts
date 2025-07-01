@@ -43,6 +43,7 @@ export const ASSERT_ERROR = (err: unknown): Error => {
 export const ASSERT_INSTANCE_OF = <T>(
    //
    obj: unknown,
+   // biome-ignore lint/suspicious/noExplicitAny: ...
    cls: new (...args: any[]) => T,
    message?: string,
 ): T => {

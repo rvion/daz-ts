@@ -1,18 +1,16 @@
 import type { PathInfo } from '../fs/PathInfo.js'
 import { DazMgr } from '../mgr.js'
-import { $$, $$dson, $$dson_wearable } from '../spec.js'
+import { $$, $$dson } from '../spec.js'
 import { check_orCrash } from '../utils/arkutils.js'
 import { DsonFile } from './_DsonFile.js'
 
-export class DazWearable extends DsonFile<$$dson_wearable> {
+export class DazFileWearable extends DsonFile {
    emoji = '👗'
    kind = 'wearable'
-   static async init(mgr: DazMgr, meta: PathInfo, dson: $$dson): Promise<DazWearable> {
+   static async init(mgr: DazMgr, meta: PathInfo, dson: $$dson): Promise<DazFileWearable> {
       const json = await check_orCrash($$.dson_wearable, dson, dson.asset_info.id)
-      const self = new DazWearable(mgr, meta, json)
+      const self = new DazFileWearable(mgr, meta, json)
       self.printHeader()
-      mgr.wearablesByDazId.set(self.dazId, self)
-      mgr.wearablesByRelPath.set(self.relPath, self)
       return self
    }
 
@@ -21,13 +19,13 @@ export class DazWearable extends DsonFile<$$dson_wearable> {
       if (this.data.scene?.nodes) {
          // scene or nodes might be optional
          for (const nodeRefData of this.data.scene.nodes) {
-            await this.hydrateNodeRef(nodeRefData) // Changed from hydrateNode
+            await this.hydrateNodeInstances(nodeRefData) // Changed from hydrateNode
          }
       }
-      if (this.data.node_library) {
-         for (const nodeRefData of this.data.node_library) {
-            await this.hydrateNodeRef(nodeRefData)
-         }
-      }
+      // if (this.data.node_library) {
+      //    for (const nodeRefData of this.data.node_library) {
+      //       await this.hydrateNodeRef(nodeRefData)
+      //    }
+      // }
    }
 }

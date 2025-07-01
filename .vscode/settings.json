@@ -62,6 +62,9 @@
    "editor.inlineSuggest.edits.allowCodeShifting": "always",
    "editor.inlineSuggest.enabled": true,
    "editor.inlineSuggest.syntaxHighlightingEnabled": true,
+   "[markdown]": {
+      "editor.defaultFormatter": "yzhang.markdown-all-in-one"
+   },
    // -------------------
 
 }

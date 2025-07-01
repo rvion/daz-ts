@@ -19,6 +19,7 @@
     "@types/three": "^0.177.0",
     "arktype": "^2.1.20",
     "chalk": "^5.4.1",
+    "cheerio": "^1.1.0",
     "fast-glob": "^3.3.3",
     "lil-gui": "^0.20.0",
     "magic-bytes.js": "^1.12.1",

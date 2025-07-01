@@ -8,24 +8,24 @@ import { RVCharacter } from './Character.js'
 describe('Skinning Debug', () => {
    test('should debug skin data structure', async () => {
       const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
-      await mgr.loadGenesis9CharacterFile()
+      const dazChar = await mgr.loadGenesis9CharacterFile()
+      console.log(`[🤠] A`)
+      await dazChar.resolve() // ensure all data is loaded
+      console.log(`[🤠] B`)
 
-      const characters = [...mgr.charactersByDazId.values()]
-      expect(characters.length).toBeGreaterThan(0)
-
-      const character = new RVCharacter(characters[0])
+      const character = new RVCharacter(dazChar)
       expect(character.skeleton).toBeTruthy()
       expect(character.bones.size).toBeGreaterThan(0)
 
       // Debug the first geometry with skin data
-      for (const nodeRef of character.character.nodeRefs.values()) {
-         if (!nodeRef.geometryRefs) continue
+      for (const nodeRef of character.character.nodeInstances.values()) {
+         if (!nodeRef.geometryInstances) continue
 
-         for (const geometryRef of nodeRef.geometryRefs.values()) {
+         for (const geometryRef of nodeRef.geometryInstances.values()) {
             const resolvedInf = geometryRef.resolvedGeometryInf
             if (!resolvedInf) continue
 
-            if (resolvedInf.hasSkinData(character.figure_orCrash)) {
+            if (character.figure_orCrash.hasSkinData()) {
                const skinData = resolvedInf.getSkinWeightsForThree()
                if (skinData) {
                   console.log('=== SKIN DATA DEBUG ===')

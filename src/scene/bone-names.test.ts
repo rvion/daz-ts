@@ -9,9 +9,9 @@ import { RVCharacter } from './Character.js'
 describe('Bone Names Debug', () => {
    test('should list all bone names to find arm bones', async () => {
       const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
-      await mgr.loadGenesis9CharacterFile()
+      const dazChar = await mgr.loadGenesis9CharacterFile()
 
-      const characters = [...mgr.charactersByDazId.values()]
+      const characters = [dazChar]
       expect(characters.length).toBeGreaterThan(0)
       expect(characters[0].relPath).toBe('People/Genesis 9/Genesis 9.duf')
 

@@ -6,9 +6,9 @@ import { DazFileFigure } from './core/DazFileFigure.js'
 import { DazFileModifier } from './core/DazFileModifier.js'
 import { DazFilePose } from './core/DazFilePose.js'
 import { DazGeometry } from './core/DazGeometry.js'
-import { DazGeometryRef } from './core/DazGeometryRef.js'
+import { DazGeometryInstance } from './core/DazGeometryInstance.js'
 import { DazNode } from './core/DazNode.js' // New import
-import { DazNodeRef } from './core/DazNodeRef.js' // Corrected import path
+import { DazNodeInstance } from './core/DazNodeInstance.js' // Corrected import path
 import type { DazMgr } from './mgr.js'
 import type { number_Timestamp } from './types.js'
 
@@ -19,12 +19,14 @@ export const GLOBAL = {
    DazFileFigure: DazFileFigure,
    DazFileCharacter: DazFileCharacter,
    DazFileModifier: DazFileModifier,
+
    // geometry
-   DazGeometryRef: DazGeometryRef,
-   DazGeometryInf: DazGeometry,
+   DazGeometryInstance: DazGeometryInstance,
+   DazGeometry: DazGeometry,
+
    // node
-   DazNodeRef: DazNodeRef, // Renamed from DazNode
-   DazNodeInf: DazNode, // Added DazNodeInf
+   DazNodeInstance: DazNodeInstance,
+   DazNode: DazNode, // Added DazNodeInf
 }
 
 // -------- Timestamp utilities --------

@@ -1,11 +1,11 @@
 import type { PathInfo } from '../fs/PathInfo.js'
 import { DazMgr } from '../mgr.js'
-import { $$, $$dson, $$dson_modifier, string_DazUrl } from '../spec.js'
+import { $$, $$dson, string_DazUrl } from '../spec.js'
 import { check_orCrash } from '../utils/arkutils.js'
 import { getDazUrlParts } from '../utils/parseDazUrl.js'
 import { DsonFile, KnownDazFile } from './_DsonFile.js'
 
-export class DazFileModifier extends DsonFile<$$dson_modifier> {
+export class DazFileModifier extends DsonFile {
    emoji = '🔧'
    kind = 'modifier'
 
@@ -13,16 +13,9 @@ export class DazFileModifier extends DsonFile<$$dson_modifier> {
    resolvedUrls: Map<string, KnownDazFile> = new Map()
 
    static async init(mgr: DazMgr, meta: PathInfo, dson: $$dson): Promise<DazFileModifier> {
-      // console.log(`[🟢]`)
       const json = await check_orCrash($$.dson_modifier, dson, dson.asset_info.id)
       const self = new DazFileModifier(mgr, meta, json)
       self.printHeader()
-      // Store in manager maps
-      mgr.modifiersByDazId.set(self.dazId, self)
-      mgr.modifiersByRelPath.set(self.relPath, self)
-
-      // Resolve all URLs found in the modifier
-
       return self
    }
 

@@ -6,12 +6,12 @@ import { DazFileCharacter } from './core/DazFileCharacter.js'
 import { DazFileFigure } from './core/DazFileFigure.js'
 import { DazFileModifier } from './core/DazFileModifier.js'
 import { DazFilePose } from './core/DazFilePose.js'
-import { DazWearable } from './core/DazFileWearable.js'
+import { DazFileWearable } from './core/DazFileWearable.js'
 import { checkpoint, GLOBAL, registerMgrInstance } from './DI.js'
 import type { FS } from './fs/fsNode.js'
 import type { PathInfo } from './fs/PathInfo.js'
 import { processFiles, type WalkOptions } from './fs/walk.js'
-import { $$, $$asset_info, $$dson, DazAssetType, string_DazId, string_DazUrl } from './spec.js'
+import { $$, $$asset_info, $$dson, DazAssetType, string_DazUrl } from './spec.js'
 import { relPath, string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
 import { ASSERT_INSTANCE_OF, bang } from './utils/assert.js'
@@ -34,22 +34,6 @@ export class DazMgr {
    register(file: KnownDazFile) {
       this.filesFull.set(file.absPath, file)
    }
-
-   // ---- full objects loaded during the run
-   charactersByDazId: Map<string_DazId, DazFileCharacter> = new Map()
-   charactersByRelPath: Map<string_RelPath, DazFileCharacter> = new Map()
-
-   figuresByDazId: Map<string_DazId, DazFileFigure> = new Map()
-   figuresByRelPath: Map<string_RelPath, DazFileFigure> = new Map()
-
-   poseByDazId: Map<string_DazId, DazFilePose> = new Map()
-   poseByRelPath: Map<string_RelPath, DazFilePose> = new Map()
-
-   wearablesByDazId: Map<string_DazId, DazWearable> = new Map()
-   wearablesByRelPath: Map<string_RelPath, DazWearable> = new Map()
-
-   modifiersByDazId: Map<string_DazId, DazFileModifier> = new Map()
-   modifiersByRelPath: Map<string_RelPath, DazFileModifier> = new Map()
 
    // ---- stats
    count = 0
@@ -87,7 +71,8 @@ export class DazMgr {
       return out.join('\n')
    }
 
-   incrementType = (type: DazAssetType, ext: string_Ext): void => {
+   incrementType = (type_: DazAssetType | undefined, ext: string_Ext): void => {
+      const type = type_ ?? 'unknown' // Default to 'unknown' if type is undefined
       this.countPerTypePerExt.get('total').get(type).x++
       this.countPerTypePerExt.get(ext).get(type).x++
       // this.countPerType.set(type, (this.countPerType.get(type) ?? 0) + 1)
@@ -129,7 +114,7 @@ export class DazMgr {
       // console.log(`[💿] loading ${fmtAbsPath(meta.absPath)} `)
 
       // load dson
-      const { json, gz, fileSize } = await this.fs.readJSON(meta.absPath)
+      const { json } = await this.fs.readJSON(meta.absPath)
       const dson = await check_orCrash($$.dson, json, meta.absPath)
       this.incrementType(dson.asset_info.type, meta.fileExt)
       this.count++
@@ -138,7 +123,7 @@ export class DazMgr {
       const stuff = await this._hydrateDson(meta, dson)
       // 💬 2025-06-30 rvion: have to remove this from here,
       this.filesFull.set(meta.absPath, stuff)
-      // await stuff.resolve()
+      await stuff.resolve()
       return stuff
    }
 
@@ -151,7 +136,7 @@ export class DazMgr {
 
    private _hydrateDson(meta: PathInfo, dson: $$dson): Promise<KnownDazFile> {
       const assetType = dson.asset_info.type
-      if (assetType === 'wearable') return DazWearable.init(this, meta, dson)
+      if (assetType === 'wearable') return DazFileWearable.init(this, meta, dson)
       else if (assetType === 'character') return DazFileCharacter.init(this, meta, dson)
       else if (assetType === 'figure') return DazFileFigure.init(this, meta, dson)
       else if (assetType === 'preset_pose') return DazFilePose.init(this, meta, dson)
@@ -208,7 +193,8 @@ export class DazMgr {
    private async _peek(meta: PathInfo): Promise<$$asset_info> {
       const { json, gz, fileSize } = await this.fs.readPartialJSON(meta.absPath, 2000)
       const dson = await check_orCrash($$.dson, json, meta.absPath)
-      const assetType: DazAssetType = dson.asset_info.type
+      const assetType_: DazAssetType | undefined = dson.asset_info.type
+      const assetType = assetType_ ?? 'unknown'
       this.incrementType(assetType, meta.fileExt)
       const { relPath, fileExt: ext } = meta
       this._seenFiles.push({ relPath, assetType, ext, gz, fileSize })

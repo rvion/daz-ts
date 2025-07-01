@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { DazFileCharacter } from '../core/DazFileCharacter.js'
 import { DazFileFigure } from '../core/DazFileFigure.js'
 import { DazFilePose } from '../core/DazFilePose.js'
-import { DazGeometryRef } from '../core/DazGeometryRef.js'
+import { DazGeometryInstance } from '../core/DazGeometryInstance.js'
 import { DazNode } from '../core/DazNode.js'
 import { dazId, string_DazId } from '../spec.js'
 import { Maybe } from '../types.js'
@@ -62,10 +62,10 @@ export class RVCharacter {
       }
 
       // Build meshes from character's node references
-      for (const nodeRef of this.character.nodeRefs.values()) {
-         if (!nodeRef.geometryRefs) continue
+      for (const nodeRef of this.character.nodeInstances.values()) {
+         if (!nodeRef.geometryInstances) continue
 
-         for (const geometryRef of nodeRef.geometryRefs.values()) {
+         for (const geometryRef of nodeRef.geometryInstances.values()) {
             const mesh = this.createMeshFromGeometryRef(geometryRef)
             if (mesh) {
                this.meshes.push(mesh)
@@ -79,7 +79,7 @@ export class RVCharacter {
          this.createFallbackMesh()
       }
    }
-   private createMeshFromGeometryRef(geometryRef: DazGeometryRef): THREE.Mesh | THREE.SkinnedMesh | null {
+   private createMeshFromGeometryRef(geometryRef: DazGeometryInstance): THREE.Mesh | THREE.SkinnedMesh | null {
       const resolvedInf = geometryRef.resolvedGeometryInf
       if (!resolvedInf) return null
 
@@ -107,7 +107,7 @@ export class RVCharacter {
       const allowRegular = false
 
       // Check if geometry has skin data and we have a skeleton
-      if (allowSkinning && resolvedInf.hasSkinData(this.figure_orCrash) && this.skeleton) {
+      if (allowSkinning && this.figure_orCrash.hasSkinData() && this.skeleton) {
          const skinData = resolvedInf.getSkinWeightsForThree()
          if (skinData) {
             // Map bone names from skin data to skeleton bone indices
@@ -335,8 +335,10 @@ export class RVCharacter {
 
    // Animation and pose methods
    applyPose(pose: DazFilePose): void {
-      // biome-ignore format: misc
-      if (!this.skeleton) return void console.warn(`[RVCharacter] Cannot apply pose: no skeleton available for character ${this.character.dazId}`)
+      // checks
+      if (!this.skeleton) return void console.warn(`[RVCharacter] Cannot apply pose: no skeleton available for character ${this.character.dazId}`) // biome-ignore format: misc
+      if (pose.changes == null || pose.changes.length === 0) return void console.warn(`[RVCharacter] No pose changes found in pose ${pose.dazId}`) // biome-ignore format: misc
+      // apply pose
       console.log(`[RVCharacter] Applying pose ${pose.dazId} to ${this.character.dazId}`)
       for (const change of pose.changes) this.applyPoseChange(change)
       this.updateSkeletonMatrices() // Update skeleton matrices after pose changes

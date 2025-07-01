@@ -1,9 +1,10 @@
 import { DazMgr } from '../mgr.js'
 import { $$geometry, $$point3d, $$point5or6d, string_DazId } from '../spec.js'
 import { bang } from '../utils/assert.js'
-import { AnyDazAbstraction, DazAbstraction } from './_DazAbstraction.js'
+import { DazAbstraction } from './_DazAbstraction.js'
+import { DsonFile } from './_DsonFile.js'
 
-export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
+export class DazGeometry extends DazAbstraction<DsonFile, $$geometry> {
    emoji = '🔻'
    kind = 'geometry'
    get dazId(): string_DazId { return this.data.id } // biome-ignore format: misc
@@ -18,7 +19,7 @@ export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
    }
 
    // init
-   static async init(mgr: DazMgr, parent: AnyDazAbstraction, json: $$geometry): Promise<DazGeometry> {
+   static async init(mgr: DazMgr, parent: DsonFile, json: $$geometry): Promise<DazGeometry> {
       const self = new DazGeometry(mgr, parent, json)
       self.printHeader()
       // await self.load()
@@ -51,10 +52,6 @@ export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
    }
 
    // #region Skinning
-   hasSkinData(figure: AnyDazAbstraction): boolean {
-      const skinModifier = figure.getSkinBindingModifier()
-      return !!(skinModifier?.skin && skinModifier.skin.joints.length > 0)
-   }
 
    getSkinWeightsForThree(
       // geometryId: string_DazId,
@@ -71,6 +68,7 @@ export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
       }
 
       const SKIN = bang(skinModifier.skin)
+      const JOINTS = bang(SKIN.joints)
 
       // Check if this modifier applies to our geometry
       const geometryUrl = SKIN.geometry
@@ -87,7 +85,7 @@ export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
       const boneNames: string[] = []
       const boneNameToIndex = new Map<string, number>()
 
-      for (const joint of SKIN.joints) {
+      for (const joint of JOINTS) {
          const boneName = joint.id
          if (!boneNameToIndex.has(boneName)) {
             boneNameToIndex.set(boneName, boneNames.length)
@@ -100,7 +98,7 @@ export class DazGeometry extends DazAbstraction<AnyDazAbstraction, $$geometry> {
       const boneWeights = new Array(vertexCount * 4).fill(0)
 
       // Process each joint's vertex weights
-      for (const joint of SKIN.joints) {
+      for (const joint of JOINTS) {
          const boneName = joint.id
          const boneIndex = bang(boneNameToIndex.get(boneName))
 

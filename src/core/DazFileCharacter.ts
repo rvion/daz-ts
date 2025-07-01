@@ -1,14 +1,14 @@
 import type { PathInfo } from '../fs/PathInfo.js'
 import { DazMgr } from '../mgr.js'
-import { $$, $$dson, $$dson_character, dazId, string_DazId } from '../spec.js'
+import { $$, $$dson, dazId, string_DazId } from '../spec.js'
 import { string_RelPath } from '../types.js'
 import { check_orCrash } from '../utils/arkutils.js'
 import { getDazPathAndIdFromDazURL_orCrash } from '../utils/parseDazUrl.js'
 import { DsonFile } from './_DsonFile.js'
 import { DazFileFigure } from './DazFileFigure.js'
-import { DazNodeRef } from './DazNodeRef.js'
+import { DazNodeInstance } from './DazNodeInstance.js'
 
-export class DazFileCharacter extends DsonFile<$$dson_character> {
+export class DazFileCharacter extends DsonFile {
    emoji = '😄'
    kind = 'character'
 
@@ -22,8 +22,6 @@ export class DazFileCharacter extends DsonFile<$$dson_character> {
       const json = await check_orCrash($$.dson_character, dson, dson.asset_info.id)
       const self = new DazFileCharacter(mgr, meta, json)
       self.printHeader()
-      mgr.charactersByDazId.set(self.dazId, self)
-      mgr.charactersByRelPath.set(self.relPath, self)
       return self
    }
 
@@ -31,7 +29,7 @@ export class DazFileCharacter extends DsonFile<$$dson_character> {
       // Hydrate own node references first
       if (this.data.scene?.nodes) {
          for (const nodeData of this.data.scene.nodes) {
-            await this.hydrateNodeRef(nodeData)
+            await this.hydrateNodeInstances(nodeData)
          }
       }
 
@@ -47,11 +45,11 @@ export class DazFileCharacter extends DsonFile<$$dson_character> {
          dazId`Genesis`,
       ]
 
-      let figureNodeRef: DazNodeRef | undefined
+      let figureNodeRef: DazNodeInstance | undefined
 
       // Try common IDs first
       for (const id of commonFigureNodeIds) {
-         const nodeRef = this.nodeRefs.get(id)
+         const nodeRef = this.nodeInstances.get(id)
          if (nodeRef?.data?.preview?.type === 'figure' || (nodeRef && id === dazId('Genesis9'))) {
             figureNodeRef = nodeRef
             break
@@ -60,7 +58,7 @@ export class DazFileCharacter extends DsonFile<$$dson_character> {
 
       // If not found by common ID, try iterating all nodeRefs to find one with preview.type 'figure'
       if (!figureNodeRef) {
-         for (const nodeRef of this.nodeRefs.values()) {
+         for (const nodeRef of this.nodeInstances.values()) {
             if (nodeRef.data?.preview?.type === 'figure') {
                figureNodeRef = nodeRef
                break

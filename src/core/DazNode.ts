@@ -20,7 +20,7 @@ export class DazNode extends DazAbstraction<AnyDazAbstraction, $$node> {
       return `${this.data.type} - ${this.data.name} (${this.data.id})`
    }
 
-   get type(): $$node_type {
+   get type(): $$node_type | undefined {
       return this.data.type
    }
 

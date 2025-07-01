@@ -1,0 +1,2460 @@
+[
+  {
+    "name": "asset_info",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/asset_info/start",
+    "description": "\n\n<p>\nDescribes the addressing, version, and ownership of an asset.\n</p>\n\n",
+    "parentObjects": [],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing the <abbr title=\"Uniform Resource Locator\">URL</abbr> for this file, relative to a content root folder. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "type",
+        "description": " A string representing a hint of how to load the file. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "contributor",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/contributor/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:contributor:start\">contributor</a> object representing a person or entity that worked on the asset. ",
+        "default": "N/A",
+        "required": "yes"
+      },
+      {
+        "name": "revision",
+        "description": " A string representing the revision number for the file. ",
+        "default": "“1.0”",
+        "required": "yes"
+      },
+      {
+        "name": "modified",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#date_time\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">date_time</a> representing the given revision of the file. ",
+        "default": "None",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>id</em> indicates the file path that should be used for the file containing this definition.  The file path should always begin with a leading ‘/’ and is understood to be relative to the content directory root folder.\n</p>\n\n<p>\nAssets within a <abbr title=\"DSON Support File\">DSF</abbr> file are assumed to “live” together forever so that asset addressing of assets within the file may remain constant. If it is necessary to update the assets within a previously deployed file and re-deploy it, the <em>revision</em> number should be incremented to allow differentiation between the original file and the updated file. How the <em>revision</em> field is interpreted is application-defined.\n</p>\n\n",
+    "example": "{\n\t“id” : “/DAZ/Clothing/Short2.dsf”,\n\t“type” : “preset_pose”,\n\t“contributor” : {\n\t\t/*  See contributor  */\n\t},\n\t“revision” : “1.0”,\n\t“modified” : “Sat Feb 25 16:42:11 2012”\n}"
+  },
+  {
+    "name": "bulge_binding",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/bulge_binding/start",
+    "description": "\n\n<p>\nDefines a bulge binding that appears in the <em>bulge_weights</em> collection of a weighted joint.\n</p>\n\n",
+    "parentObjects": [
+      "weighted_joint"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "bulges",
+        "description": " An array of four <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_float/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:channel_float:start\">channel_float</a> objects representing the “positive-left”, “positive-right”, “negative-left”, and “negative-right” channel values. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "left_map",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#float_indexed_array\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float_indexed_array</a> representing the left vertex map. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "right_map",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#float_indexed_array\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float_indexed_array</a> representing the right vertex map. ",
+        "default": "None",
+        "required": "yes"
+      }
+    ],
+    "extendedBy": [],
+    "details": "",
+    "example": "{\n\t“bulges” : [\n\t\t{\n\t\t\t/*  See channel_float  */\n\t\t},\n\t\t…\n\t],\n\t“left_map” : float_indexed_array,\n\t“right_map” : float_indexed_array\n}"
+  },
+  {
+    "name": "camera",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/camera/start",
+    "description": "\n\n<p>\nExtra properties available for use if the node <em>type</em> is specified as “camera”.\n</p>\n\n",
+    "parentObjects": [],
+    "extends": [
+      "node"
+    ],
+    "properties": [
+      {
+        "name": "perspective",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/camera_perspective/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:camera_perspective:start\">camera_perspective</a> object definition, if this is a perspective camera. ",
+        "default": "N/A",
+        "required": "this or camera_orthographic"
+      },
+      {
+        "name": "orthographic",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/camera_orthographic/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:camera_orthographic:start\">camera_orthographic</a> object definition, if this is an orthographic camera. ",
+        "default": "N/A",
+        "required": "this or camera_perspective"
+      }
+    ],
+    "extendedBy": [],
+    "details": "",
+    "example": "{\n\t“id” : “perspective”,\n\t“label” : “Cinematic”,\n\t“type” : “camera”,\n\t“parent” : “lhand”,\n\t“perspective” : {\n\t\t/*  See camera_perspective  */\n\t},\n\t“orthographic” : {\n\t\t/*  See camera_orthographic  */\n\t},\n\t“rotation” : [\n\t\t{\n\t\t\t/*  See channel_float  */\n\t\t},\n\t\t…\n\t],\n\t“translation” : [\n\t\t{\n\t\t\t/*  See channel_float  */\n\t\t},\n\t\t…\n\t],\n\t“scale” : [\n\t\t{\n\t\t\t/*  See channel_float  */\n\t\t},\n\t\t…\n\t]\n}"
+  },
+  {
+    "name": "camera_orthographic",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/camera_orthographic/start",
+    "description": "\n\n<p>\nDefines properties of an orthographic camera.\n</p>\n\n",
+    "parentObjects": [],
+    "extends": [],
+    "properties": [
+      {
+        "name": "znear",
+        "description": " The near clipping plane ",
+        "default": "",
+        "required": "no"
+      },
+      {
+        "name": "zfar",
+        "description": " The far clipping plane ",
+        "default": "",
+        "required": "no"
+      },
+      {
+        "name": "ymag",
+        "description": " View magnification along the vertical (y) axis. ",
+        "default": "",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "",
+    "example": "{\n    \"znear\" : 0.1,\n    \"zfar\" : 100.0,\n    \"ymag\" : 25.6\n}"
+  },
+  {
+    "name": "camera_perspective",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/camera_perspective/start",
+    "description": "\n\n<p>\nDefines properties of a perspective camera.\n</p>\n\n",
+    "parentObjects": [
+      "camera"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "znear",
+        "description": " The near clipping plane ",
+        "default": "",
+        "required": "no"
+      },
+      {
+        "name": "zfar",
+        "description": " The car clipping plane ",
+        "default": "",
+        "required": "no"
+      },
+      {
+        "name": "yfov",
+        "description": " Field of view along the vertical (y) axis, in degrees. ",
+        "default": "45.0",
+        "required": "no"
+      },
+      {
+        "name": "focal_length",
+        "description": " Focal length ",
+        "default": "",
+        "required": "no"
+      },
+      {
+        "name": "depth_of_field",
+        "description": " If this camera should do depth of field ",
+        "default": "false",
+        "required": "no"
+      },
+      {
+        "name": "focal_distance",
+        "description": " Focal distance ",
+        "default": "",
+        "required": "no"
+      },
+      {
+        "name": "fstop",
+        "description": " F stop for the camera ",
+        "default": "",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "",
+    "example": "{\n    \"znear\" : 0.1,\n    \"zfar\" : 1000.0,\n    \"yfov\" : 45.0,\n    \"focal_length\" : 50.0,\n    \"depth_of_field\" : false,\n    \"focal_distance\" : 50.0,\n    \"fstop\" : 25.0\n}"
+  },
+  {
+    "name": "channel",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel/start",
+    "description": "\n\n<p>\nThis is an abstract object that contains the common properties for all channel types.\n</p>\n\n",
+    "parentObjects": [
+      "bulge_binding",
+      "modifier",
+      "node"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing a unique ID within the property scope of the containing object. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "type",
+        "description": " A string representing the data type of the channel. Valid values are “alias”, “bool”, “color”, “enum”, “float”, “image”, “int” and “string”.  See <a href=\"#extended_by\" title=\"public:dson_spec:object_definitions:channel:start ↵\" class=\"wikilink1\">Extended By</a>. ",
+        "default": "“float”",
+        "required": "yes"
+      },
+      {
+        "name": "name",
+        "description": " A string representing the internal name to apply to this channel. An empty string is not a valid name. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "label",
+        "description": " A string representing a user-facing label to apply to this channel. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "visible",
+        "description": " A boolean value representing a <abbr title=\"User Interface\">UI</abbr> hint, indicating whether or not the parameter should be shown. ",
+        "default": "true",
+        "required": "no"
+      },
+      {
+        "name": "locked",
+        "description": " A boolean value representing whether or not the parameter is allowed to be changed. ",
+        "default": "false",
+        "required": "no"
+      },
+      {
+        "name": "auto_follow",
+        "description": " A boolean value representing whether or not the channel should automatically be connected to a corresponding channel during conforming. ",
+        "default": "false",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [
+      "channel_alias",
+      "channel_bool",
+      "channel_color",
+      "channel_enum",
+      "channel_float",
+      "channel_image",
+      "channel_int",
+      "channel_string"
+    ],
+    "details": "\n\n<p>\nThe ID of a channel does not have to be unique within file scope because it is not an “asset” and its addressing is always via property addressing, so must only be unique within the scope of the containing/owning object.\n</p>\n\n",
+    "example": "{\n\t\"id\" : \"x\",\n\t\"label\" : \"Side-Side\",\n\t\"visible\" : true,\n\t\"locked\" : true,\n\t\"min\" : 0.0,\n\t\"max\" : 1.0,\n\t\"clamped\" : true,\n\t\"display_as_percent\" : false,\n\t\"step_size\" : 2.0,\n\t\"value\" : 0.0\n}"
+  },
+  {
+    "name": "channel_alias",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_alias/start",
+    "description": "\n\n<p>\nChannels that exist on an object may be aliased to appear on another object. This allows control of the channel from more than one location. A <em>channel_alias</em> simply reflects the <em>target_channel</em> properties and values.\n</p>\n\n",
+    "parentObjects": [
+      "bulge_binding",
+      "modifier",
+      "node"
+    ],
+    "extends": [
+      "channel"
+    ],
+    "properties": [
+      {
+        "name": "target_channel",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> referring to the channel that this channel is an alias of. ",
+        "default": "“”",
+        "required": "yes"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>current_value</em> attribute is overridden anytime an animation is associated with the channel.\n</p>\n\n",
+    "example": "{\n\t\"id\" : \"value\",\n\t\"type\" : \"alias\",\n\t\"name\" : \"Bend\",\n\t\"label\" : \"Bend\",\n\t\"target_channel\" : \"blSubDragon_14162:#LegacyBinding?joints/hip/bend\"\n}"
+  },
+  {
+    "name": "channel_animation",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_animation/start",
+    "description": "\n\n<p>\nDefines an animation sequence for a single channel.\n</p>\n\n",
+    "parentObjects": [
+      "scene"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "Name",
+        "description": " <strong>Description</strong> ",
+        "default": "Default",
+        "required": "Required"
+      },
+      {
+        "name": "url",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> referring to the channel to target with this animation. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "keys",
+        "description": " An array of time/value pairs, with an optional nested array that defines  an interpolation type and its associated values (if any), one for each keyframe. ",
+        "default": "None",
+        "required": "yes"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nKeys must appear in order of ascending time.  The number of values specified for each key must match the number of components of the property specified in the <em>url</em>.  To provide animation data for a single component of a multi-component property, use the sub-property selector syntax (see <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/asset_addressing/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:asset_addressing:start\">Asset Addressing</a>) to specify which component is desired, then provide the number of values required to specify a value for keys of that type.\n</p>\n\n<p>\nThe assumed key interpolation type is Catmull-Rom Spline Tangent for float channels and Linear for all others.\n</p>\n\n",
+    "example": "{\n\t\"url\" : \"hips#translation\",\n\t\"keys\" : [ [ 0.0, [1.23, 2.34, 4.55] ], [ 1.0, [6.78, 5.23, 1.90] ] ]\n}{\n\t\"url\" : \"hips#translation/x\",\n\t\"keys\" : [ [ 0.0, 1.23 ], [ 1.0, 6.78 ] ]\n}{\n\t\"url\" : \"hips#translation/x\",\n\t\"keys\" : [ [ 0.0, 1.23, [\"TCB\", -0.5, 0.2, 0.5] ], [ 1.0, 6.78, [\"LINEAR\"] ] ]\n}{\n        \"url\" : \"Dress:#Morph_001?value/value\",\n        \"keys\" : [ [ 0.5666667, 1, [\"HERMITE\", 0,0 ] ], [ 0.6, 0, [\"CONST\"] ] ]\n}"
+  },
+  {
+    "name": "channel_bool",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_bool/start",
+    "description": "\n\n<p>\nDefines properties of a boolean-valued channel. Only determinate <em>true</em> and <em>false</em> values are supported. Indeterminate boolean states (tri-states) are not supported.\n</p>\n\n",
+    "parentObjects": [
+      "bulge_binding",
+      "modifier",
+      "node"
+    ],
+    "extends": [
+      "channel"
+    ],
+    "properties": [
+      {
+        "name": "Name",
+        "description": " <strong>Description</strong> ",
+        "default": "Default",
+        "required": "Required"
+      },
+      {
+        "name": "min",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#int\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int</a> representing the minimum value for the parameter, or for each component of a vector-valued channel. ",
+        "default": "0.0",
+        "required": "no"
+      },
+      {
+        "name": "max",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#int\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int</a> representing the maximum value for the parameter, or for each component of a vector-valued channel. ",
+        "default": "1.0",
+        "required": "no"
+      },
+      {
+        "name": "clamped",
+        "description": " A boolean value representing whether or not min and max are enforced. ",
+        "default": "false",
+        "required": "no"
+      },
+      {
+        "name": "step_size",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#int\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int</a> representing the step size, or paging size, to use for this parameter when presenting <abbr title=\"User Interface\">UI</abbr> to the user.  Effectively a scaling value. Value applies to all components of a vector-valued channel. ",
+        "default": "1.0",
+        "required": "no"
+      },
+      {
+        "name": "value",
+        "description": " A boolean value representing the default value for the parameter. ",
+        "default": "false",
+        "required": "no"
+      },
+      {
+        "name": "current_value",
+        "description": " A boolean value representing the current value for the parameter. ",
+        "default": "false",
+        "required": "no"
+      },
+      {
+        "name": "mappable",
+        "description": " A boolean value representing whether or not the channel is mappable. ",
+        "default": "false",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>current_value</em> attribute is overridden anytime an animation is associated with the channel.\n</p>\n\n",
+    "example": "{\n\t\"id\" : \"Multiply Specular Through Opacity\",\n\t\"type\" : \"bool\",\n\t\"name\" : \"Multiply Specular Through Opacity\",\n\t\"label\" : \"Multiply Specular Through Opacity\",\n\t\"value\" : true\n}"
+  },
+  {
+    "name": "channel_color",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_color/start",
+    "description": "\n\n<p>\nDefines properties of a vector-valued color channel where color is represented as a three-component floating point RGB value.\n</p>\n\n",
+    "parentObjects": [
+      "bulge_binding",
+      "modifier",
+      "node"
+    ],
+    "extends": [
+      "channel"
+    ],
+    "properties": [
+      {
+        "name": "value",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float3</a> representing the default color value for the parameter. ",
+        "default": "[ 0.0, 0.0, 0.0 ]",
+        "required": "no"
+      },
+      {
+        "name": "current_value",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float3</a> representing the current color value for the parameter. ",
+        "default": "[ 0.0, 0.0, 0.0 ]",
+        "required": "no"
+      },
+      {
+        "name": "mappable",
+        "description": " A boolean value indicating whether or not the channel is mappable. ",
+        "default": "false",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nColor values are assumed to be in the range 0.0 to 1.0, but floating point values outside that range are legal and it is up to the application to determine how to interpret those.\n</p>\n\n<p>\nThe <em>current_value</em> attribute is overridden anytime an animation is associated with the channel.\n</p>\n\n",
+    "example": "{\n\t\"id\" : \"diffuse\",\n\t\"label\" : \"Color\",\n\t\"visible\" : true,\n\t\"locked\" : true,\n\t\"value\" : [ 0.0, 0.0, 0.0 ],\n\t\"current_value\" : [ 0.0, 0.32, 0.73 ],\n}"
+  },
+  {
+    "name": "channel_enum",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_enum/start",
+    "description": "\n\n<p>\nDefines properties of an enum-valued channel. A <em>channel_enum</em> channel type can support a pre-determined mapping from a string to an integer index value.\n</p>\n\n",
+    "parentObjects": [
+      "bulge_binding",
+      "modifier",
+      "node"
+    ],
+    "extends": [
+      "channel"
+    ],
+    "properties": [
+      {
+        "name": "value",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#int\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int</a> representing the default index value for the parameter. ",
+        "default": "0",
+        "required": "no"
+      },
+      {
+        "name": "enum_values",
+        "description": " An array of string values representing the enumerated values for the parameter. ",
+        "default": "{empty}",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>current_value</em> attribute is overridden anytime an animation is associated with the channel.\n</p>\n\n",
+    "example": "{\n\t\"id\" : \"Lighting Model\",\n\t\"type\" : \"enum\",\n\t\"name\" : \"Lighting Model\",\n\t\"label\" : \"Lighting Model\",\n\t\"value\" : 0,\n\t\"enum_values\" : [ \"Plastic\", \"Metallic\", \"Skin\", \"Glossy (Plastic)\", \"Matte\", \"Glossy (Metallic)\" ]\n}"
+  },
+  {
+    "name": "channel_float",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_float/start",
+    "description": "\n\n<p>\nDefines properties of a floating-point value channel.\n</p>\n\n",
+    "parentObjects": [
+      "bulge_binding",
+      "modifier",
+      "node"
+    ],
+    "extends": [
+      "channel"
+    ],
+    "properties": [
+      {
+        "name": "value",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#float\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float</a> value representing the default value for the parameter. ",
+        "default": "0.0",
+        "required": "no"
+      },
+      {
+        "name": "current_value",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#float\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float</a> value representing the current value for the parameter. ",
+        "default": "0.0",
+        "required": "no"
+      },
+      {
+        "name": "min",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#float\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float</a> value representing the minimum value for the parameter, or for each component of a vector-valued channel. ",
+        "default": "0.0",
+        "required": "no"
+      },
+      {
+        "name": "max",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#float\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float</a> value representing the maximum value for the parameter, or for each component of a vector-valued channel. ",
+        "default": "1.0",
+        "required": "no"
+      },
+      {
+        "name": "clamped",
+        "description": " A boolean value representing whether or not <em>min</em> and <em>max</em> are enforced. ",
+        "default": "false",
+        "required": "no"
+      },
+      {
+        "name": "display_as_percent",
+        "description": " A boolean value representing whether or not the parameter value should be shown to the user as a percentage. ",
+        "default": "false",
+        "required": "no"
+      },
+      {
+        "name": "step_size",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#float\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float</a> value representing the step size, or paging size, to use for this parameter when presenting <abbr title=\"User Interface\">UI</abbr> to the user.  Effectively a scaling value. Value applies to all components of a vector-valued channel. ",
+        "default": "1.0",
+        "required": "no"
+      },
+      {
+        "name": "mappable",
+        "description": " A boolean value representing whether or not the channel is mappable. ",
+        "default": "false",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>current_value</em> attribute is overridden anytime an animation is associated with the channel.\n</p>\n\n",
+    "example": "{\n\t\"id\" : \"value\",\n\t\"type\" : \"float\",\n\t\"name\" : \"Dummy\",\n\t\"label\" : \"Dummy\",\n\t\"visible\" : false,\n\t\"locked\" : true,\n\t\"auto_follow\" : true,\n\t\"value\" : 0,\n\t\"current_value\" : 0,\n\t\"min\" : -1,\n\t\"max\" : 1,\n\t\"clamped\" : true,\n\t\"display_as_percent\" : true,\n\t\"step_size\" : 0.04\n}"
+  },
+  {
+    "name": "channel_image",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_image/start",
+    "description": "\n\n<p>\nDefines properties of an image-valued channel. A <em>channel_image</em> channel type is used to create and address animatable channels that allow switching of an entire image at once.\n</p>\n\n",
+    "parentObjects": [
+      "bulge_binding",
+      "modifier",
+      "node"
+    ],
+    "extends": [
+      "channel"
+    ],
+    "properties": [
+      {
+        "name": "value",
+        "description": " A string representing the default value for the parameter. ",
+        "default": "“”",
+        "required": "no"
+      },
+      {
+        "name": "current_value",
+        "description": " A string representing the current value for the parameter. ",
+        "default": "“”",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>current_value</em> attribute is overridden anytime an animation is associated with the channel.\n</p>\n\n",
+    "example": "{\n\t\"id\" : \"size\",\n\t\"label\" : \"Size\",\n\t\"visible\" : true,\n\t\"locked\" : true,\n\t\"value\" : \"Standard\",\n\t\"current_value\" : \"Heavy\"\n}"
+  },
+  {
+    "name": "channel_int",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_int/start",
+    "description": "\n\n<p>\nDefines properties of a integer-valued channel.\n</p>\n\n",
+    "parentObjects": [
+      "bulge_binding",
+      "modifier",
+      "node"
+    ],
+    "extends": [
+      "channel"
+    ],
+    "properties": [
+      {
+        "name": "value",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#int\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int</a> value representing the default value for the parameter. ",
+        "default": "0",
+        "required": "no"
+      },
+      {
+        "name": "current_value",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#int\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int</a> value representing the current value for the parameter. ",
+        "default": "0",
+        "required": "no"
+      },
+      {
+        "name": "min",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#int\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int</a> value representing the minimum value for the parameter, or for each component of a vector-valued channel. ",
+        "default": "0",
+        "required": "no"
+      },
+      {
+        "name": "max",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#int\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int</a> value representing the maximum value for the parameter, or for each component of a vector-valued channel. ",
+        "default": "1",
+        "required": "no"
+      },
+      {
+        "name": "clamped",
+        "description": " A boolean value representing whether or not <em>min</em> and <em>max</em> are enforced. ",
+        "default": "false",
+        "required": "no"
+      },
+      {
+        "name": "step_size",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#int\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int</a> value representing the step size, or paging size, to use for this parameter when presenting <abbr title=\"User Interface\">UI</abbr> to the user.  Effectively a scaling value. Value applies to all components of a vector-valued channel. ",
+        "default": "1",
+        "required": "no"
+      },
+      {
+        "name": "mappable",
+        "description": " A boolean value representing whether or not the channel is mappable. ",
+        "default": "false",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>current_value</em> attribute is overridden anytime an animation is associated with the channel.\n</p>\n\n",
+    "example": "{\n\t\"id\" : \"value\",\n\t\"type\" : \"int\",\n\t\"name\" : \"Dummy\",\n\t\"label\" : \"Dummy\",\n\t\"visible\" : false,\n\t\"locked\" : true,\n\t\"auto_follow\" : true,\n\t\"value\" : 0,\n\t\"current_value\" : 0,\n\t\"min\" : -1,\n\t\"max\" : 1,\n\t\"clamped\" : true,\n\t\"step_size\" : 1\n}"
+  },
+  {
+    "name": "channel_string",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_string/start",
+    "description": "\n\n<p>\nDefines properties of a string-valued channel.\n</p>\n\n",
+    "parentObjects": [
+      "bulge_binding",
+      "modifier",
+      "node"
+    ],
+    "extends": [
+      "channel"
+    ],
+    "properties": [
+      {
+        "name": "value",
+        "description": " A string representing the default value for the parameter. ",
+        "default": "“”",
+        "required": "no"
+      },
+      {
+        "name": "current_value",
+        "description": " A string representing the current value for the parameter. ",
+        "default": "“”",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>current_value</em> attribute is overridden anytime an animation is associated with the channel.\n</p>\n\n",
+    "example": "{\n\t\"id\" : \"size\",\n\t\"label\" : \"Size\",\n\t\"visible\" : true,\n\t\"locked\" : true,\n\t\"value\" : \"Standard\",\n\t\"current_value\" : \"Heavy\"\n}"
+  },
+  {
+    "name": "contributor",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/contributor/start",
+    "description": "\n\n<p>\nInformation about an individual contributor.\n</p>\n\n",
+    "parentObjects": [],
+    "extends": [],
+    "properties": [
+      {
+        "name": "author",
+        "description": " A string representing the name of the contributor. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "email",
+        "description": " A string representing the email address of the contributor. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "website",
+        "description": " A string representing the contributor's web site, if any. ",
+        "default": "None",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThis is an optional object that represents original author identification and contact info.\n</p>\n\n",
+    "example": "{\n\t\"author\" : \"John Doe\",\n\t\"email\" : \"john.doe@daz3d.com\",\n\t\"website\" : \"http://www.daz3d.com\"\n}"
+  },
+  {
+    "name": "DAZ",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/daz/start",
+    "description": "\n\n<p>\nA <abbr title=\"Digital Art Zone\">DAZ</abbr> object is the top level object in a <abbr title=\"DAZ Scene Object Notation\">DSON</abbr> format file.\n</p>\n\n",
+    "parentObjects": [],
+    "extends": [],
+    "properties": [
+      {
+        "name": "file_version",
+        "description": " A string indicating the file format schema version to be used when parsing the file, in the form “major.minor.revision”. ",
+        "default": "N/A",
+        "required": "yes"
+      },
+      {
+        "name": "asset_info",
+        "description": " A base-level <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/asset_info/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:asset_info:start\">asset_info</a> object to apply to all assets within the file. ",
+        "default": "N/A",
+        "required": "yes"
+      },
+      {
+        "name": "geometry_library",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/geometry/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:geometry:start\">geometry</a> assets defined in this file. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "node_library",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/node/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:node:start\">node</a> assets defined in this file. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "uv_set_library",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/uv_set/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:uv_set:start\">uv_set</a> assets defined in this file. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "modifier_library",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/modifier/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:modifier:start\">modifier</a> assets defined in this file. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "image_library",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/image/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:image:start\">image</a> assets defined in this file. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "material_library",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material:start\">material</a> assets defined in this file. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "scene",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/scene/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:scene:start\">scene</a> object that instantiates and configures assets to add to a current scene. ",
+        "default": "N/A",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nA file must contain one or more of any of the *_<em>library</em> elements and/or a <em>scene</em>.\n</p>\n\n",
+    "example": "{\n    “file_version” : “0.6.0.0”,\n    “asset_info” : {\n        /*  See asset_info  */\n    },\n    “geometry_library” : [\n        {\n            /*  See geometry  */\n        }\n    ],\n    “node_library” : [\n        {\n            /*  See node  */\n        }\n    ],\n    “uv_set_library” : [\n        {\n            /*  See uv_set  */\n        }\n    ],\n    “modifier_library” : [\n        {\n            /*  See modifier  */\n        }\n    ],\n    “image_library” : [\n        {\n            /*  See image  */\n        }\n    ],\n    “material_library” : [\n        {\n            /*  See material  */\n        }\n    ],\n    “scene” : {\n        /*  See scene  */\n    }\n}"
+  },
+  {
+    "name": "formula",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/formula/start",
+    "description": "\n\n<p>\nDescribes a set of operations and relationships to apply to a given property in the scene.\n</p>\n\n",
+    "parentObjects": [
+      "modifier",
+      "node"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "output",
+        "description": " A string representing the object reference of the single-valued property to be targeted with the output from the formula. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "operations",
+        "description": " An ordered array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/operation/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:operation:start\">operation</a> objects to apply, to derive the output value. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "stage",
+        "description": " A string representing the calculation stage that this formula’s output contributes to.  May be one of “multiply” or “sum”.  See <span class=\"curid\"><a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/formula/start#details\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:formula:start\">Details</a></span> section. ",
+        "default": "“sum”",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe operations are given in <a href=\"https://en.wikipedia.org/wiki/Reverse_Polish_notation\" class=\"interwiki iw_wp\" target=\"_blank\" title=\"https://en.wikipedia.org/wiki/Reverse_Polish_notation\" rel=\"noopener\">Reverse Polish Notation</a> (RPN) and applied in order.  The output is the top-level operand remaining on the stack after applying all operations.\n</p>\n\n<p>\nThe <em>operations</em> array must contain at least one push operator and there must be at least one operand remaining on the stack at the end of the operation sequence, which will be pushed to the target channel.  If the stack contains insufficient entries for a given operator, the results of that operator are undefined.\n</p>\n\n<p>\nMultiple formulas may output to the same property, and if they do there must be some logic to determine how the results will be accumulated onto the property.  The <em>stage</em> element allows a formula to specify how its <em>output</em> will be combined with other outputs that may target the same property.  The current implementation supports a two-stage combiner.  The outputs for all formulas that specify “multiply” as their stage will be multiplied together and the result multiplied by the sum of the outputs of all formulas that specify “sum” as their stage.\n</p>\n<pre class=\"code\">output = (sum1+sum2+sum3+...sumN) * multi1 * multi2 * multi3 *...*multiN</pre>\n\n<p>\nMore stages may be introduced in the future to support more complex combinations of outputs.\n</p>\n\n",
+    "example": "{\n    \"output\" : \"upper_leg:figures/Unimesh#upper_leg?rotation/x\",\n    \"operations\" : [\n        { \"op\" : \"push\", \"url\" : \"hips:figures/UniMesh#hips?rotation/x\" },\n        { \"op\" : \"push\", \"url\" : \"hips:figures/Daphne#DaphneHeadLarge?value\" },\n        { \"op\" : \"push\", \"val\" : 1.7 },\n        { \"op\" : \"add\" },\n        { \"op\" : \"mult\" },\n    \"stage\" : \"multiply\"\n    ]\n}"
+  },
+  {
+    "name": "geometry",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/geometry/start",
+    "description": "\n\n<p>\nThis is an asset that defines a polygon or subdivision mesh, including the region map, face grouping, material grouping, and reference to a default set of UV’s.\n</p>\n\n",
+    "parentObjects": [
+      "DAZ"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing the unique ID for this asset within current file scope. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "name",
+        "description": " A string representing the internal name for the geometry. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "label",
+        "description": " A string representing the user-readable label for the geometry. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "type",
+        "description": " A string representing the type of mesh represented by the vertex and facet data.  Must be either “polygon_mesh” or “subdivision_surface”. ",
+        "default": "“polygon_mesh”",
+        "required": "no"
+      },
+      {
+        "name": "source",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of any geometry asset that this asset was derived from. ",
+        "default": "“”",
+        "required": "no"
+      },
+      {
+        "name": "edge_interpolation_mode",
+        "description": " A string representing the type of edge interpolation to perform during subdivision.  Must be one of “no_interpolation”,  “edges_and_corners”, or “edges_only”.  This is only valid when <em>type</em> is “subdivision_surface”. ",
+        "default": "“no_interpolation”",
+        "required": "no"
+      },
+      {
+        "name": "vertices",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#float3_array\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float3_array</a> representing vertex positions of this geometry. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "polygon_groups",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#string_array\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">string_array</a> representing the face group names for this geometry.  Each name in the list must be unique within the list. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "polygon_material_groups",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#string_array\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">string_array</a> representing the material group names for this geometry.  Each name in the list must be unique within the list. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "polylist",
+        "description": " A counted array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/polygon/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:polygon:start\">polygon</a> objects.  Polygons may not contain holes. ",
+        "default": "N/A",
+        "required": "yes"
+      },
+      {
+        "name": "default_uv_set",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of a default UV set for this geometry. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "root_region",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/region/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:region:start\">region</a> object representing the root region in the region hierarchy. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "graft",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/graft/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:graft:start\">graft</a> object representing geometry grafting information, if this object is intended to graft. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "rigidity",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/rigidity/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:rigidity:start\">rigidity</a> object representing the rigidity map that controls how vertex weight maps should be projected onto this geometry. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "extra",
+        "description": " An array of objects that represent additional application-specific information for this object. ",
+        "default": "N/A",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "",
+    "example": "{\n    \"id\" : \"speedy\",\n    \"vertices\" : {\n        \"count\" : 3,\n        \"values\" : [\n            [ 1.0876, 1.0876, 1.0876 ],\n            [ 1.0876, 1.0876, 1.0876 ],\n            [ 0.0, 1.0876, 2.0 ]\n        ]\n    },\n    \"polygon_groups\" : {\n        \"count\" : 3,\n        \"values\" : [ \"Head\", \"Neck\", \"Body\" ]\n    },\n    \"polygon_material_groups\" : {\n        \"count\" : 2,\n        \"values\" : [ \"Hair\", \"Back\" ]\n    },\n    \"polylist\" : {\n        \"count\" : 1,\n        \"values\" : [ [ 1, 0, 0, 1, 2 ] ]\n    },\n    \"default_uv_set\" : \"/DAZ/Speedy/DefaultUV.dsf#speedyuv\",\n    \"root_region\" : region\n}"
+  },
+  {
+    "name": "geometry_instance",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/geometry_instance/start",
+    "description": "\n\n<p>\nInstantiates a geometry asset based on a <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/geometry/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:geometry:start\">geometry</a> asset definition.\n</p>\n\n",
+    "parentObjects": [
+      "node_instance"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing the unique identifier for this instance within the file. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "url",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/geometry/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:geometry:start\">geometry</a> asset definition to instantiate. ",
+        "default": "None",
+        "required": "yes"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nIf the <em>id</em> property is not present, the <em>geometry_instance</em> becomes a reference used to look up a geometry instance within the currently loaded scene that uses the geometry definition given in the <em>url</em> field.  Otherwise, it creates a new instance in the scene using the definition of the geometry asset given in the <em>url</em> field.\n</p>\n\n<p>\nA <em>geometry_instance</em> may override any of the properties of the <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/geometry/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:geometry:start\">geometry</a> asset it is based on, with the exception of the <em>id</em> property.\n</p>\n\n",
+    "example": "{\n    \"id\" : \"myfigure\",\n    \"url\" : \"#speedy\"\n}"
+  },
+  {
+    "name": "graft",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/graft/start",
+    "description": "\n\n<p>\nDefinition for how to graft one figure's geometry to another.\n</p>\n\n",
+    "parentObjects": [
+      "geometry"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "vertex_count",
+        "description": " The number of vertices expected to exist in the target geometry. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "poly_count",
+        "description": " The number of polygons expected to exist in the target geometry. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "vertex_pairs",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int2_array</a> of vertex index pairs.  The first index being the index into the source vertex list and the second index being the index into the target geometry vertex list. ",
+        "default": "N/A",
+        "required": "yes"
+      },
+      {
+        "name": "hidden_polys",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int_array</a> of polygon indices on the target geometry that should be hidden. ",
+        "default": "N/A",
+        "required": "yes"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>vertex_pairs</em> property is composed of an array of vertex pairs where the first element in each pair is the index into the source geometry vertex array (i.e. the geometry that contains this snap_target definition), and the second element in each pair is the index into the vertex array for the target geometry.\n</p>\n\n<p>\nThe <em>hidden_polys</em> indices indicate which polygons on the target geometry should be hidden when the geometry for the snapping is attached.\n</p>\n\n",
+    "example": "{\n    \"vertex_count\" : 345,\n    \"poly_count\" : 321,\n    \"vertex_pairs\" : {\n      \"count\" : 3,\n      \"values\" : [ [ 2, 334 ], [ 3, 723 ], [ 6, 219 ] ]\n    },\n    \"hidden_polys\" : {\n      \"count\" : 6,\n      \"values\" : [ 67, 23, 87, 89, 12, 90 ]\n    }\n}"
+  },
+  {
+    "name": "image",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/image/start",
+    "description": "\n\n<p>\nDefines an image asset.\n</p>\n\n",
+    "parentObjects": [
+      "DAZ"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " The unique ID for this instance within the file. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "name",
+        "description": " The internal name of the image. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "source",
+        "description": " The <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the image asset that this image was derived from, if any. ",
+        "default": "“”",
+        "required": "no"
+      },
+      {
+        "name": "map_gamma",
+        "description": " A float representing the gamma of the image. ",
+        "default": "0",
+        "required": "no"
+      },
+      {
+        "name": "map_size",
+        "description": " The preferred image size to apply to the composed map. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "map",
+        "description": " An array (stack) of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/image_map/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:image_map:start\">image_map</a> objects used to define per-pixel properties of the material channel. ",
+        "default": "None",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>map</em> property defines a stack of images to be interpreted as individual layers.  The first image in the stack defines the bottom layer, and each subsequent image represents an additional layer.  The <em>operation</em> property of the layer is ignored for the bottom layer (first entry in the <em>map</em> array), but for other layers it defines how the image should be composited into the image chain.  The <em>map</em> property must contain at least one <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/image_map/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:image_map:start\">image_map</a> definition.\n</p>\n\n<p>\nThe <em>map_gamma</em> property defines the gamma of the image if a <em>map</em> property is present.  A value that is less than or equal to zero (0) is interpreted to mean that it is up to the application to determine the gamma of the image.  A value greater than zero (0) is interpreted to be the gamma encoding of the pixels in the image.\n</p>\n\n<p>\nThe <em>map_size</em> property defines the final image size of the output image if a <em>map</em> element is present, but also defines the size at which all layer images will be composited if more than one image is given in the <em>map</em> stack.  If an image differs than this size upon import, it should be scaled to size before applying compositing operations in the <em>map</em> stack.  The <abbr title=\"DAZ Scene Object Notation\">DSON</abbr> format does not dictate whether image operations like scaling, rotating, and flipping should occur before or after any necessary image resizing in the <em>map</em> stack.\n</p>\n\n<p>\nIf the <em>map_size</em> element is missing when a map is present, the output size of the <em>map</em> stack is application-defined.\n</p>\n\n",
+    "example": "{\n    \"id\" : \"decal24\",\n    \"name\" : \"Golden Dragon\",\n    \"map\" : [\n        {\n            \"url\" : \"Images/Happy/Goofy.jpg\",\n            \"label\" : \"Goofy\",\n            \"color\" : [ 1.0, 0.2, 0.34 ],\n            \"transparency\" : 0.67,\n            \"rotation\" : 20.3,\n            \"ymirror\" : true,\n            \"xscale\" : 1.7,\n            \"xoffset\" : -0.43,\n        },\n        {\n            \"url\" : \"Images/HeavyLightmap.jpg\",\n            \"label\" : \"Heavy Light Map\",\n            \"color\" : [ 1.0, 0.2, 0.34 ],\n            \"transparency\" : 0.4,\n            \"operation\" : \"add\",\n        }\n    ]\n}"
+  },
+  {
+    "name": "image_map",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/image_map/start",
+    "description": "\n\n<p>\nDefines an image map that can be composited with other image maps in a stack to define a single output map.\n</p>\n\n",
+    "parentObjects": [
+      "image"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "url",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of an image file. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "label",
+        "description": " A string representing the user-facing label for the image. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "active",
+        "description": " A boolean value representing whether or not the layer is contributing to the final result. <br>\n<br>\nSince <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/daz/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:daz:start\">file_version</a> <code>0.6.1.0</code>. ",
+        "default": "true",
+        "required": "no"
+      },
+      {
+        "name": "color",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#float3\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float3</a> representing the R,G,B values as 0-1 values. ",
+        "default": "[1, 1, 1]",
+        "required": "no"
+      },
+      {
+        "name": "transparency",
+        "description": " A float value representing the layer opacity in the [0,1] range, where 1 = opaque. ",
+        "default": "1",
+        "required": "no"
+      },
+      {
+        "name": "invert",
+        "description": " A boolean value representing whether to invert the colors in the layer. ",
+        "default": "false",
+        "required": "no"
+      },
+      {
+        "name": "rotation",
+        "description": " A float value representing a rotation about the center point, given in degrees. ",
+        "default": "0",
+        "required": "no"
+      },
+      {
+        "name": "xmirror",
+        "description": " A boolean value representing whether the source image will be mirrored across the horizontal (x) axis. ",
+        "default": "false",
+        "required": "no"
+      },
+      {
+        "name": "ymirror",
+        "description": " A boolean value representing whether the source image will be mirrored across the vertical (y) axis. ",
+        "default": "false",
+        "required": "no"
+      },
+      {
+        "name": "xscale",
+        "description": " A float value representing the scaling to apply along horizontal (x) axis. ",
+        "default": "1",
+        "required": "no"
+      },
+      {
+        "name": "yscale",
+        "description": " A float value representing the scaling to apply along vertical (y) axis. ",
+        "default": "1",
+        "required": "no"
+      },
+      {
+        "name": "xoffset",
+        "description": " A float value representing the normalized offset to apply along the horizontal (x) axis. ",
+        "default": "0",
+        "required": "no"
+      },
+      {
+        "name": "yoffset",
+        "description": " A float value representing the normalized offset to apply along the vertical (y) axis. ",
+        "default": "0",
+        "required": "no"
+      },
+      {
+        "name": "operation",
+        "description": " A string representing the layer operation. Valid values are: <code>alpha_blend</code>, <code>add</code>, <code>subtract</code> and <code>multiply</code>. <br>\n<br>\nAs of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/daz/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:daz:start\">file_version</a> <code>0.6.1.0</code>, the following values are also valid: <code>blend_clear</code>, <code>blend_color_burn</code>, <code>blend_color_dodge</code>, <code>blend_darken</code>, <code>blend_destination</code>, <code>blend_destination_atop</code>, <code>blend_destination_in</code>, <code>blend_destination_out</code>, <code>blend_destination_over</code>, <code>blend_difference</code>, <code>blend_exclusion</code>, <code>blend_hard_light</code>, <code>blend_lighten</code>, <code>blend_multiply</code>, <code>blend_overlay</code>, <code>blend_plus</code>, <code>blend_screen</code>, <code>blend_soft_light</code>, <code>blend_source</code>, <code>blend_source_atop</code>, <code>blend_source_in</code>, <code>blend_source_out</code>, <code>blend_source_over</code>, <code>blend_xor</code>. ",
+        "default": "None",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>xoffset</em> and <em>yoffset</em> are given in normalized coordinates such that a value of 1.0 offsets by the full image size in that dimension.  Negative offset values are allowed.\n</p>\n\n",
+    "example": "{\n    \"url\" : \"/Happy/Images/Goofy.jpg\",\n    \"label\" : \"Goofy.jpg\",\n    \"color\" : [ 1.0, 0.2, 0.34 ],\n    \"transparency\" : 0.67,\n    \"rotation\" : 20.3,\n    \"ymirror\" : true,\n    \"xscale\" : 1.7,\n    \"xoffset\" : -0.43,\n    \"operation\" : \"add\",\n}"
+  },
+  {
+    "name": "light",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/light/start",
+    "description": "\n\n<p>\nExtra properties available for use if the node <em>type</em> is specified as “light”.\n</p>\n\n",
+    "parentObjects": [],
+    "extends": [
+      "node"
+    ],
+    "properties": [
+      {
+        "name": "color",
+        "description": " RGB color value for the light. ",
+        "default": "[1, 1, 1]",
+        "required": "no"
+      },
+      {
+        "name": "point",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/light_point/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:light_point:start\">light_point</a> object definition, if this is a point light. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "directional",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/light_directional/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:light_directional:start\">light_directional</a> object definition, if this is a directional light. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "spot",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/light_spot/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:light_spot:start\">light_spot</a> object definition, if this is a spot light. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "on",
+        "description": " A boolean value indicating whether the light is on. ",
+        "default": "true",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nOnly one of <em>point</em>, <em>directional</em>, or <em>spot</em> may appear.  If none are given, the light is an ambient light, in which case the light transform information does not affect the light.\n</p>\n\n",
+    "example": "{\n\t\"id\" : \"sun67\",\n\t\"type\" : \"light\",\n\t\"label\" : \"Sun\",\n\t\"color\" : [ 0.45, 0.89, 0.12 ],\n\t\"directional\" : {\n\t\t\"intensity\" : 0.34,\n\t\t\"shadow_type\" : \"shadow_map\",\n\t\t\"shadow_softness\" : 3.0,\n\t\t\"shadow_bias\" : 2.8,\n\t},\n\t\"on\" : false,\n\t\"translation\" : {\n\t\t\"value\" : [ 0.00, 0.00, 1.00 ]\n\t},\n\t\"rotation\" : {\n\t\t\"value\" : [ 1.00, 0.00, 1.89 ]\n\t},\n\t\"scale\" : {\n\t\t\"value\" : [ 1.0, 1.0, 1.0 ]\n\t}\n}"
+  },
+  {
+    "name": "light_directional",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/light_directional/start",
+    "description": "\n\n<p>\nAn object that defines properties of a directional light source.\n</p>\n\n",
+    "parentObjects": [
+      "light"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "Name",
+        "description": " <strong>Description</strong> ",
+        "default": "Default",
+        "required": "Required"
+      },
+      {
+        "name": "intensity",
+        "description": " Light intensity, in the [0, 1] range ",
+        "default": "1.0",
+        "required": "no"
+      },
+      {
+        "name": "shadow_type",
+        "description": " Type of shadowing to use for this light.  Valid values are “none”, “shadow_map”, and “raytraced”. ",
+        "default": "“none”",
+        "required": "no"
+      },
+      {
+        "name": "shadow_softness",
+        "description": " If the light casts shadows, this is the softness factor to apply to the shadow. ",
+        "default": "0.0",
+        "required": "no"
+      },
+      {
+        "name": "shadow_bias",
+        "description": " For shadow mapped shadows, this is the shadow bias. ",
+        "default": "1.0",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "",
+    "example": "{\n    \"intensity\" : 0.34,\n    \"shadow_type\" : \"shadow_map\",\n    \"shadow_softness\" : 3.0,\n    \"shadow_bias\" : 2.8,\n}"
+  },
+  {
+    "name": "light_point",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/light_point/start",
+    "description": "\n\n<p>\nAn object that defines properties of a point light source.\n</p>\n\n",
+    "parentObjects": [
+      "light"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "intensity",
+        "description": " Light intensity, in the [0, 1] range ",
+        "default": "1.0",
+        "required": "no"
+      },
+      {
+        "name": "shadow_type",
+        "description": " Type of shadowing to use for this light.  Valid values are “none”, “shadow_map”, and “raytraced”. ",
+        "default": "“none”",
+        "required": "no"
+      },
+      {
+        "name": "shadow_softness",
+        "description": " If the light casts shadows, this is the softness factor to apply to the shadow. ",
+        "default": "0.0",
+        "required": "no"
+      },
+      {
+        "name": "shadow_bias",
+        "description": " For shadow mapped shadows, this is the shadow bias. ",
+        "default": "1.0",
+        "required": "no"
+      },
+      {
+        "name": "constant_attenuation",
+        "description": " See Details ",
+        "default": "1.0",
+        "required": "no"
+      },
+      {
+        "name": "linear_attenuation",
+        "description": " See Details ",
+        "default": "0.0",
+        "required": "no"
+      },
+      {
+        "name": "quadratic_attenuation",
+        "description": " See Details ",
+        "default": "0.0",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe constant_attenuation, linear_attenuation, and quadratic_attenuation are used to calculate the total attenuation of this light given a distance. The equation used is:\n</p>\n\n<p>\ncolor_scaling = constant_attenuation + ( Dist * linear_attenuation ) + (( Dist^2 ) * quadratic_attenuation )\n</p>\n\n",
+    "example": "{\n    \"intensity\" : 0.34,\n    \"shadow_type\" : \"shadow_map\",\n    \"shadow_softness\" : 3.0,\n    \"shadow_bias\" : 2.8,\n    \"constant_attenuation\" : 0.8\n}"
+  },
+  {
+    "name": "light_spot",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/light_spot/start",
+    "description": "\n\n<p>\nAn object that defines properties of a spot light source.\n</p>\n\n",
+    "parentObjects": [
+      "light"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "intensity",
+        "description": " Light intensity, in the [0, 1] range ",
+        "default": "1.0",
+        "required": "no"
+      },
+      {
+        "name": "shadow_type",
+        "description": " Type of shadowing to use for this light.  Valid values are “none”, “shadow_map”, and “raytraced”. ",
+        "default": "“none”",
+        "required": "no"
+      },
+      {
+        "name": "shadow_softness",
+        "description": " If the light casts shadows, this is the softness factor to apply to the shadow. ",
+        "default": "0.0",
+        "required": "no"
+      },
+      {
+        "name": "shadow_bias",
+        "description": " For shadow mapped shadows, this is the shadow bias. ",
+        "default": "1.0",
+        "required": "no"
+      },
+      {
+        "name": "constant_attenuation",
+        "description": " See Details ",
+        "default": "1.0",
+        "required": "no"
+      },
+      {
+        "name": "linear_attenuation",
+        "description": " See Details ",
+        "default": "0.0",
+        "required": "no"
+      },
+      {
+        "name": "quadratic_attenuation",
+        "description": " See Details ",
+        "default": "0.0",
+        "required": "no"
+      },
+      {
+        "name": "falloff_angle",
+        "description": " See Details ",
+        "default": "180.0 degrees",
+        "required": "no"
+      },
+      {
+        "name": "falloff_exponent",
+        "description": " See Details ",
+        "default": "0.0",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>constant_attenuation</em>, <em>linear_attenuation</em>, and <em>quadratic_attenuation</em> are used to calculate the total attenuation of this light given a distance. The equation used is:\n</p>\n\n<p>\ncolor_scaling = constant_attenuation + ( Dist * linear_attenuation ) + (( Dist^2 ) * quadratic_attenuation )\n</p>\n\n<p>\nThe <em>falloff_angle</em> and <em>falloff_exponent</em> are used to specify the amount of attenuation based on the direction of the light.\n</p>\n\n",
+    "example": "{\n    \"intensity\" : 0.34,\n    \"shadow_type\" : \"shadow_map\",\n    \"shadow_softness\" : 3.0,\n    \"shadow_bias\" : 2.8,\n    \"constant_attenuation\" : 0.8,\n    \"falloff_angle\" : 25.0\n}"
+  },
+  {
+    "name": "material",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material/start",
+    "description": "\n\n<p>\nDefinition of a material asset.\n</p>\n\n",
+    "parentObjects": [
+      "DAZ"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing the unique identifier for this asset within current file scope. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "name",
+        "description": " A string representing the internal name of the material. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "label",
+        "description": " A string representing the user-readable default label. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "source",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the material asset that this asset was derived from, if any. ",
+        "default": "“”",
+        "required": "no"
+      },
+      {
+        "name": "uv_set",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of a <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/uv_set/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:uv_set:start\">uv_set</a> asset that should be active for this material. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "type",
+        "description": " A string representing a hint for the receiving application about what type of shader to use (i.e. glass, metal, plastic, skin). ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "diffuse",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the diffuse for this material. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "diffuse_strength",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the diffuse for this material. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "specular",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the specular for this material. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "specular_strength",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the specular for this material. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "glossiness",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the glossiness for this material. ",
+        "default": "1.0",
+        "required": "no"
+      },
+      {
+        "name": "ambient",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the ambient for this material. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "ambient_strength",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the ambient for this material. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "reflection",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the reflection for this material. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "reflection_strength",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the reflection for this material. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "refraction",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the refraction for this material. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "refraction_strength",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the refraction for this material. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "ior",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the index of refraction for this material. ",
+        "default": "0.0",
+        "required": "no"
+      },
+      {
+        "name": "bump",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the bump for this material. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "bump_min",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the bump min ",
+        "default": "-0.01",
+        "required": "no"
+      },
+      {
+        "name": "bump_max",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the bump max ",
+        "default": "0.01",
+        "required": "no"
+      },
+      {
+        "name": "displacement",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the displacement for this material. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "displacement_min",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the displacement min ",
+        "default": "-0.01",
+        "required": "no"
+      },
+      {
+        "name": "displacement_max",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the displacement max ",
+        "default": "0.01",
+        "required": "no"
+      },
+      {
+        "name": "transparency",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the transparency for this material. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "normal",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the normal map for this material. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "u_offset",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the UV coordinate offset in the u direction. ",
+        "default": "0.0",
+        "required": "no"
+      },
+      {
+        "name": "u_scale",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the UV coordinate scale in the u direction. ",
+        "default": "1.0",
+        "required": "no"
+      },
+      {
+        "name": "v_offfset",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the UV coordinate offset in the v direction. ",
+        "default": "0.0",
+        "required": "no"
+      },
+      {
+        "name": "v_scale",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_channel:start\">material_channel</a> defining the UV coordinate scale in the v direction. ",
+        "default": "1.0",
+        "required": "no"
+      },
+      {
+        "name": "extra",
+        "description": " An array of objects that represent additional application-specific information for this object. ",
+        "default": "N/A",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nMost of the fields in this definition are default values that may be overridden via a <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_instance/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_instance:start\">material_instance</a>.\n</p>\n\n",
+    "example": "{\n    \"id\" : \"bumpglass\",\n    \"label\" : \"BumpyGlass\",\n    \"type\" : \"glass\",\n    \"diffuse\" : material_channel,\n    \"diffuse_strength\" : material_channel,\n    \"specular\" : material_channel,\n    \"specular_strength\" : material_channel,\n    \"glossiness\" : material_channel,\n    \"ambient\": material_channel,\n    \"reflection\" : material_channel,\n    \"refraction\" : material_channel,\n    \"ior\" : material_channel,\n    \"bump\" : material_channel,\n    \"bump_min\" : material_channel,\n    \"bump_max\" : material_channel,\n    \"transparency\" : material_channel\n}"
+  },
+  {
+    "name": "material_channel",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_channel/start",
+    "description": "\n\n<p>\nThis object defines channel properties for a particular property of a material, such as diffuse color, specular color, etc. A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material:start\">material</a> object will typically define a collection of <em>material_channel</em> objects to describe each property of the material.\n</p>\n\n",
+    "parentObjects": [
+      "material"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "channel",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:channel:start\">channel</a> definition. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "group",
+        "description": " A string representing a slash-delimited (“/”) path indicating the channel’s group for data pathing and presentation in the <abbr title=\"User Interface\">UI</abbr>. ",
+        "default": "“/”",
+        "required": "no"
+      },
+      {
+        "name": "color",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float3</a> RGB color as a vector of values in the range [0, 1] ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "strength",
+        "description": " A float strength value in range [0, 1] ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "image",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> to a valid image file ",
+        "default": "None",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThis type can be extended to include strength and color values that either multiply by the given map or act as the full value for the material channel.\n</p>\n\n<p>\nAt least one of <em>strength</em> or <em>color</em> is required to be present if <em>image</em> is present.\n</p>\n\n",
+    "example": "{\n  \"channel\" : {\n  \t\"id\" : \"glossiness\",\n  \t\"type\" : \"float\",\n  \t\"name\" : \"Glossiness\",\n  \t\"label\" : \"Glossiness\",\n  \t\"value\" : 1,\n  \t\"min\" : 0,\n  \t\"max\" : 1,\n  \t\"clamped\" : true,\n  \t\"display_as_percent\" : true,\n  \t\"step_size\" : 0.01,\n  \t\"mappable\" : true\n  },\n  \"group\" : \"/Specular\"\n  \"color\" : [ 0.24, 0.45, 0.19 ],\n  \"image\" : \"DAZ/Materials/Skin.dsf#skin12\"\n}"
+  },
+  {
+    "name": "material_instance",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_instance/start",
+    "description": "\n\n<p>\nDefines properties of a material binding for a collection of material groups.\n</p>\n\n",
+    "parentObjects": [
+      "scene"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing the unique identifier within the file ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "url",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of a <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material:start\">material</a> asset definition to instantiate ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "geometry",
+        "description": " A string representing the scene reference to a <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/geometry/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:geometry:start\">geometry</a> definition to attach to. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "groups",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">string_array</a> of polygon group names (see <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/geometry/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:geometry:start\">geometry</a>) to attach the material to. ",
+        "default": "None",
+        "required": "yes"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThis is an instance class that may override defaults in the referenced <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material:start\">material</a> definition. All fields of the <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material:start\">material</a> definition, with the exception of the <em>id</em> and <em>uv_set</em> fields, may be overridden in this instance element.\n</p>\n\n",
+    "example": "{\n  \"id\" : \"6_Eyelash-1\",\n  \"url\" : \"#6_Eyelash\",\n  \"geometry\" : \"#geometry\",\n  \"groups\" : [ \"6_Eyelash\" ],\n}"
+  },
+  {
+    "name": "modifier",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/modifier/start",
+    "description": "\n\n<p>\nThis element defines an individual modifier asset for a morph, a skin binding, a channel, or an application-defined modifier type.\n</p>\n\n",
+    "parentObjects": [
+      "DAZ"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing the unique ID for this asset within current file scope. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "name",
+        "description": " A string representing the “internal” name for this object.  Generally unique within any sibling modifiers. ",
+        "default": "“”",
+        "required": "no"
+      },
+      {
+        "name": "label",
+        "description": " A string representing the user-readable label for the modifier. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "source",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the modifier asset that this modifier was derived from, if any. ",
+        "default": "“”",
+        "required": "no"
+      },
+      {
+        "name": "parent",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the parent definition.  A parent must appear above a child in the file. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "presentation",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/presentation/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:presentation:start\">presentation</a> containing metadata used to present an asset to the user, if this asset is a user-facing asset. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "channel",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:channel:start\">channel</a> definition. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "region",
+        "description": " A string representing the <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/region/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:region:start\">region</a> that the modifier should appear in. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "group",
+        "description": " A string representing a slash-delimited (“/”) path indicating the modifier’s group for data pathing and presentation in the <abbr title=\"User Interface\">UI</abbr>. ",
+        "default": "“/”",
+        "required": "no"
+      },
+      {
+        "name": "formulas",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/formula/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:formula:start\">formula</a> objects owned by this modifier. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "morph",
+        "description": " Any <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/morph/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:morph:start\">morph</a> attached to this modifier. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "skin",
+        "description": " Any <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/skin_binding/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:skin_binding:start\">skin_binding</a> attached to this modifier. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "extra",
+        "description": " An array of objects that represent additional application-specific information for this object. ",
+        "default": "N/A",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>morph</em> and <em>skin</em> properties are mutually exclusive.  A modifier may exist without either a <em>morph</em> or a <em>skin</em> defined, in which case it may become a data repository and a channel that can be used as input and output for a <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/formula/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:formula:start\">formula</a>.\n</p>\n\n<p>\nFor any user-facing morphs, the region should be specified, so that the modifier can display in the interface for regional selection.  Skin bindings and corrective morphs usually do not require any user presentation so do not need regions defined for them.\n</p>\n\n<p>\nThe <em>name</em> attribute may be used by applications to provide another addressing mechanism for nodes in the scene. In object URI’s, if “name” is used as the scheme identifier, then the value of the name attribute is used to look up an item rather than using the id attribute. If the name attribute is missing, applications should use the id attribute in its place wherever needed.\n</p>\n\n",
+    "example": "{\n    \"id\" : \"smile\",\n    \"channel\" : {\n\t\"id\" : \"x\",\n\t\"label\" : \"Side-Side\",\n\t\"visible\" : true,\n\t\"locked\" : true,\n\t\"min\" : 0.0,\n\t\"max\" : 1.0,\n\t\"clamped\" : true,\n\t\"display_as_percent\" : false,\n\t\"step_size\" : 2.0,\n\t\"value\" : 0.0\n    },\n    \"group\" : \"Micro/Happy\",\n    \"region\" : \"Face\",\n    \"morph\" : {    \n        \"vertex_count\" : 4,\n        \"deltas\" : {\n            \"count\" : 2,\n            \"values\" : [\n                [ 0, 1.23, 2.34, 3.45 ],\n                [ 3, 1.23, 2.45, 3.56 ]\n            ]\n        }\n    }\n    \"formulas\" :\n    [\n        {\n            \"output\" : \"upper_leg:figures/Unimesh#upper_leg?rotation/x\",\n            \"operations\" : [\n                { \"op\" : \"push\", \"url\" : \"hips:figures/UniMesh#hips?rotation/x\" },\n                { \"op\" : \"push\", \"url\" : \"hips:figures/Daphne#DaphneHeadLarge?value\" },\n                { \"op\" : \"push\", \"val\" : 1.7 },\n                { \"op\" : \"add\" },\n                { \"op\" : \"mult\" }\n            ]\n        }\n    ]\n}"
+  },
+  {
+    "name": "modifier_instance",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/modifier_instance/start",
+    "description": "\n\n<p>\nThis object instantiates a <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/modifier/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:modifier:start\">modifier</a>.\n</p>\n\n",
+    "parentObjects": [
+      "scene"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing the unique identifier for this item within the scope of the file. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "parent",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/node/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:node:start\">node</a> or element that this modifier instance is affecting. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "url",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/modifier/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:modifier:start\">modifier</a> asset definition to instantiate. ",
+        "default": "None",
+        "required": "yes"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nMost properties of <em>modifier</em> can be overridden in <em>modifier_instance</em>.  The only properties that cannot be overridden are <em>id</em> and <em>presentation</em>. For any properties that are overridden which are URI’s, the <abbr title=\"Uniform Resource Identifier\">URI</abbr> must point to an instance element, not a definition.\n</p>\n\n",
+    "example": "{\n    \"id\" : \"smile\",\n    \"parent\" : \"hips:#hips\",\n    \"url\" : \"/DAZ/Victoria/Body/Daphne.dsf#smile\"\n}"
+  },
+  {
+    "name": "morph",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/morph/start",
+    "description": "\n\n<p>\nDefines a set of sparse morph deltas.\n</p>\n\n",
+    "parentObjects": [
+      "modifier"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "vertex_count",
+        "description": " An int representing the number of vertices expected in the target geometry. ",
+        "default": "0",
+        "required": "yes"
+      },
+      {
+        "name": "deltas",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float3_indexed_array</a> of the morph deltas. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "extra",
+        "description": " An array of objects that represent additional application-specific information for this object. ",
+        "default": "N/A",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "",
+    "example": "{     \n    \"vertex_count\" : 4,\n    \"deltas\" : {\n        \"count\" : 2,\n        \"values\" : [\n            [0, 1.23, 2.34, 3.45],\n            [3, 1.23, 2.45, 3.56]\n        ]\n    }\n}"
+  },
+  {
+    "name": "named_string_map",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/named_string_map/start",
+    "description": "\n\n<p>\nDefines a mapping between face groups on geometry objects and nodes.\n</p>\n\n",
+    "parentObjects": [
+      "skin_binding"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing the name of the selection set.  Needs to be unique in the list of selection sets that this selection set belongs to. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "mappings",
+        "description": " An array of string pairs (face group name, node name) that define the mapping. ",
+        "default": "None",
+        "required": "yes"
+      }
+    ],
+    "extendedBy": [],
+    "details": "",
+    "example": "{\n   \"id\": \"Bones\",\n    \"mappings\":\n    [\n        [ string, string ],\n        [ string, string ],\n        [ string, string ]\n        ...\n    ]\n}"
+  },
+  {
+    "name": "node",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/node/start",
+    "description": "\n\n<p>\nThis object defines a node that makes up part of a node hierarchy. It can represent nodes of a variety of types such as bones and figure roots.\n</p>\n\n",
+    "parentObjects": [],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing the unique ID for this asset within the current file scope. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "name",
+        "description": " A string representing the “internal” name for this node.  Generally unique within any sibling nodes. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "type",
+        "description": " A string representing the base type for this node.  Can be “node”, “bone”, “figure”, “camera”, or “light”.  See <a href=\"#extended_by\" title=\"public:dson_spec:object_definitions:node:start ↵\" class=\"wikilink1\">Extended By</a>. ",
+        "default": "“node”",
+        "required": "no"
+      },
+      {
+        "name": "label",
+        "description": " A string representing the user facing label for this node. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "source",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the node asset that this node asset was derived from. ",
+        "default": "“”",
+        "required": "no"
+      },
+      {
+        "name": "parent",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the parent node definition.  Parents must appear above children in the file. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "rotation_order",
+        "description": " A string representing the rotation order to use when interpreting channel-based animation data for this node.  Valid values are “XYZ”, “YZX”, “ZYX”, “ZXY”, “XZY”, and “YXZ”. ",
+        "default": "“XYZ”",
+        "required": "no"
+      },
+      {
+        "name": "inherits_scale",
+        "description": " A boolean value indicating whether or not the immediate parent node's local scale is compensated for when calculating this node's world space transform. If false, this node's world space transform is multiplied by the inverse of parent node's local scale. ",
+        "default": "true (except for a bone with a bone parent)",
+        "required": "no"
+      },
+      {
+        "name": "center_point",
+        "description": " An array of x, y, and z <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_float/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:channel_float:start\">channel_float</a> definitions for the center point of this node. ",
+        "default": "[0, 0, 0 ]",
+        "required": "no"
+      },
+      {
+        "name": "end_point",
+        "description": " An array of x, y, and z <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_float/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:channel_float:start\">channel_float</a> definitions for the end point of this node. ",
+        "default": "[0, 0, 0 ]",
+        "required": "no"
+      },
+      {
+        "name": "orientation",
+        "description": " An array of x, y, and z <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_float/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:channel_float:start\">channel_float</a> definitions for the (Euler) rotation of this node. ",
+        "default": "[0, 0, 1, 0]",
+        "required": "no"
+      },
+      {
+        "name": "rotation",
+        "description": " An array of x, y, and z <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_float/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:channel_float:start\">channel_float</a> definitions for the (Euler) rotation of this node. ",
+        "default": "[0, 0, 0] (for “value”)",
+        "required": "no"
+      },
+      {
+        "name": "translation",
+        "description": " An array of x, y, and z <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_float/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:channel_float:start\">channel_float</a> definitions for the translation of this node. ",
+        "default": "[0, 0, 0 ] (for “value”)",
+        "required": "no"
+      },
+      {
+        "name": "scale",
+        "description": " An array of x, y, and z <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_float/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:channel_float:start\">channel_float</a> definitions for the individual (i.e. x, y, or z-axis) scale of this node. ",
+        "default": "[1, 1, 1] (for “value”)",
+        "required": "no"
+      },
+      {
+        "name": "general_scale",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_float/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:channel_float:start\">channel_float</a> definition for the general (i.e. 3-axis) scale of this node. ",
+        "default": "1 (for “value”)",
+        "required": "no"
+      },
+      {
+        "name": "presentation",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/presentation/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:presentation:start\">presentation</a> object representing the user-facing presentation information for this node. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "formulas",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/formula/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:formula:start\">formula</a> objects owned by this node. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "extra",
+        "description": " An array of objects that represent additional application-specific information for this object. ",
+        "default": "N/A",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [
+      "camera",
+      "light"
+    ],
+    "details": "\n\n<p>\nIf <em>type</em> is set to “figure” then this node is understood to be the root node of a figure.\n</p>\n\n<p>\nThe <em>name</em> attribute may be used by applications to provide another addressing mechanism for nodes in the scene. In object URI’s, if “name” is used as the scheme identifier, then the value of the name attribute is used to look up an item rather than using the id attribute. If the name attribute is missing, applications should use the id attribute in its place wherever needed.\n</p>\n\n<p>\nThe <em>translation</em>, <em>rotation</em>, <em>scale</em>, and <em>general_scale</em> elements each represent transforms that convert to transform matrices.  To arrive at the full base transform for the node, each of those elements is converted to matrix form.  The full transform for a node is determined using the following algorithm:\n</p>\n<ul>\n<li class=\"level1\"><div class=\"li\"> center_offset = <em>center_point</em> - parent.<em>center_point</em></div>\n</li>\n<li class=\"level1\"><div class=\"li\"> global_translation = parent.global_transform * (center_offset + <em>translation</em>)</div>\n</li>\n<li class=\"level1\"><div class=\"li\"> global_rotation = parent.global_rotation * <em>orientation</em> * <em>rotation</em> * (<em>orientation</em>)<sup>-1</sup></div>\n</li>\n<li class=\"level1\"><div class=\"li\"> global_scale for nodes that inherit scale = parent.global_scale * <em>orientation</em> * <em>scale</em> * <em>general_scale</em> * (<em>orientation</em>)<sup>-1</sup></div>\n</li>\n<li class=\"level1\"><div class=\"li\"> global_scale for nodes = parent.global_scale * (parent.local_scale)<sup>-1</sup> * <em>orientation</em> * <em>scale</em> * <em>general_scale</em> * (<em>orientation</em>)<sup>-1</sup></div>\n</li>\n<li class=\"level1\"><div class=\"li\"> global_transform = global_translation * global_rotation * global_scale</div>\n</li>\n</ul>\n\n<p>\nVertices are taken to global space by post-multiplying as follows:\n</p>\n<ul>\n<li class=\"level1\"><div class=\"li\"> global_vertex = global_transform * vertex</div>\n</li>\n</ul>\n\n",
+    "example": "{\n\t\"id\" : \"hip\",\n\t\"type\" : \"bone\",\n\t\"label\" : \"Hip\",\n\t\"parent\" : \"#Genesis\",\n\t\"rotation_order\" : \"YZX\",\n\t\"inherits_scale\" : true,\n\t\"center_point\" : [\n\t\tchannel_float,\n\t\tchannel_float,\n\t\tchannel_float\n\t],\n\t\"end_point\" : [\n\t\tchannel_float,\n\t\tchannel_float,\n\t\tchannel_float\n\t],\n\t\"orientation\" : [\n\t\tchannel_float,\n\t\tchannel_float,\n\t\tchannel_float\n\t],\n\t\"rotation\" : [\n\t\tchannel_float,\n\t\tchannel_float,\n\t\tchannel_float\n\t],\n\t\"translation\" : [\n\t\tchannel_float,\n\t\tchannel_float,\n\t\tchannel_float\n\t],\n\t\"scale\" : [\n\t\tchannel_float,\n\t\tchannel_float,\n\t\tchannel_float\n\t],\n\t\"general_scale\" : channel_float\n}"
+  },
+  {
+    "name": "node_instance",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/node_instance/start",
+    "description": "\n\n<p>\nThis object instantiates a new node in the scene.\n</p>\n\n",
+    "parentObjects": [
+      "scene"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing the unique identifier for this instance within current file scope. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "url",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> to a <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/node/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:node:start\">node</a> definition to be used to construct this node.  The given node and all of its descendants are instantiated (i.e. not just the single node, unless it has no children). ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "parent",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> to another scene node instance to attach to as a child. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "parent_in_place",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> to another scene node instance to attach to as a child, maintaining its world space transform. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "conform_target",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> to another node in the scene to follow. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "geometries",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/geometry_instance/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:geometry_instance:start\">geometry_instance</a> objects attached to this instance. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "preview",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/preview/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:preview:start\">preview</a> object to use as a stand-in if the node geometry cannot be found. ",
+        "default": "None",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe parent of a node_instance must already exist in the scene or must have been created by parsing the current scene (i.e. parent nodes must appear before children nodes in a file).\n</p>\n\n<p>\nMost properties of <em>node</em> can be overridden in <em>node_instance</em>.  The only properties that cannot be overridden are <em>id</em>, <em>type</em>, and <em>presentation</em>.\n</p>\n\n",
+    "example": "{\n    \"id\" : \"ball\",\n    \"url\" : \"basketball:/DAZ/Props/Balls.dsf#basketball\",\n    \"label\" : \"Ball\",\n    \"parent\" : \"hips:#hips\",\n    \"translation\" : [ 1.00, 0.00, 1.00 ]\n}"
+  },
+  {
+    "name": "operation",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/operation/start",
+    "description": "\n\n<p>\nDefines properties of a single operation in a formula operation stack.\n</p>\n\n",
+    "parentObjects": [
+      "formula"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "op",
+        "description": " Specifies the operator for the operation.  See <a href=\"#operatoroperand_pairings\" title=\"public:dson_spec:object_definitions:operation:start ↵\" class=\"wikilink1\">Details</a> section. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "val",
+        "description": " Specifies the value to push onto the stack. See <a href=\"#operatoroperand_pairings\" title=\"public:dson_spec:object_definitions:operation:start ↵\" class=\"wikilink1\">Details</a> section. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "url",
+        "description": " Specifies the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of a property to evaluate and push onto the stack. ",
+        "default": "None",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n",
+    "example": "{ \"op\" : \"push\", \"url\" : \"hips:#hips?rotation/x\" }{ \"op\" : \"mult\" }{ \"op\" : \"push\", \"val\" : 1.8 }"
+  },
+  {
+    "name": "oriented_box",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/oriented_box/start",
+    "description": "\n\n<p>\nA 3D oriented box defined by a min and max point. The box will be axis-aligned in 3D space.\n</p>\n\n",
+    "parentObjects": [
+      "preview"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "min",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float3</a> representing the minimum corner of the bounding box. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "max",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float3</a> representing the maximum corner of the bounding box. ",
+        "default": "N/A",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "",
+    "example": "{\n    \"min\" : [ 4.32, 10.3, 9.87 ],\n    \"max\" : [ 92.74, 9.21, 8.34 ]\n}"
+  },
+  {
+    "name": "polygon",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/polygon/start",
+    "description": "\n\n<p>\nDefines an indexed polygon face.\n</p>\n\n",
+    "parentObjects": [
+      "geometry"
+    ],
+    "extends": [],
+    "properties": [],
+    "extendedBy": [],
+    "details": "\n\n<p>\nA polygon can define no less than three, and no more than four, vertex indices. Any geometries that contain polygons with more than four vertices should be broken into triangles or quads for transport in <abbr title=\"DAZ Scene Object Notation\">DSON</abbr> format.\n</p>\n\n",
+    "example": "[ 4, 1, 6, 7, 8, 9 ]"
+  },
+  {
+    "name": "presentation",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/presentation/start",
+    "description": "\n\n<p>\nInformation and imagery describing how to present an asset to the user.\n</p>\n\n",
+    "parentObjects": [
+      "modifier",
+      "node",
+      "scene"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "type",
+        "description": " A content type path. (e.g. “Modifier/Pose”) ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "label",
+        "description": " A user-friendly brief name. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "description",
+        "description": " A sentence describing the item. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "icon_large",
+        "description": " An approximately 132 x 176 pixel image demonstrating the item. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "icon_small",
+        "description": " An approximately 66 x 88 pixel image demonstrating the item. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "colors",
+        "description": " An Array of two <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float3</a> RGB colors that are compatible with the icon image colors. ",
+        "default": "None",
+        "required": "yes"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nAt least the <em>icon_large</em> image must be given.  If the <em>icon_small</em> image is missing, an application may need to downsize the <em>icon_large</em> image to use in areas of the interface that require smaller icons.\n</p>\n\n<p>\nThe <em>type</em> element is a discreet content type string as defined in the <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/metadata/content_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:metadata:content_types:start\">Content Types</a> table.\n</p>\n\n",
+    "example": "{\n    \"type\" : \"Modifier/Pose\",\n    \"label\" : \"Smile\",\n    \"description\" : \"A morph used to pose the mouth in the shape of a smile\",\n    \"icon_large\" : \"/data/DAZ 3D/Genesis/Base/Morphs/DAZ 3D/Base/CTRLMouthSmileLarge.png\",\n    \"icon_small\" : \"/data/DAZ 3D/Genesis/Base/Morphs/DAZ 3D/Base/CTRLMouthSmileSmall.png\",\n    \"colors\" : [ [ 0.25, 0.89, 0.98 ], [ 0.14, 0.73, 0.43 ] ]\n}"
+  },
+  {
+    "name": "preview",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/preview/start",
+    "description": "\n\n<p>\nWhen an application attempts to load a file and is unable to locate one or more assets that are referenced in the file, the application may use a <em>preview</em> object to synthesize a stand-in billboard item in the scene that represents the missing asset.\n</p>\n\n",
+    "parentObjects": [
+      "node_instance"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "oriented_box",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/oriented_box/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:oriented_box:start\">oriented_box</a> that defines the bounding box of the stand-in item. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "center_point",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float3</a> representing the center point of the item. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "end_point",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float3</a> representing the end point of the stand-in object. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "rotation_order",
+        "description": " A string representing the rotation order to use when interpreting oriented_box data for this preview.  Valid values are “XYZ”, “YZX”, “ZYX”, “ZXY”, “XZY”, and “YXZ”. ",
+        "default": "“XYZ”",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "",
+    "example": "{\n    \"oriented_box\" : {\n        \"min\" : [ 4.32, 10.3, 9.87 ],\n        \"max\" : [ 92.74, 9.21, 8.34 ]\n    },\n    \"center_point\" : float3,\n    \"end_point\" : float3,\n    \"rotation_order\" : \"YXZ\"\n}"
+  },
+  {
+    "name": "region",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/region/start",
+    "description": "\n\n<p>\nDefines a hierarchy of regions using a series of vertex-weighted maps and region groups.\n</p>\n\n",
+    "parentObjects": [
+      "geometry"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing the unique identifier within the region hierarchy.  Must be unique within the region hierarchy. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "label",
+        "description": " A string representing the user-facing name of this region. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "display_hint",
+        "description": " A string representing an application-specific hint about how to display the value for the region. Values can be “cards_on”, “cards_off”, etc. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "map",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int_array</a> of indices for all the polygons that are members of this region. ",
+        "default": "N/A",
+        "required": "no"
+      },
+      {
+        "name": "children",
+        "description": " An array of child regions, either leaf nodes or group nodes. ",
+        "default": "N/A",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>map</em> and <em>children</em> elements are mutually exclusive.  If a <em>map</em> element is given, the region is a leaf node in the region hierarchy and may not have children.  If a <em>children</em> element is present, the region is a group node in the region hierarchy and may not define its own map.  All leaf nodes in the hierarchy must define a <em>map</em> element.\n</p>\n\n<p>\nPolygons may exist in one and only one region.  If a polygon index is given in multiple regions, the behavior is undefined.\n</p>\n\n",
+    "example": "{\n    \"label\" : \"Root\",\n    \"children\" :\n    [\n        {\n            \"label\" : \"Torso\",\n            \"map\" : [ 7, 8, 4, 9, 2 ]\n        },\n        {\n            \"label\" : \"Lower Body\",\n            \"children\" :\n            [\n                {\n                    \"label\" : \"Left Leg\",\n                    \"map\" : [ 0, 1, 3, 23, 45 ]\n                },\n                {\n                    \"label\" : \"Right Leg\",\n                    \"map\" : [ 5, 6, 10, 12, 13 ]\n                }\n            ]\n        }\n    ]\n}"
+  },
+  {
+    "name": "rigidity",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/rigidity/start",
+    "description": "\n\n<p>\nDefines a rigidity map for a piece of geometry, and how it applies.\n</p>\n\n",
+    "parentObjects": [
+      "geometry"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "weights",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float_indexed_array</a> of vertex weights. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "groups",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/rigidity_group/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:rigidity_group:start\">rigidity_group</a> objects. ",
+        "default": "None",
+        "required": "yes"
+      }
+    ],
+    "extendedBy": [],
+    "details": "",
+    "example": "{\n    \"weights\" : {\n        \"count\" : 37,\n        \"values\" : [\n            [ 0, 1 ],\n            ...\n            [ 36, 1 ]\n        ]\n    },\n    \"groups\" : [\n        {\n            \"id\" : \"SashRigid\",\n            \"rotation_mode\" : \"secondary\",\n            \"scale_modes\" : [ \"primary\", \"secondary\", \"none\" ],\n            \"reference_vertices\" : {\n                \"count\" : 12,\n                \"values\" : [ 8198, ... ]\n            },\n            \"mask_vertices\" : {\n                \"count\" : 24,\n                \"values\" : [ 0, ... ]\n            },\n            \"transform_nodes\" : [ \"#sash1\", \"#sash2\" ]\n        },\n        {\n            \"id\" : \"ScabardRigid\",\n            \"rotation_mode\" : \"secondary\",\n            \"scale_modes\" : [ \"primary\", \"secondary\", \"secondary\" ],\n            \"reference_vertices\" : {\n                \"count\" : 14,\n                \"values\" : [ 4183, ... ]\n            },\n            \"mask_vertices\" : {\n                \"count\" : 10,\n                \"values\" : [ 1584, ... ]\n            },\n            \"reference\" : \"#scabbard\",\n            \"transform_nodes\" : [ \"#scabbard\" ]\n        }\n    ]\n}"
+  },
+  {
+    "name": "rigidity_group",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/rigidity_group/start",
+    "description": "\n\n<p>\nDefines a vertex group and how it participates in a rigidity map.\n</p>\n\n",
+    "parentObjects": [
+      "rigidity"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing the Unique identifier within the file ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "rotation_mode",
+        "description": " A string representing the rotation mode for the group.  Must be one of “none”, “full”, “primary”, or “secondary” ",
+        "default": "“none”",
+        "required": "no"
+      },
+      {
+        "name": "scale_modes",
+        "description": " An array of the scale modes. Valid values for each axis are “none”, “primary”, “secondary”, or “tertiary”. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "reference_vertices",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int_array</a> of vertex indices for vertices in the reference geometry ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "mask_vertices",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int_array</a> of vertex indices from the rigidity mask ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "reference",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the reference node ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "transform_nodes",
+        "description": " An array of <abbr title=\"Uniform Resource Identifier\">URI</abbr> to use when calculating the transform offset for the rigid geometry ",
+        "default": "None",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe order of the values in <em>scale_modes</em> depends on the set up of the rigidity group.  If there are <em>transform_nodes</em> they are in the rotation order of those nodes.  If there is a <em>reference</em> node and no <em>transform_nodes</em> it uses the <em>reference</em> node’s axis order. Finally, if there is no <em>reference</em> node or scale nodes it is in the axis order of the calculated reference axis.\n</p>\n\n",
+    "example": "{\n    \"id\" : \"SashRigid\",\n    \"rotation_mode\" : \"secondary\",\n    \"scale_modes\" : [ \"primary\", \"secondary\", \"none\" ],\n    \"reference_vertices\" : {\n        \"count\" : 12,\n        \"values\" : [ 8198, 8200, 8201, 8230, 8234, 8235, 8236, 8237 ]\n    },\n    \"mask_vertices\" : {\n        \"count\" : 24,\n        \"values\" : [ 0, 1, 2, 6, 7, 8, 12, 13, 14, 15, 19, 20, 21 ]\n    },\n    \"transform_nodes\" : [ \"#sash1\", \"#sash2\" ]\n}"
+  },
+  {
+    "name": "scene",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/scene/start",
+    "description": "\n\n<p>\nDefines a scene, which is a collection of new instances (with applicable hook-ups into what may already be in the scene) and property settings.\n</p>\n\n<p>\nScene objects can exist in either a <abbr title=\"DSON User File\">DUF</abbr> or a <abbr title=\"DSON Support File\">DSF</abbr> file, but only one scene object can exist per file. Scene objects are typically in the user facing <abbr title=\"DSON User File\">DUF</abbr> files. A <em>scene</em> object can represent either an entire scene (scene replacement) or to augment or replace parts of a scene.\n</p>\n\n",
+    "parentObjects": [
+      "DAZ"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "presentation",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/presentation/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:presentation:start\">presentation</a> object representing information to be displayed to the user. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "nodes",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/node_instance/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:node_instance:start\">node_instance</a> objects to add to the scene. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "uvs",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/uv_set_instance/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:uv_set_instance:start\">uv_set_instance</a> objects to add to the scene. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "modifiers",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/modifier_instance/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:modifier_instance:start\">modifier_instance</a> objects to add to the scene. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "materials",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/material_instance/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:material_instance:start\">material_instance</a> objects to assign to geometries in the scene. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "animations",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/channel_animation/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:channel_animation:start\">channel_animation</a> objects. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "current_camera",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of a <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/camera/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:camera:start\">camera</a> <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/node_instance/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:node_instance:start\">node_instance</a> within the scene to use as the current camera. ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "extra",
+        "description": " An array of objects that represent additional application-specific information for this object. ",
+        "default": "N/A",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "",
+    "example": "{\n\t\"nodes\" : [\n\t\tnode_instance,\n\t\tnode_instance,\n\t\t...\n\t],\n\t\"materials\" : [\n\t\tmaterial_instance,\n\t\tmaterial_instance,\n\t\t...\n\t],\n\t\"extra\" : [\n\t\t{\n\t\t\t\"type\" : \"studio_scene_settings\",\n\t\t\t\"current_time\" : 0,\n\t\t\t\"background_color\" : [ 0.3686275, 0.3686275, 0.3686275 ]\n\t\t},\n\t\t{\n\t\t\t\"type\" : \"studio_render_settings\",\n\t\t\t\"render_options\" : {\n\t\t\t\t\"aspect_ratio\" : [ 827, 983 ],\n\t\t\t\t\"startTime\" : 0,\n\t\t\t\t\"endTime\" : 1,\n\t\t\t\t\"renderMovToId\" : \"MovieFile\",\n\t\t\t\t\"isAspectConstrained\" : true,\n\t\t\t\t\"imageSize\" : [ 827, 983 ],\n\t\t\t\t\"renderType\" : \"Software\",\n\t\t\t\t\"renderStyle\" : \"Normal\",\n\t\t\t\t\"rayTraceDepth\" : 2,\n\t\t\t\t\"openGLPasses\" : 8,\n\t\t\t\t\"useGLSL\" : true,\n\t\t\t\t\"isCurrentFrameRender\" : true,\n\t\t\t\t\"xPixelSamples\" : 4,\n\t\t\t\t\"yPixelSamples\" : 4,\n\t\t\t\t\"shadowSamples\" : 16,\n\t\t\t\t\"shadingRate\" : 1,\n\t\t\t\t\"doubleSided\" : true,\n\t\t\t\t\"gain\" : 1,\n\t\t\t\t\"gamma\" : 1,\n\t\t\t\t\"pixelFilter\" : \"Sinc\",\n\t\t\t\t\"xFilterWidth\" : 6,\n\t\t\t\t\"yFilterWidth\" : 6\n\t\t\t}\n\t\t}\n\t]\n}"
+  },
+  {
+    "name": "skin_binding",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/skin_binding/start",
+    "description": "\n\n<p>\nA <em>skin_binding</em> defines the offsets and weights that relate a skin (<a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/geometry/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:geometry:start\">geometry</a>) to a skeleton (a collection of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/node/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:node:start\">node</a>s).\n</p>\n\n",
+    "parentObjects": [
+      "modifier"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "node",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the root <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/node/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:node:start\">node</a> to bind to. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "geometry",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/geometry/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:geometry:start\">geometry</a> to bind. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "vertex_count",
+        "description": " An int representing the number of vertices expected in the mesh geometry. ",
+        "default": "0",
+        "required": "yes"
+      },
+      {
+        "name": "joints",
+        "description": " An array of <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/weighted_joint/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:weighted_joint:start\">weighted_joint</a> objects defining the binding.  ",
+        "default": "None",
+        "required": "no"
+      },
+      {
+        "name": "selection_sets",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/named_string_map/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:named_string_map:start\">named_string_map</a> that provides a one to one mapping  from face groups to nodes. ",
+        "default": "None",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "",
+    "example": "{\n    \"node\" : \"#hips\",\n    \"geometry\" : \"#speedy\",\n    \"vertex_count\" : 2045,\n    \"joints\" :\n    [\n        weighted_joint,\n        weighted_joint\n        ...\n    ],\n    \"selection_sets\" :\n    [\n        named_string_map,\n        named_string_map,\n        named_string_map\n        ...\n    ]\n}"
+  },
+  {
+    "name": "uv_set",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/uv_set/start",
+    "description": "\n\n<p>\nThe definition of a single UV coordinate set asset.\n</p>\n\n",
+    "parentObjects": [
+      "DAZ"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing a unique ID for this asset within the current file scope. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "name",
+        "description": " A string representing the “internal” name for this UV set.  Generally unique within any sibling uv sets. ",
+        "default": "“”",
+        "required": "no"
+      },
+      {
+        "name": "label",
+        "description": " A string representing the user facing label for this UV set. ",
+        "default": "“”",
+        "required": "no"
+      },
+      {
+        "name": "source",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the <em>uv_set</em> asset that this <em>uv_set</em> was derived from, if any. ",
+        "default": "“”",
+        "required": "no"
+      },
+      {
+        "name": "vertex_count",
+        "description": " An <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#int\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">int</a> representing the number of vertices expected to be in the geometry that the UV set applies to. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "uvs",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start#float2_array\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float2_array</a> of all UV's, both those that are shared by all polygons attached to a vertex, and those that may be unique to a particular polygon attached to a vertex. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "polygon_vertex_indices",
+        "description": " An array representing the polygons that use a UV index for a given vertex that is different than the default index defined in “uvs”. Polygon-specific vertex-indexed UV indices.  Each entry is [<em>polygon_index</em>, <em>polygon_vertex_index</em>, <em>uv_index</em>], where <em>polygon_vertex_index</em> refers to the index of a vertex in the geometry that is used by the polygon at <em>polygon_index</em>. ",
+        "default": "None",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\nThe <em>uvs</em> array is assumed to be given in the same order as the vertices in any associated geometry. Any vertices that have more than one UV coordinate associated with them (e.g. along a UV boundary) should appear in the <em>polygon_vertex_indices</em> array. For vertices that appear in the <em>polygon_vertex_indices</em> array, their entry in the <em>uvs</em> array should correspond to a “primary” value for the UV's for that vertex. The “primary” value may be arbitrary for most applications.\n</p>\n\n",
+    "example": "{\n    \"id\" : \"default\",\n    \"name\" : \"default\",\n    \"label\" : \"Default UVs\",\n    \"vertex_count\" : 266,\n    \"uvs\" : [\n        [ 0.02083333, 0 ],\n        [ 0.02083333, 1 ],\n        [ 0, 0.08333334 ],\n        [ 0, 0.1666667 ],\n        [ 0, 0.25 ],\n        [ 0, 0.3333333 ],\n        [ 0, 0.4166667 ],\n        [ 0, 0.5 ],\n        [ 0, 0.5833333 ],\n        [ 0, 0.6666667 ],\n        [ 0, 0.75 ],\n        [ 0, 0.8333333 ],\n        [ 0, 0.9166667 ]\n    ],\n    \"polygon_vertex_indices\" : [\n        [ 12, 0, 266 ],\n        [ 24, 0, 4 ],\n        [ 36, 0, 7 ],\n        [ 48, 0, 9 ],\n        [ 60, 0, 2 ]\n    ]\t\n}"
+  },
+  {
+    "name": "uv_set_instance",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/uv_set_instance/start",
+    "description": "\n\n<p>\nDefines an instance of a <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/uv_set/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:uv_set:start\">uv_set</a> asset.\n</p>\n\n",
+    "parentObjects": [
+      "DAZ"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing the unique identifier for this asset within the current file scope. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "url",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/uv_set/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:uv_set:start\">uv_set</a> definition to instantiate. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "parent",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/geometry/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:geometry:start\">geometry</a> that the UV set should attach to. ",
+        "default": "None",
+        "required": "yes"
+      }
+    ],
+    "extendedBy": [],
+    "details": "",
+    "example": "{\n    \"id\" : \"TestV4-1\",\n    \"url\" : \"#TestV4\",\n    \"parent\" : \"#blMilMan_m4b\"\n}"
+  },
+  {
+    "name": "weighted_joint",
+    "url": "http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/weighted_joint/start",
+    "description": "\n\n<p>\nDefines one of the joints in a skin binding.  For now, the binding matrix for each node is assumed to be the identity matrix.\n</p>\n\n",
+    "parentObjects": [
+      "skin_binding"
+    ],
+    "extends": [],
+    "properties": [
+      {
+        "name": "id",
+        "description": " A string representing the unique identifier for this object within the file scope. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "node",
+        "description": " A string representing the <abbr title=\"Uniform Resource Identifier\">URI</abbr> of the target node in the skeleton. ",
+        "default": "None",
+        "required": "yes"
+      },
+      {
+        "name": "node_weights",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float_indexed_array</a> representing the general weight map for this joint. ",
+        "default": "N/A",
+        "required": "no*"
+      },
+      {
+        "name": "scale_weights",
+        "description": " A <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float_indexed_array</a> representing the scale weight map for this joint. ",
+        "default": "N/A",
+        "required": "no*"
+      },
+      {
+        "name": "local_weights",
+        "description": " A collection of x, y, and z <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/format_description/data_types/start\" class=\"wikilink1\" title=\"public:dson_spec:format_description:data_types:start\">float_indexed_array</a> objects representing the local weights for the joint. ",
+        "default": "N/A",
+        "required": "no*"
+      },
+      {
+        "name": "bulge_weights",
+        "description": " A collection of  x, y, and z <a href=\"http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/bulge_binding/start\" class=\"wikilink1\" title=\"public:dson_spec:object_definitions:bulge_binding:start\">bulge_binding</a> objects representing the bulge binding weights for the joint. ",
+        "default": "N/A",
+        "required": "no"
+      }
+    ],
+    "extendedBy": [],
+    "details": "\n\n<p>\n* At least one of <em>node_weights</em>, <em>scale_weights</em>, and/or <em>local_weights</em> must be present.\n</p>\n\n",
+    "example": "{\n    \"id\" : \"rForeArm\",\n    \"node\" : \"#rForeArm\",\n    \"scale_weights\" : {\n        \"count\" : 101,\n        \"values\" : [\n            [ 111, 0.00218204 ],\n            [ 122, 0.004913405 ],\n            [ 123, 0.009918365 ],\n            ...\n            [ 292, 1.525902e-05 ],\n            [ 314, 7.629511e-05 ],\n            [ 315, 0.0001525902 ],\n            [ 316, 9.155413e-05 ],\n            [ 327, 3.051804e-05 ]\n        ]\n    },\n    \"local_weights\" : {\n        \"y\" : {\n            \"count\" : 129,\n            \"values\" : [\n                [ 84, 0.0003051804 ],\n                [ 85, 0.0002441444 ],\n                [ 86, 0.0002288853 ],\n                [ 87, 0.0002441444 ],\n                ...\n                [ 949, 0.001129168 ],\n                [ 950, 0.0009918364 ],\n                [ 983, 0.001327535 ],\n                [ 984, 0.001205463 ],\n                [ 1017, 0.0006561379 ],\n                [ 1018, 0.0007782101 ]\n            ]\n        },\n    },\n    \"bulge_weights\" : {\n        \"y\" : {\n            \"bulges\" : [\n                {\n                    \"id\" : \"positive-left\",\n                    \"label\" : \"Y Bulge Positive Left\",\n                    \"visible\" : false,\n                    \"locked\" : false,\n                    \"min\" : -10000,\n                    \"max\" : 10000,\n                    \"clamped\" : false,\n                    \"display_as_percent\" : false,\n                    \"step_size\" : 0.01,\n                    \"value\" : -10,\n                    \"auto_follow\" : true\n                },\n                {\n                    \"id\" : \"positive-right\",\n                    \"label\" : \"Y Bulge Positive Right\",\n                    \"visible\" : false,\n                    \"locked\" : false,\n                    \"min\" : -10000,\n                    \"max\" : 10000,\n                    \"clamped\" : false,\n                    \"display_as_percent\" : false,\n                    \"step_size\" : 0.01,\n                    \"value\" : 6.99999,\n                    \"auto_follow\" : true\n                },\n                {\n                    \"id\" : \"negative-left\",\n                    \"label\" : \"Y Bulge Negative Left\",\n                    \"visible\" : false,\n                    \"locked\" : false,\n                    \"min\" : -10000,\n                    \"max\" : 10000,\n                    \"clamped\" : false,\n                    \"display_as_percent\" : false,\n                    \"step_size\" : 0.01,\n                    \"value\" : 0,\n                    \"auto_follow\" : true\n                },\n                {\n                    \"id\" : \"negative-right\",\n                    \"label\" : \"Y Bulge Negative Right\",\n                    \"visible\" : false,\n                    \"locked\" : false,\n                    \"min\" : -10000,\n                    \"max\" : 10000,\n                    \"clamped\" : false,\n                    \"display_as_percent\" : false,\n                    \"step_size\" : 0.01,\n                    \"value\" : -10,\n                    \"auto_follow\" : true\n                }\n            ],\n            \"right_map\" : {\n                \"count\" : 347,\n                \"values\" : [\n                    [ 24, 0.01115435 ],\n                    [ 25, 0.01074235 ],\n                    [ 26, 0.01110857 ],\n                    [ 27, 0.01213092 ],\n                    [ 28, 0.01341268 ],\n                    ...\n                    [ 1013, 0.06436256 ],\n                    [ 1014, 0.0669871 ],\n                    [ 1015, 0.06668193 ],\n                    [ 1016, 0.03700313 ],\n                    [ 1017, 0.009948882 ]\n                ]\n            }\n        }\n    }\n}"
+  }
+]

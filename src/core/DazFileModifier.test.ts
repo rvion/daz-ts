@@ -3,6 +3,7 @@ import '../DI.js'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { dazId, dazUrl, string_DazUrl } from '../spec.js'
+import { KnownDazFile } from './_DsonFile.js'
 import { DazFileModifier } from './DazFileModifier.js'
 
 describe('DazFileModifier', () => {
@@ -22,7 +23,7 @@ describe('DazFileModifier', () => {
 
       // Test basic properties
       expect(modifier.dazId).toBe(
-         dazId('/data/Daz%203D/Genesis%209/Base/Morphs/Daz%203D/Base%20Pose/body_ctrl_HipBend.dsf'),
+         dazUrl('/data/Daz%203D/Genesis%209/Base/Morphs/Daz%203D/Base%20Pose/body_ctrl_HipBend.dsf'),
       )
       expect(modifier.assetType).toBe('modifier')
       expect(modifier.emoji).toBe('🔧')
@@ -56,7 +57,7 @@ describe('DazFileModifier', () => {
       expect(modifier.resolvedUrls.has('/data/Daz%203D/Genesis%209/Base/Genesis9.dsf#Genesis9')).toBe(true)
 
       // Check that we resolved the expected files
-      const resolvedIds = [...modifier.resolvedUrls.values()].map((f) => f.dazId).sort()
+      const resolvedIds = [...modifier.resolvedUrls.values()].map((f: KnownDazFile) => f.dazId).sort()
       expect(resolvedIds).toContain('/data/Daz%203D/Genesis%209/Base/Genesis9.dsf')
       expect(resolvedIds).toContain(
          '/data/Daz%203D/Genesis%209/Base/Morphs/Daz%203D/Base%20Pose/body_ctrl_HipBendFwd.dsf',

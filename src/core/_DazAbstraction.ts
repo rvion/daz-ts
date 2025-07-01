@@ -1,25 +1,25 @@
 import { GLOBAL } from '../DI.js'
 import type { DazMgr } from '../mgr.js'
-import type { $$geometry, $$geometry_ref, $$modifier_inf, $$node, $$node_ref, string_DazId } from '../spec.js'
+import type { $$geometry_instance, $$node, $$node_instance, string_DazId, string_DazUrl } from '../spec.js'
 import { Maybe } from '../types.js'
 import { DazGeometry } from './DazGeometry.js'
-import type { DazGeometryRef } from './DazGeometryRef.js'
+import type { DazGeometryInstance } from './DazGeometryInstance.js'
 import type { DazNode } from './DazNode.js' // New file
-import type { DazNodeRef } from './DazNodeRef.js' // Corrected to DazNodeRef.js due to file rename
+import type { DazNodeInstance } from './DazNodeInstance.js' // Corrected to DazNodeRef.js due to file rename
 
 // biome-ignore format: misc
 export type AnyDazAbstraction =
    // biome-ignore lint/suspicious/noExplicitAny: misc
    | DazAbstraction<any, any>
-   | DazNodeRef
+   | DazNodeInstance
    | DazNode
    | DazGeometry
-   | DazGeometryRef // Made more specific
+   | DazGeometryInstance // Made more specific
 
 export abstract class DazAbstraction<PARENT, DATA> {
    abstract emoji: string
    abstract kind: string
-   abstract get dazId(): string_DazId
+   abstract get dazId(): string_DazId | string_DazUrl
    get summary(): string {
       return ''
    }
@@ -35,15 +35,6 @@ export abstract class DazAbstraction<PARENT, DATA> {
       console.log(`[${this.emoji} ${this.kind} #${this.dazId}] ${this.summary}`)
    }
 
-   // ---- child hydrate
-   nodeRefs: Map<string_DazId, DazNodeRef> = new Map() // Renamed DazNode to DazNodeRef
-   async hydrateNodeRef(nodeData: $$node_ref): Promise<DazNodeRef> {
-      // Renamed hydrateNode to hydrateNodeRef, updated type
-      const node = await GLOBAL.DazNodeRef.init(this.mgr, this, nodeData) // Renamed GLOBAL.DazNode to GLOBAL.DazNodeRef
-      this.nodeRefs.set(node.dazId, node)
-      return node
-   }
-
    getNode_orNull(nodeId?: Maybe<string_DazId>): DazNode | null {
       if (nodeId == null) return null
       return this.nodes.get(nodeId) ?? null
@@ -54,41 +45,28 @@ export abstract class DazAbstraction<PARENT, DATA> {
       if (node == null) throw new Error(`Node with ID "${nodeId}" not found in ${this.kind} "${this.dazId}".`)
       return node
    }
+
+   // ---- child hydrate
+   nodeInstances: Map<string_DazId, DazNodeInstance> = new Map() // Renamed DazNode to DazNodeRef
+   async hydrateNodeInstances($node_instance: $$node_instance): Promise<DazNodeInstance> {
+      // Renamed hydrateNode to hydrateNodeRef, updated type
+      const node = await GLOBAL.DazNodeInstance.init(this.mgr, this, $node_instance) // Renamed GLOBAL.DazNode to GLOBAL.DazNodeRef
+      this.nodeInstances.set(node.dazId, node)
+      return node
+   }
+
    nodes: Map<string_DazId, DazNode> = new Map() // New map for DazNodeInf
-   async hydrateNode(nodeData: $$node): Promise<DazNode> {
+   async hydrateNode($node: $$node): Promise<DazNode> {
       // New method for DazNodeInf
-      const node = await GLOBAL.DazNodeInf.init(this.mgr, this, nodeData)
+      const node = await GLOBAL.DazNode.init(this.mgr, this, $node)
       this.nodes.set(node.dazId, node)
       return node
    }
 
-   geometryRefs: Map<string_DazId, DazGeometryRef> = new Map()
-   async hydrateGeometryRef(geometry_ref: $$geometry_ref): Promise<DazGeometryRef> {
-      const geometryRef = await GLOBAL.DazGeometryRef.init(this.mgr, this, geometry_ref)
-      this.geometryRefs.set(geometryRef.dazId, geometryRef)
+   geometryInstances: Map<string_DazId, DazGeometryInstance> = new Map()
+   async hydrateGeometryInstances($geometry_instance: $$geometry_instance): Promise<DazGeometryInstance> {
+      const geometryRef = await GLOBAL.DazGeometryInstance.init(this.mgr, this, $geometry_instance)
+      this.geometryInstances.set(geometryRef.dazId, geometryRef)
       return geometryRef
-   }
-
-   geometries: Map<string_DazId, DazGeometry> = new Map()
-   async hydrateGeometry(geometry_inf: $$geometry): Promise<DazGeometry> {
-      const geometry = await GLOBAL.DazGeometryInf.init(this.mgr, this, geometry_inf)
-      this.geometries.set(geometry.dazId, geometry)
-      return geometry
-   }
-
-   modifiers: Map<string_DazId, $$modifier_inf> = new Map()
-   async hydrateModifier(modifier_inf: $$modifier_inf): Promise<$$modifier_inf> {
-      // For now, just store the raw modifier data since we don't have a DazModifier class yet
-      this.modifiers.set(modifier_inf.id, modifier_inf)
-      return modifier_inf
-   }
-
-   getSkinBindingModifier(): $$modifier_inf | null {
-      for (const modifier of this.modifiers.values()) {
-         if (modifier.id === 'SkinBinding' || modifier.name === 'SkinBinding') {
-            return modifier
-         }
-      }
-      return null
    }
 }
