@@ -5,3 +5,6 @@ data/processed_files.txt
 tsconfig.tsbuildinfo
 tmp
 .DS_Store
+modifiers-debug.txt
+modifiers.json
+processed_files.json
