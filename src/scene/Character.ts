@@ -335,53 +335,73 @@ export class RVCharacter {
 
    // Animation and pose methods
    applyPose(pose: DazFilePose): void {
-      if (!this.skeleton) {
-         console.warn(`[RVCharacter] Cannot apply pose: no skeleton available for character ${this.character.dazId}`)
-         return
-      }
-
+      // biome-ignore format: misc
+      if (!this.skeleton) return void console.warn(`[RVCharacter] Cannot apply pose: no skeleton available for character ${this.character.dazId}`)
       console.log(`[RVCharacter] Applying pose ${pose.dazId} to ${this.character.dazId}`)
-
-      for (const change of pose.changes) {
-         this.applyPoseChange(change)
-      }
-
-      // Update skeleton matrices after pose changes
-      this.updateSkeletonMatrices()
+      for (const change of pose.changes) this.applyPoseChange(change)
+      this.updateSkeletonMatrices() // Update skeleton matrices after pose changes
    }
 
    private applyPoseChange(change: { url: string; value: number }): void {
-      // Parse the pose URL to extract bone name and property
-      // Example URL: "name://@selection/l_bigtoe2:?rotation/x/value"
-      const urlMatch = change.url.match(/name:\/\/@selection\/([^:]+):\?([^/]+)\/([^/]+)\/value/)
+      // Parse the pose URL to extract target and property
+      // Example URL (transform): "name://@selection/l_bigtoe2:?rotation/x/value"
+      // Example URL (morph):   "name://@selection#body_ctrl_HipBend:?value/value"
+      const urlMatch = change.url.match(/name:\/\/@selection[/#]([^:]+):\?(.+)/)
       if (!urlMatch) {
          console.warn(`[RVCharacter] Could not parse pose URL: ${change.url}`)
          return
       }
 
-      const [, boneName, property, axis] = urlMatch
-      const bone = this.bones.get(dazId(boneName))
-      if (!bone) {
-         console.warn(`[RVCharacter] Bone not found: ${boneName}`)
+      const [, targetName, query] = urlMatch
+      const queryParts = query.split('/')
+
+      // Handle transforms (rotation, translation, scale)
+      if (queryParts.length === 3 && queryParts[2] === 'value') {
+         const [property, axis] = queryParts
+         const bone = this.bones.get(dazId(targetName))
+         if (!bone) {
+            console.warn(`[RVCharacter] Bone not found for transform: ${targetName}`)
+            return
+         }
+
+         if (property === 'rotation') {
+            const radians = (change.value * Math.PI) / 180 // Convert degrees to radians
+            switch (axis) {
+               case 'x':
+                  bone.rotation.x = radians
+                  break
+               case 'y':
+                  bone.rotation.y = radians
+                  break
+               case 'z':
+                  bone.rotation.z = radians
+                  break
+            }
+         }
+         // Add support for translation, scale, etc. as needed
          return
       }
 
-      // Apply the transformation based on property and axis
-      if (property === 'rotation') {
-         const radians = (change.value * Math.PI) / 180 // Convert degrees to radians
-         switch (axis) {
-            case 'x':
-               bone.rotation.x = radians
-               break
-            case 'y':
-               bone.rotation.y = radians
-               break
-            case 'z':
-               bone.rotation.z = radians
-               break
+      // Handle morphs/controller values
+      if (queryParts.length === 2 && queryParts[0] === 'value' && queryParts[1] === 'value') {
+         // This is a morph value. The targetName is the name of the modifier/controller.
+         // We need to find the corresponding modifier and apply the value.
+         // This functionality is not yet implemented.
+         console.warn(
+            `[RVCharacter] Morph/controller value for "${targetName}" not yet handled. Value: ${change.value}`,
+         )
+
+         // For now, let's check if it's a bone by any chance.
+         const bone = this.bones.get(dazId(targetName))
+         if (bone) {
+            console.warn(
+               `[RVCharacter] Target "${targetName}" is a bone, but the pose URL is for a morph value. This is ambiguous.`,
+            )
          }
+         return
       }
-      // Add support for translation, scale, etc. as needed
+
+      console.warn(`[RVCharacter] Unknown pose URL format: ${change.url}`)
    }
 
    // Debug and utility methods
