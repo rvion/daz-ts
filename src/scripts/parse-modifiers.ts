@@ -8,18 +8,32 @@ import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { fmtAbsPath, fmtNumber } from '../utils/fmt.js'
 
+// allocate mgr
 checkpoint('1')
 export const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
+
+// load all cached files
 const assets = await mgr.getCachedFiles()
 console.log(assets.length)
-const modfiers = assets.filter((a) => a.assetType === 'modifier')
+
+// retrieve all modfiers we care about
+const modfiers = assets
+   .filter((a) => a.assetType === 'modifier') //
+   .filter((a) => !a.relPath.includes('/Worker Uniform'))
+   .filter((a) => !a.relPath.includes('/Sue Yee'))
+   .filter((a) => !a.relPath.includes('/AprilYSH'))
+
 checkpoint('2')
+
+// print short summary about scope
 console.log(
    `found ${fmtNumber(modfiers.length)} character assets:`,
    modfiers.map((i) => basename(i.relPath)),
 )
-const NOT_FOUND: string[] = []
+
+// load all modifiers
 let ix = 0
+const NOT_FOUND: string[] = []
 const MODIFIERS: DazModifier[] = []
 for (const a of modfiers /* .slice(1300) */) {
    checkpoint(`loading morph ${ix++}/${modfiers.length}`)
@@ -39,15 +53,6 @@ for (const a of modfiers /* .slice(1300) */) {
       throw err
    }
 }
-checkpoint('✅ done')
-if (NOT_FOUND.length > 0) {
-   console.log(chalk.red('MISSING_FILES:'))
-   console.log(chalk.red(NOT_FOUND.map((i) => `- ${i}`).join('\n')))
-}
-// // duf are user files
-// for (const asset of assets.duf) {
-//    await mgr.loadAbsPath(asset)
-// }
 
 function buildSummary(p: { color: boolean }) {
    let final: string = ''
@@ -77,8 +82,19 @@ function buildSummary(p: { color: boolean }) {
    }
    return final
 }
+// print colorful summary
 const finalCol = buildSummary({ color: true })
 console.log(finalCol)
 
+// save summary to file
 const final = buildSummary({ color: false })
 mgr.fs.writeFile('data/modifiers-debug.txt', final)
+
+// print missing files
+if (NOT_FOUND.length > 0) {
+   console.log(chalk.red('MISSING_FILES:'))
+   console.log(chalk.red(NOT_FOUND.map((i) => `- ${i}`).join('\n')))
+}
+
+// done
+checkpoint('✅ done')

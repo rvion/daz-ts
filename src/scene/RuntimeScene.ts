@@ -1,8 +1,10 @@
+import GUI from 'lil-gui'
 import * as THREE from 'three'
 import { CameraController } from '../web/CameraController.js'
 import { RVCharacter } from './Character.js'
 
 export class RuntimeScene {
+   gui: GUI | null = null
    public scene: THREE.Scene
    public camera: THREE.PerspectiveCamera
    public renderer: THREE.WebGLRenderer
