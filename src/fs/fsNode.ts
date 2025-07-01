@@ -4,8 +4,8 @@ import { createPathInfo, PathInfo } from './PathInfo.js'
 import { WalkOptions } from './walk.js'
 
 export type FS = {
-   readPartialJSON: (path: string, bytes: number) => Promise<unknown>
-   readJSON: (path: string) => Promise<unknown>
+   readPartialJSON: (path: string, bytes: number) => Promise<{ json: unknown; gz: boolean; fileSize: number }>
+   readJSON: (path: string) => Promise<{ json: unknown; gz: boolean; fileSize: number }>
    writeFile: typeof fs_.writeFile
    mkdir: typeof fs_.mkdir
    discoverFiles: (rootDir: string_AbsPath, options?: WalkOptions) => Promise<PathInfo[]>
@@ -15,7 +15,7 @@ export type FS = {
 export const fsCrash: FS = {
    discoverFiles: () => { throw new Error('discoverFiles not implemented in fsCrash.js') },
    readPartialJSON: () => { throw new Error('readPartialJSON not implemented in fsCrash.js') },
-   readJSON: (path) => { return Bun.file(path).json() }, // Bun's file API for reading JSON
+   readJSON: async (path) => { return { json: await Bun.file(path).json(), gz: false, fileSize: 0 } }, // Bun's file API for reading JSON
    writeFile: () => { throw new Error('writeFile not implemented in fsCrash.js') },
    mkdir: () => { throw new Error('mkdir not implemented in fsCrash.js') },
 }
@@ -33,9 +33,12 @@ export const fs: FS = {
 
       return files.map((file) => createPathInfo(file, rootDir))
    },
-   readPartialJSON: async (path: string, bytes: number): Promise<unknown> => {
+   readPartialJSON: async (path: string, bytes: number): Promise<{ json: unknown; gz: boolean; fileSize: number }> => {
       const fileHandle = await fs_.open(path, 'r')
       try {
+         const stats = await fileHandle.stat()
+         const fileSize = stats.size
+
          // read first few bytes to detect file type
          const headerBuffer = Buffer.alloc(Math.min(bytes, 1024))
          const { bytesRead: headerBytesRead } = await fileHandle.read(headerBuffer, 0, headerBuffer.length, 0)
@@ -46,7 +49,8 @@ export const fs: FS = {
          const info = filetypeinfo(headerPartial)
 
          let partialString: string
-         if (info.find((t) => t.typename === 'gz')) {
+         const gz = info.some((t) => t.typename === 'gz')
+         if (gz) {
             // For gzipped files, we need to decompress from the beginning
             const { readPartialGzipped } = await import('../fs/readPartialGzipped.js')
             partialString = await readPartialGzipped(path, bytes)
@@ -59,27 +63,26 @@ export const fs: FS = {
          }
 
          const { OBJ, parse, STR } = await import('partial-json')
-         const out = parse(partialString, STR | OBJ)
-         // console.log(JSON.stringify(out))
-         return out
+         const json = parse(partialString, STR | OBJ)
+         return { json, gz, fileSize }
       } finally {
          await fileHandle.close()
       }
    },
-   readJSON: async (path: string): Promise<unknown> => {
+   readJSON: async (path: string): Promise<{ json: unknown; gz: boolean; fileSize: number }> => {
       const fileBuffer = await fs_.readFile(path) // Read as Buffer
+      const fileSize = fileBuffer.length
       try {
          // 1. Attempt to parse as plain JSON first
          const jsonString = fileBuffer.toString('utf-8')
-         return JSON.parse(jsonString)
+         return { json: JSON.parse(jsonString), gz: false, fileSize }
       } catch (_jsonParseError) {
          try {
             // 2. If plain JSON parsing fails, assume it might be gzipped
-            // console.warn(`[🤠] ${path} is not plain JSON. Attempting to gunzip.`)
             const zlib = await import('node:zlib')
             const decompressedBuffer = zlib.gunzipSync(fileBuffer) // Pass raw buffer
             const inflatedJsonString = decompressedBuffer.toString('utf-8')
-            return JSON.parse(inflatedJsonString)
+            return { json: JSON.parse(inflatedJsonString), gz: true, fileSize }
          } catch (_gunzipExtractError) {
             // 3. If both attempts fail, throw an error
             throw new Error(`no json in ${path}.`)
