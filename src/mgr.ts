@@ -86,6 +86,13 @@ export class DazMgr {
    // ---- Load
    /**  Load full Daz asset, from meta. */
    async loadFile(relPath: string_RelPath) {
+      const file = await this._loadFromPathInfo(this._resolveRelPath(relPath)) // Store the file path in the manager
+      await file.resolve()
+      return file
+   }
+
+   /**  Load full Daz asset, from meta. */
+   async loadFile_noResolve(relPath: string_RelPath) {
       return this._loadFromPathInfo(this._resolveRelPath(relPath)) // Store the file path in the manager
    }
 
@@ -123,7 +130,6 @@ export class DazMgr {
       const stuff = await this._hydrateDson(meta, dson)
       // 💬 2025-06-30 rvion: have to remove this from here,
       this.filesFull.set(meta.absPath, stuff)
-      await stuff.resolve()
       return stuff
    }
 

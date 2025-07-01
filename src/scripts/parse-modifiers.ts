@@ -3,7 +3,7 @@ import '../DI.js'
 
 import chalk from 'chalk'
 import { DazModifier } from '../core/DazModifier.js'
-import { checkpoint, getMgr } from '../DI.js'
+import { checkpoint } from '../DI.js'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { fmtAbsPath, fmtNumber } from '../utils/fmt.js'
@@ -24,7 +24,7 @@ const MODIFIERS: DazModifier[] = []
 for (const a of modfiers /* .slice(1300) */) {
    checkpoint(`loading morph ${ix++}/${modfiers.length}`)
    try {
-      const _x = await mgr.loadFile(a.relPath)
+      const _x = await mgr.loadFile_noResolve(a.relPath)
       MODIFIERS.push(..._x.modifierList)
       // console.log(`[🤠] --------------------------------------------------`, x.constructor.name)
    } catch (err) {
@@ -49,19 +49,36 @@ if (NOT_FOUND.length > 0) {
 //    await mgr.loadAbsPath(asset)
 // }
 
-let final: string = ''
-for (const x of MODIFIERS) {
-   const d = x.data
-   const debug: string = [
-      //
-      d.formulas ? chalk.blue('formula') : '       ',
-      d.morph ? chalk.green('morph') : '     ',
-      d.skin ? chalk.yellow('skin') : '    ',
-      d.region ? `region=${d.region}` : '',
-   ].join(' ')
-   const name = d.name ?? d.label ?? d.id
-   const line = `🐄: ${name.padStart(50, ' ')} | ${debug} | ${fmtAbsPath(x.source.absPath)}`
-   console.log(line)
-   final += line + '\n'
+function buildSummary(p: { color: boolean }) {
+   let final: string = ''
+   const FMT = (colorFn: (str: string) => string, str: string) => {
+      if (!p.color) return str
+      return colorFn(str)
+   }
+   for (const x of MODIFIERS) {
+      const d = x.data
+      const name = d.name ?? d.label ?? d.id
+      const debug: string = [
+         d.formulas
+            ? FMT(chalk.blue, '[formula]') //
+            : /*           */ '[       ]',
+         d.morph
+            ? FMT(chalk.green, '[morph]') //
+            : /*            */ '[     ]',
+         d.skin
+            ? FMT(chalk.yellow, '[skin]') //
+            : /*             */ '[    ]',
+         d.region ? `[${d.region.padEnd(8)}]` : `[${' '.repeat(8)}]`,
+         name.padEnd(50, ' '),
+         FMT(fmtAbsPath, x.source.absPath),
+      ].join(' ')
+      const line = `${debug}`
+      final += line + '\n'
+   }
+   return final
 }
+const finalCol = buildSummary({ color: true })
+console.log(finalCol)
+
+const final = buildSummary({ color: false })
 mgr.fs.writeFile('data/modifiers-debug.txt', final)
