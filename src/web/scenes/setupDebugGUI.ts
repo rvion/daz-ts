@@ -25,6 +25,8 @@ export async function setupDebugGUI(
    char1Folder.add(character1, 'wireframeEnabled').name('Wireframe')
    char1Folder.add(character1, 'ghostModeEnabled').name('Ghost Mode')
    char1Folder.add(character1, 'boneHelperVisible').name('Show Skeleton')
+   // add slider for `body_ctrl_WaistTwist` modifier
+   char1Folder.add(character1, 'body_ctrl_WaistTwist', 0, 1).name('Waist Twist')
    char1Folder
       .add({ logHierarchy: () => console.log(character1.skeletonHierarchyString) }, 'logHierarchy')
       .name('Log Skeleton')

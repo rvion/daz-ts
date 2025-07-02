@@ -40,7 +40,8 @@ export class DazMgr {
       try {
          const { json } = await this.fs.readJSON(dbPath)
          this.modifiersDb = json as ModifierDB
-      } catch (_e) {
+      } catch (originalError) {
+         console.error(originalError)
          throw new Error(`Modifiers database not found at ${dbPath}. Run 'bun src/scripts/parse-modifiers.ts' to generate it.`,) // biome-ignore format: misc
       }
       return this.modifiersDb

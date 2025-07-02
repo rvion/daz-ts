@@ -23,7 +23,7 @@ describe('RVCharacter Modifier Tests', () => {
    })
 
    test.only('should apply body_ctrl_WaistTwist modifier', async () => {
-      const lHand = rvCharacter.getBone('l_hand')
+      const lHand = rvCharacter.getBone_orCrash('l_hand')
       const initialPosition = lHand.getWorldPosition(new THREE.Vector3())
 
       await rvCharacter.setModifierValue('body_ctrl_WaistTwist', 8)
@@ -41,7 +41,7 @@ describe('RVCharacter Modifier Tests', () => {
    })
 
    test('should apply body_bs_ProportionArmsLength modifier', async () => {
-      const lHand = rvCharacter.getBone('l_hand')
+      const lHand = rvCharacter.getBone_orCrash('l_hand')
       const initialPosition = lHand.getWorldPosition(new THREE.Vector3())
       console.log(`[🤠] ----`)
       await rvCharacter.setModifierValue('body_bs_ProportionArmsLength', 2)

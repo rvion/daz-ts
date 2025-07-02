@@ -9,7 +9,6 @@ import { DazNode } from '../core/DazNode.js'
 import { GLOBAL, getMgr } from '../DI.js'
 import { ModifierDB } from '../scripts/parse-modifiers.js'
 import { $$formula, $$morph, dazId, string_DazId, string_DazUrl } from '../spec.js'
-import { Maybe } from '../types.js'
 import { ASSERT_, ASSERT_INSTANCE_OF, assertXYZChanels, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
 import { fmtAbsPath } from '../utils/fmt.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
@@ -18,6 +17,19 @@ import { meshStandardMaterial1 } from './materials.js'
 import { getFallbackMaterial } from './misc.js'
 
 export class RVCharacter {
+   _body_ctrl_WaistTwist: number = 0
+   get body_ctrl_WaistTwist(): number {
+      return this._body_ctrl_WaistTwist
+   }
+   set body_ctrl_WaistTwist(value: number) {
+      this._body_ctrl_WaistTwist = NUMBER_OR_CRASH(value, 'Waist Twist must be a valid number')
+      ASSERT_(
+         this._body_ctrl_WaistTwist >= -2 && this._body_ctrl_WaistTwist <= 2,
+         'Waist Twist must be between -2 and 2',
+      )
+      void this.setModifierValue('body_ctrl_WaistTwist', value)
+   }
+
    group: THREE.Group
    meshes: (THREE.Mesh | THREE.SkinnedMesh)[] = []
    skeleton: THREE.Skeleton | null = null
@@ -743,11 +755,9 @@ export class RVCharacter {
       return result
    }
 
-   getBone(boneId: string): THREE.Bone {
+   getBone_orCrash(boneId: string): THREE.Bone {
       const bone = this.bones.get(dazId(boneId))
-      if (!bone) {
-         throw new Error(`Bone with id ${boneId} not found`)
-      }
+      if (!bone) throw new Error(`Bone with id ${boneId} not found`)
       return bone
    }
 
@@ -765,43 +775,30 @@ export class RVCharacter {
    }
 
    update(): void {
-      this.stupidAnimation2()
-
-      // Update skeleton matrices to keep SkeletonHelper synchronized
-      this.updateSkeletonMatrices()
+      this.animation_waveArmsUpAndDown()
+      this.updateSkeletonMatrices() // Update skeleton matrices to keep SkeletonHelper synchronized
    }
 
-   private stupidAnimation1(): void {
-      this.meshes.forEach((mesh) => {
-         mesh.rotation.y += 0.003 // Simple rotation for now
-      })
-   }
-   private stupidAnimation2(): void {
+   // Simple rotation for now
+   private animation_rotateOnItself = (): void => this.meshes.forEach((mesh) => void (mesh.rotation.y += 0.003))
+
+   // great for testing that should morphs properly run
+   private animation_waveArmsUpAndDown(): void {
       const time = Date.now() * 0.003 // Convert to seconds
-      const armAngle = Math.sin(time * 0.8) * 0.4 // Oscillate between -0.8 and 0.8 radians
-      // Animate shoulder bones for arm raising/lowering
-      const leftShoulder = this.bones.get(dazId('l_shoulder'))
-      const rightShoulder = this.bones.get(dazId('r_shoulder'))
-      if (leftShoulder) leftShoulder.rotation.z = armAngle
-      if (rightShoulder) rightShoulder.rotation.z = -armAngle // Mirror for right arm
+      const armAngle = Math.sin(time * 0.8) + 0.4 /* * 0.4 */ // Oscillate between -0.8 and 0.8 radians
+      this.getBone_orCrash(`l_shoulder`).rotation.z = armAngle // Animate shoulder bones for arm raising/lowering
+      this.getBone_orCrash(`r_shoulder`).rotation.z = -armAngle // Mirror for right arm
    }
 
    dispose(): void {
       // Dispose geometries and materials
       for (const mesh of this.meshes) {
          mesh.geometry.dispose()
-         if (Array.isArray(mesh.material)) {
-            mesh.material.forEach((mat) => mat.dispose())
-         } else {
-            mesh.material.dispose()
-         }
+         if (Array.isArray(mesh.material)) mesh.material.forEach((mat) => mat.dispose())
+         else mesh.material.dispose()
       }
-
       // Remove from parent
-      if (this.group.parent) {
-         this.group.parent.remove(this.group)
-      }
-
+      if (this.group.parent) this.group.parent.remove(this.group)
       // Clear arrays
       this.meshes.length = 0
       this.bones.clear()
