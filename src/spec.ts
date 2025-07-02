@@ -308,7 +308,7 @@ export const $ = scope({
       'channel_alias | channel_bool | channel_color | channel_enum | channel_float | channel_image | channel_int | channel_string | chanel_float_color | chanel_file | channel_other',
 
    ___channel_base: {
-      id: 'string',
+      id: 'dazId',
       'name?': 'string',
       'label?': 'string',
       'visible?': 'boolean',
@@ -734,6 +734,7 @@ export type $$node = typeof $$.node.infer
 export type $$node_type = typeof $$.node_type.infer
 export type $$uv_set = typeof $$.uv_set.infer
 export type $$modifier = typeof $$.modifier.infer
+export type $$channel = typeof $$.any_channel.infer
 export type $$image = typeof $$.image.infer
 export type $$material = typeof $$.material.infer
 

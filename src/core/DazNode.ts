@@ -1,27 +1,16 @@
 import { DazMgr } from '../mgr.js'
 import { $$node, $$node_type, string_DazId } from '../spec.js'
-import { getDazUrlParts } from '../utils/parseDazUrl.js'
+import { parseDazUrl } from '../utils/parseDazUrl.js'
 import { AnyDazAbstraction, DazAbstraction } from './_DazAbstraction.js'
 
 export class DazNode extends DazAbstraction<AnyDazAbstraction, $$node> {
-   get emoji() {
-      return '🌳ℹ️'
-   }
-
-   get kind() {
-      return 'node_inf'
-   }
-
-   get dazId(): string_DazId {
-      return this.data.id
-   }
+   get emoji() { return '🌳ℹ️' } // biome-ignore format: misc
+   get kind() { return 'node_inf' } // biome-ignore format: misc
+   get dazId(): string_DazId { return this.data.id } // biome-ignore format: misc
+   get type(): $$node_type | undefined { return this.data.type } // biome-ignore format: misc
 
    override get summary(): string {
       return `${this.data.type} - ${this.data.name} (${this.data.id})`
-   }
-
-   get type(): $$node_type | undefined {
-      return this.data.type
    }
 
    get parent_orNull(): DazNode | null {
@@ -35,7 +24,7 @@ export class DazNode extends DazAbstraction<AnyDazAbstraction, $$node> {
    get parentId_orCrash(): string_DazId {
       const parentUrl = this.data.parent
       if (parentUrl == null) throw new Error(`"${this.type}" node "${this.data.id}" has no parent url.`)
-      const parentId = getDazUrlParts(parentUrl)?.idInFile
+      const parentId = parseDazUrl(parentUrl)?.asset_id
       if (!parentId) throw new Error(`Parent url has not id (${parentUrl})`)
       return parentId
    }
@@ -43,7 +32,7 @@ export class DazNode extends DazAbstraction<AnyDazAbstraction, $$node> {
    get parentId_orNull() {
       const parentUrl = this.data.parent
       if (parentUrl == null) return null
-      const parentId = getDazUrlParts(parentUrl)?.idInFile
+      const parentId = parseDazUrl(parentUrl)?.asset_id
       if (!parentId) return null
       return parentId
    }

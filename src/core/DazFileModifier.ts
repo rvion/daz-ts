@@ -2,7 +2,7 @@ import type { PathInfo } from '../fs/PathInfo.js'
 import { DazMgr } from '../mgr.js'
 import { $$, $$dson, string_DazUrl } from '../spec.js'
 import { check_orCrash } from '../utils/arkutils.js'
-import { getDazUrlParts } from '../utils/parseDazUrl.js'
+import { parseDazUrl } from '../utils/parseDazUrl.js'
 import { DsonFile, KnownDazFile } from './_DsonFile.js'
 
 export class DazFileModifier extends DsonFile {
@@ -67,12 +67,12 @@ export class DazFileModifier extends DsonFile {
    }
 
    private resolveUrl(dazUrl: string_DazUrl): Promise<KnownDazFile> {
-      const parts = getDazUrlParts(dazUrl)
+      const parts = parseDazUrl(dazUrl)
 
       // If no srcPath, this is a local reference (e.g., "#someId?property")
       // We can't resolve these to external files
-      if (!parts.srcPath) return Promise.resolve(this)
-      return this.mgr.loadFile(parts.srcPath)
+      if (!parts.file_path) return Promise.resolve(this)
+      return this.mgr.loadFile(parts.file_path)
    }
 
    // Getter for easy access to modifier library entries

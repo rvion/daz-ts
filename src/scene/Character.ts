@@ -1,13 +1,20 @@
 /** biome-ignore-all lint/style/noNonNullAssertion: ... */
+
 import * as THREE from 'three'
 import { DazFileCharacter } from '../core/DazFileCharacter.js'
 import { DazFileFigure } from '../core/DazFileFigure.js'
 import { DazFilePose } from '../core/DazFilePose.js'
 import { DazGeometryInstance } from '../core/DazGeometryInstance.js'
 import { DazNode } from '../core/DazNode.js'
-import { dazId, string_DazId } from '../spec.js'
+import { GLOBAL, getMgr } from '../DI.js'
+import { ModifierDB } from '../scripts/parse-modifiers.js'
+import { $$formula, $$morph, dazId, string_DazId, string_DazUrl } from '../spec.js'
 import { Maybe } from '../types.js'
-import { ASSERT_, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
+import { ASSERT_, ASSERT_INSTANCE_OF, assertXYZChanels, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
+import { fmtAbsPath } from '../utils/fmt.js'
+import { parseDazUrl } from '../utils/parseDazUrl.js'
+import { simplifyObject } from '../utils/simplifyObject.js'
+import { meshStandardMaterial1 } from './materials.js'
 import { getFallbackMaterial } from './misc.js'
 
 export class RVCharacter {
@@ -18,6 +25,7 @@ export class RVCharacter {
    bones: Map<string_DazId, THREE.Bone> = new Map()
    boneHierarchy: Map<string, string[]> = new Map() // parent -> children mapping
    private boneNameToIndex: Map<string, number> = new Map() // bone name -> skeleton bone index
+   private morphData: Map<string, { mesh: THREE.SkinnedMesh; influenceIndex: number }> = new Map()
 
    // Debug getter for testing
    get boneNameToIndexMap(): ReadonlyMap<string, number> {
@@ -29,8 +37,6 @@ export class RVCharacter {
    constructor(public readonly character: DazFileCharacter) {
       this.group = new THREE.Group()
       this.group.name = `Character_${character.dazId}`
-
-      // Build skeleton first so meshes can be properly bound
       this.buildSkeleton()
       this.buildMeshes()
 
@@ -40,19 +46,6 @@ export class RVCharacter {
       // Initial skeleton matrix update to ensure proper display
       this.updateSkeletonMatrices()
    }
-
-   // DEBUG_BONES(): void {
-   //    const fbm = getFallbackMaterial()
-   //    for (const bone of this.bones.values()) {
-   //       const vec = new THREE.Vector3()
-   //       bone.getWorldPosition(vec)
-   //       const helper = new THREE.SphereGeometry(2, 8, 8)
-   //       const mesh = new THREE.Mesh(helper, fbm)
-   //       mesh.position.copy(vec)
-   //       mesh.name = `BoneHelper_${bone.name || bone.uuid}`
-   //       this.group.add(mesh)
-   //    }
-   // }
 
    private buildMeshes(): void {
       if (!this.character.figure) {
@@ -66,7 +59,7 @@ export class RVCharacter {
          if (!nodeRef.geometryInstances) continue
 
          for (const geometryRef of nodeRef.geometryInstances.values()) {
-            const mesh = this.createMeshFromGeometryRef(geometryRef)
+            const mesh = this.createMeshFromGeometryInstance(geometryRef)
             if (mesh) {
                this.meshes.push(mesh)
                this.group.add(mesh)
@@ -79,29 +72,23 @@ export class RVCharacter {
          this.createFallbackMesh()
       }
    }
-   private createMeshFromGeometryRef(geometryRef: DazGeometryInstance): THREE.Mesh | THREE.SkinnedMesh | null {
-      const resolvedInf = geometryRef.resolvedGeometryInf
+
+   private createMeshFromGeometryInstance(
+      geometryInstance: DazGeometryInstance,
+   ): THREE.Mesh | THREE.SkinnedMesh | null {
+      const resolvedInf = geometryInstance.geometry
       if (!resolvedInf) return null
 
       const vertices = resolvedInf.verticesForThree
       const indices = resolvedInf.indicesForThree
-
-      if (!vertices || !indices || vertices.length === 0 || indices.length === 0) {
-         return null
-      }
+      if (!vertices?.length || !indices?.length) return null
 
       const geometry = new THREE.BufferGeometry()
       geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
       geometry.setIndex(indices)
       geometry.computeVertexNormals()
 
-      const material = new THREE.MeshStandardMaterial({
-         color: 0xdddddd,
-         wireframe: true,
-         transparent: true,
-         opacity: 0.3,
-         side: THREE.DoubleSide,
-      })
+      const material = meshStandardMaterial1
 
       const allowSkinning = true
       const allowRegular = false
@@ -130,7 +117,7 @@ export class RVCharacter {
 
             // Create skinned mesh
             const skinnedMesh = new THREE.SkinnedMesh(geometry, material)
-            skinnedMesh.name = `SkinnedMesh_${geometryRef.dazId}`
+            skinnedMesh.name = `SkinnedMesh_${geometryInstance.dazId}`
             skinnedMesh.castShadow = true
             skinnedMesh.receiveShadow = true
 
@@ -142,13 +129,14 @@ export class RVCharacter {
 
             return skinnedMesh
          }
-      } else if (allowRegular) {
+      }
+      //
+      else if (allowRegular) {
          // Fallback to regular mesh if no skin data
          const mesh = new THREE.Mesh(geometry, material)
-         mesh.name = `Mesh_${geometryRef.dazId}`
+         mesh.name = `Mesh_${geometryInstance.dazId}`
          mesh.castShadow = true
          mesh.receiveShadow = true
-
          return mesh
       }
 
@@ -178,7 +166,7 @@ export class RVCharacter {
       // ----- First pass: create all bones and store absolute positions -----
       for (const node of figureNodes) {
          if (node.data.type === 'bone') {
-            const bone = this.createBoneFromNodeInf(node)
+            const bone = this.createBoneFromDazBoneNode(node)
             this.bones.set(node.dazId, bone)
 
             // Store the absolute position for later relative calculation
@@ -250,38 +238,27 @@ export class RVCharacter {
       }
    }
 
-   private assertXYZChanels(chans?: Maybe<{ id?: string; value?: unknown }[]>): { x: number; y: number; z: number } {
-      if (chans == null) throw new Error('center_point must have channels')
-      ASSERT_(chans.length === 3, 'center_point must have exactly 3 channels (x, y, z)')
-      ASSERT_(chans[0].id === 'x', `channel name should be x. (${JSON.stringify(chans[0])})`)
-      ASSERT_(chans[1].id === 'y', `channel name should be y. (${JSON.stringify(chans[1])})`)
-      ASSERT_(chans[2].id === 'z', `channel name should be z. (${JSON.stringify(chans[2])})`)
-      const x = NUMBER_OR_CRASH(chans[0].value, 'x must be a number')
-      const y = NUMBER_OR_CRASH(chans[1].value, 'y must be a number')
-      const z = NUMBER_OR_CRASH(chans[2].value, 'z must be a number')
-      return { x, y, z }
-   }
-
-   private createBoneFromNodeInf(node: DazNode): THREE.Bone {
+   private createBoneFromDazBoneNode(node: DazNode): THREE.Bone {
+      ASSERT_(node.type === 'bone', `Node ${node.dazId} is not a bone type`)
       const bone = new THREE.Bone()
       bone.name = node.data.name || node.dazId
 
-      const _rotation = this.assertXYZChanels(node.data.rotation || [])
+      const _rotation = assertXYZChanels(node.data.rotation || [])
       if (_rotation.x !== 0 || _rotation.y !== 0 || _rotation.z !== 0) console.log(`[🔴] !!`, { _rotation })
 
-      const _translation = this.assertXYZChanels(node.data.translation || [])
+      const _translation = assertXYZChanels(node.data.translation || [])
       if (_translation.x !== 0 || _translation.y !== 0 || _translation.z !== 0) console.log(`[🔴] !!`, { _translation })
 
-      const _scale = this.assertXYZChanels(node.data.scale || [])
+      const _scale = assertXYZChanels(node.data.scale || [])
       if (_scale.x !== 1 || _scale.y !== 1 || _scale.z !== 1) console.log(`[🔴] !!`, JSON.stringify({ _scale }))
-      // const _orientation = this.assertXYZChanels(node.data.orientation || [])
+      // const _orientation = assertXYZChanels(node.data.orientation || [])
       // if (_orientation.x !== 0 || _orientation.y !== 0 || _orientation.z !== 0) console.log(`[🔴] !!`, { _orientation })
 
       // Set initial position/rotation from node data if available
       // This would need to be expanded based on your node_inf structure
       if (node.data.center_point) {
          const chans = node.data.center_point
-         const { x, y, z } = this.assertXYZChanels(chans)
+         const { x, y, z } = assertXYZChanels(chans)
          bone.position.set(x, y, z)
       }
 
@@ -365,21 +342,32 @@ export class RVCharacter {
             console.warn(`[RVCharacter] Bone not found for transform: ${targetName}`)
             return
          }
-
+         // Handle rotation
          if (property === 'rotation') {
             const radians = (change.value * Math.PI) / 180 // Convert degrees to radians
-            switch (axis) {
-               case 'x':
-                  bone.rotation.x = radians
-                  break
-               case 'y':
-                  bone.rotation.y = radians
-                  break
-               case 'z':
-                  bone.rotation.z = radians
-                  break
-            }
+            if (axis === 'x') bone.rotateX(radians)
+            else if (axis === 'y') bone.rotateY(radians)
+            else if (axis === 'z') bone.rotateZ(radians)
+            else throw new Error(`[RVCharacter] Unknown rotation axis: ${axis}`)
          }
+         // Handle translation
+         else if (property === 'translation') {
+            const value = NUMBER_OR_CRASH(change.value, `Expected a number for translation, got: ${change.value}`)
+            if (axis === 'x') bone.translateX(value)
+            else if (axis === 'y') bone.translateY(value)
+            else if (axis === 'z') bone.translateZ(value)
+            else throw new Error(`[RVCharacter] Unknown translation axis: ${axis}`)
+         }
+         // scale
+         // else if (property === 'scale') {
+         //    const value = NUMBER_OR_CRASH(change.value, `Expected a number for scale, got: ${change.value}`)
+         //    if (axis === 'x') bone.scale.x *= value
+         //    else if (axis === 'y') bone.scale.y *= value
+         //    else if (axis === 'z') bone.scale.z *= value
+         //    else throw new Error(`[RVCharacter] Unknown scale axis: ${axis}`)
+         // }
+         // crash
+         else throw new Error(`[RVCharacter] Unknown property for transform: ${property}`)
          // Add support for translation, scale, etc. as needed
          return
       }
@@ -404,6 +392,256 @@ export class RVCharacter {
       }
 
       console.warn(`[RVCharacter] Unknown pose URL format: ${change.url}`)
+   }
+
+   // TODO: filter for modifiers that are actually applicable to this character/figure
+   get applicableModifiers(): ModifierDB {
+      return getMgr().getModifierDB_orCrash()
+   }
+
+   // influences: THREE.MorphTarget[] = []
+   async setModifierValue(
+      //
+      modifierId: string,
+      _value: number,
+      p: {
+         onMissingModifier?: (modifierId: string) => void
+         onMissingBone?: (boneId: string) => void
+      } = {},
+   ) {
+      const mod = this.applicableModifiers[modifierId]
+      if (!mod) {
+         p.onMissingModifier?.(modifierId)
+         return void console.warn(`[RVCharacter] ❌ Modifier ${modifierId} not found in database`)
+      }
+
+      console.log(`[🤠] A`)
+      const FILE = await getMgr().loadFileFromAbsPath(mod.path)
+      if (!FILE) {
+         p.onMissingModifier?.(modifierId)
+         return void console.warn(`[RVCharacter] ❌ Morph file for ${modifierId} not found at ${mod.path}`)
+      }
+      // ensure it's a DazFileModifier and it has a morph
+      console.log(`[🤠] B`)
+      ASSERT_INSTANCE_OF(FILE, GLOBAL.DazFileModifier)
+
+      console.log(`[🤠] C`, fmtAbsPath(mod.path))
+      if (mod.morph) {
+         // If morph already applied, just update influence
+         if (this.morphData.has(modifierId)) {
+            const data = this.morphData.get(modifierId)!
+            data.mesh.morphTargetInfluences![data.influenceIndex] = _value
+            return void console.log(`[RVCharacter] ✅ Morph ${modifierId} influence updated to ${_value}`)
+         }
+
+         // load file containing the modifier with the morph
+         const morphData: $$morph | null = FILE.getMorphModifier()
+         if (!morphData) {
+            p.onMissingModifier?.(modifierId)
+            return void console.warn(`[RVCharacter] ❌ Morph data for ${modifierId} not found in file ${mod.path}`)
+         }
+
+         // print debug
+         const debug = simplifyObject(morphData)
+         console.log(`[🤠] ${JSON.stringify(debug)}`)
+
+         // Get the parent URL of the modifier
+         const parentUrl = mod.parent
+         if (!parentUrl) {
+            p.onMissingModifier?.(modifierId)
+            return void console.warn(`[RVCharacter] ❌ Modifier ${modifierId} is missing parent geometry reference.`)
+         }
+
+         // Get the target geometry ID from the parent URL
+         const { asset_id: targetGeometryId } = parseDazUrl(parentUrl)
+         if (!targetGeometryId) {
+            p.onMissingModifier?.(modifierId)
+            return void console.warn(`[RVCharacter] ❌ Could not parse geometry ID from parent URL: ${parentUrl}`)
+         }
+
+         // Find the target geometry instance in the character's node instances
+         let targetGeometryInstance: DazGeometryInstance | undefined
+         for (const nodeInst of this.character.nodeInstances.values()) {
+            for (const geomInst of nodeInst.geometryInstances.values()) {
+               const { asset_id } = parseDazUrl(geomInst.url)
+               if (asset_id === targetGeometryId) {
+                  targetGeometryInstance = geomInst
+                  break
+               }
+            }
+            if (targetGeometryInstance) break
+         }
+         if (!targetGeometryInstance) {
+            p.onMissingModifier?.(modifierId)
+            return void console.warn(
+               `[RVCharacter] ❌ Geometry instance for morph ${modifierId} (geomId: ${targetGeometryId}) not found.`,
+            )
+         } else
+            console.log(`[🤠] Found target geometry instance for morph ${modifierId}:`, targetGeometryInstance?.dazId)
+
+         // get the skinned mesh by its name
+         const meshName = `SkinnedMesh_${targetGeometryInstance.dazId}`
+         const targetMesh = this.meshes.find((m) => m.name === meshName) as THREE.SkinnedMesh | undefined
+         if (!targetMesh) {
+            p.onMissingModifier?.(modifierId)
+            return void console.warn(`[RVCharacter] ❌ Mesh for morph ${modifierId} not found: ${meshName}`)
+         }
+
+         const positionAttribute = targetMesh.geometry.attributes.position
+         if (!positionAttribute) {
+            return void console.warn(`[RVCharacter] ❌ Target mesh for morph has no position attribute.`)
+         }
+
+         const originalPositions = positionAttribute.array as Float32Array
+         const morphedPositions = new Float32Array(originalPositions.length) // Create a separate array for deltas
+
+         // IMPORTANT: The morph target stores the DELTA, not the final position.
+         // Initialize with zeros.
+         morphedPositions.fill(0)
+
+         for (const [vertexIndex, dx, dy, dz] of morphData.deltas.values) {
+            const i = vertexIndex * 3
+            morphedPositions[i] = dx
+            morphedPositions[i + 1] = dy
+            morphedPositions[i + 2] = dz
+         }
+
+         const morphAttribute = new THREE.Float32BufferAttribute(morphedPositions, 3)
+         morphAttribute.name = modifierId
+
+         targetMesh.geometry.morphAttributes.position ??= []
+         targetMesh.geometry.morphAttributes.position.push(morphAttribute)
+
+         targetMesh.morphTargetInfluences ??= []
+         const influenceIndex = targetMesh.geometry.morphAttributes.position.length - 1
+
+         // Ensure influences array is long enough
+         while (targetMesh.morphTargetInfluences.length <= influenceIndex) {
+            targetMesh.morphTargetInfluences.push(0)
+         }
+
+         targetMesh.morphTargetInfluences[influenceIndex] = _value
+         targetMesh.updateMorphTargets()
+         this.morphData.set(modifierId, { mesh: targetMesh, influenceIndex })
+
+         console.log(`[RVCharacter] ✅ Morph ${modifierId} applied with value ${_value}`)
+      }
+
+      const outputs: {
+         [key: string]: {
+            sum: number[]
+            multiply: number[]
+         }
+      } = {}
+
+      if (mod.formula) {
+         //  scheme      file_path      property_path
+         //    _|_       _____|_____          _|_
+         //   /   \     /           \        /   \
+         //        hips:morphs/Daphne#daphne?value
+         //        \__/               \____/
+         //          |                   |
+         //      node_path           asset_id
+
+         const formulas = bang(FILE.getFirstAndOnlyModifier_orCrash()?.formulas)
+         for (const formula of formulas) {
+            const result = this.evaluateFormula(formula)
+            console.log(`[🤠] `, formula, result)
+
+            // Parse the output URL
+            const output = parseDazUrl(formula.output)
+            const bone = this.bones.get(output.node_path!)
+            if (!bone) {
+               p.onMissingBone?.(output.node_path!)
+               console.warn(`[RVCharacter] 🔴 Bone not found for modifier output: ${output.node_path!}`)
+               continue
+            }
+            console.log(`[🤠] bone=${bone.name}`)
+            const property = output.property_path
+            if (property === 'rotation/x') bone.rotation.x = (result * Math.PI) / 180
+            else if (property === 'rotation/y') bone.rotation.y = (result * Math.PI) / 180
+            else if (property === 'rotation/z') bone.rotation.z = (result * Math.PI) / 180
+            else if (property === 'translation/x') bone.position.x += result
+            else if (property === 'translation/y') bone.position.y += result
+            else if (property === 'translation/z') bone.position.z += result
+            else if (property === 'scale/general') bone.scale.set(result, result, result)
+            else if (property === 'center_point/x') bone
+            else throw new Error(`[RVCharacter] ❌ Unknown property in modifier output: ${property}`)
+         }
+      }
+
+      // per the doc
+      const finalOutputs: { [key: string]: number } = {}
+      for (const key in outputs) {
+         const sum = outputs[key].sum.reduce((a, b) => a + b, 0)
+         const mult = outputs[key].multiply.reduce((a, b) => a * b, 1)
+         finalOutputs[key] = sum * mult
+      }
+      console.log(`[🤠] Final Outputs:`, finalOutputs)
+   }
+
+   getValueFromUrl(url: string_DazUrl): number {
+      console.log(`[🧐] attempting to get the value at ${url}`)
+      const res = parseDazUrl(url)
+      console.log(`           ${JSON.stringify(res)}`)
+      if (!res.node_path) {
+         throw new Error(`[RVCharacter] ❌ Invalid URL: ${url} - missing node_path`)
+      }
+      return 0.5
+   }
+
+   // @ts-ignore
+   private evaluateFormula(formula: $$formula /* value: number */): number {
+      const stack: number[] = []
+      for (const op of formula.operations) {
+         switch (op.op) {
+            case 'push':
+               if ('url' in op) {
+                  const value = this.getValueFromUrl(op.url)
+                  stack.push(value)
+               } else if ('val' in op) {
+                  if (typeof op.val !== 'number') {
+                     throw new Error(`[evaluateFormula] ❌ Invalid value in push operation: ${JSON.stringify(op)}`)
+                  }
+                  stack.push(op.val)
+               }
+               break
+            case 'mult':
+               {
+                  const a = stack.pop()!
+                  const b = stack.pop()!
+                  stack.push(a * b)
+               }
+               break
+            // @ts-ignore
+            case 'add':
+               {
+                  const a = stack.pop()!
+                  const b = stack.pop()!
+                  stack.push(a + b)
+               }
+               break
+            // @ts-ignore
+            case 'sub':
+               {
+                  const a = stack.pop()!
+                  const b = stack.pop()!
+                  stack.push(b - a)
+               }
+               break
+            // @ts-ignore
+            case 'div':
+               {
+                  const a = stack.pop()!
+                  const b = stack.pop()!
+                  stack.push(b / a)
+               }
+               break
+            default:
+               throw new Error(`[evaluateFormula] ❌ Unknown formula operation: ${op.op}`)
+         }
+      }
+      return stack[0]
    }
 
    // Debug and utility methods
@@ -505,7 +743,19 @@ export class RVCharacter {
       return result
    }
 
-   private updateSkeletonMatrices(): void {
+   getBone(boneId: string): THREE.Bone {
+      const bone = this.bones.get(dazId(boneId))
+      if (!bone) {
+         throw new Error(`Bone with id ${boneId} not found`)
+      }
+      return bone
+   }
+
+   get availableBones(): string[] {
+      return [...this.bones.keys()]
+   }
+
+   updateSkeletonMatrices(): void {
       if (!this.skeleton) return
 
       // Force update of all bone world matrices to keep SkeletonHelper synchronized

@@ -68,7 +68,7 @@ export class DazFileCharacter extends DsonFile {
 
       if (figureNodeRef?.data.url) {
          try {
-            const { srcPath: dsfPath } = getDazPathAndIdFromDazURL_orCrash(figureNodeRef.data.url)
+            const { file_path: dsfPath } = getDazPathAndIdFromDazURL_orCrash(figureNodeRef.data.url)
             this.figure = await this.mgr.loadDazFigureByRelPath_orCrash(dsfPath as string_RelPath)
          } catch (e) {
             console.error(

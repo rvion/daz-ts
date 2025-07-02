@@ -1,4 +1,6 @@
 {
+
+   //
    "editor.tabSize": 3,
    "editor.defaultFormatter": "biomejs.biome",
    "editor.formatOnSave": true,
@@ -58,7 +60,7 @@
    // This key setting prevents Next Edit Suggestions from appearing until
    // you actively navigate to them with Tab. This makes the feature
    // powerful but not visually distracting during normal typing.
-   "editor.inlineSuggest.edits.showCollapsed": true,
+   "editor.inlineSuggest.edits.showCollapsed": false,
    "editor.inlineSuggest.edits.allowCodeShifting": "always",
    "editor.inlineSuggest.enabled": true,
    "editor.inlineSuggest.syntaxHighlightingEnabled": true,

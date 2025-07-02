@@ -71,10 +71,11 @@ describe('DazFileModifier', () => {
       const url = dazUrl`/data/Daz%203D/G9ToonCommon/Genesis%209%20Toon%20Floating%20Iris/G9ToonFloatingIris.dsf#G9ToonFloatingIris`
       const parts = mgr.parseUrl(url)
       expect(parts).toStrictEqual({
-         idInFile: dazId`G9ToonFloatingIris`,
-         nodeRef: undefined,
-         property: undefined,
-         srcPath: 'data/Daz 3D/G9ToonCommon/Genesis 9 Toon Floating Iris/G9ToonFloatingIris.dsf',
+         scheme: 'id',
+         asset_id: dazId`G9ToonFloatingIris`,
+         node_path: undefined,
+         property_path: undefined,
+         file_path: 'data/Daz 3D/G9ToonCommon/Genesis 9 Toon Floating Iris/G9ToonFloatingIris.dsf',
       })
 
       await mgr.loadFile(`/data/AprilYSH/EirgridGenesis/EirgridHairG9/Morphs/AprilYSH/Base/body_cbs_head_x30n.dsf`)

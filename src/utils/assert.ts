@@ -52,3 +52,17 @@ export const ASSERT_INSTANCE_OF = <T>(
    }
    return obj
 }
+
+export const assertXYZChanels = (
+   chans?: Maybe<{ id?: string; value?: unknown }[]>,
+): { x: number; y: number; z: number } => {
+   if (chans == null) throw new Error('center_point must have channels')
+   ASSERT_(chans.length === 3, 'center_point must have exactly 3 channels (x, y, z)')
+   ASSERT_(chans[0].id === 'x', `channel name should be x. (${JSON.stringify(chans[0])})`)
+   ASSERT_(chans[1].id === 'y', `channel name should be y. (${JSON.stringify(chans[1])})`)
+   ASSERT_(chans[2].id === 'z', `channel name should be z. (${JSON.stringify(chans[2])})`)
+   const x = NUMBER_OR_CRASH(chans[0].value, 'x must be a number')
+   const y = NUMBER_OR_CRASH(chans[1].value, 'y must be a number')
+   const z = NUMBER_OR_CRASH(chans[2].value, 'z must be a number')
+   return { x, y, z }
+}

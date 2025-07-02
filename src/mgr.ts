@@ -11,11 +11,12 @@ import { checkpoint, GLOBAL, registerMgrInstance } from './DI.js'
 import type { FS } from './fs/fsNode.js'
 import type { PathInfo } from './fs/PathInfo.js'
 import { processFiles, type WalkOptions } from './fs/walk.js'
+import { ModifierDB } from './scripts/parse-modifiers.js'
 import { $$, $$asset_info, $$dson, DazAssetType, string_DazUrl } from './spec.js'
 import { relPath, string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
 import { ASSERT_INSTANCE_OF, bang } from './utils/assert.js'
-import { DazUrlParts, getDazUrlParts } from './utils/parseDazUrl.js'
+import { DazUrlParts, parseDazUrl } from './utils/parseDazUrl.js'
 import { readableStringify } from './utils/readableStringify.js'
 
 type CachedLibraryFiles = {
@@ -28,6 +29,22 @@ type CachedLibraryFiles = {
 
 export class DazMgr {
    /** @internal */ private ____DI____ = (() => registerMgrInstance(this))()
+   public modifiersDb: ModifierDB | null = null
+   public getModifierDB_orCrash(): ModifierDB {
+      if (this.modifiersDb) return this.modifiersDb
+      throw new Error('Modifiers database not loaded. Call loadModifiersDb() first.')
+   }
+   async loadModifiersDb(): Promise<ModifierDB> {
+      if (this.modifiersDb) return this.modifiersDb
+      const dbPath = 'data/modifiers.json'
+      try {
+         const { json } = await this.fs.readJSON(dbPath)
+         this.modifiersDb = json as ModifierDB
+      } catch (_e) {
+         throw new Error(`Modifiers database not found at ${dbPath}. Run 'bun src/scripts/parse-modifiers.ts' to generate it.`,) // biome-ignore format: misc
+      }
+      return this.modifiersDb
+   }
 
    // ---- files
    filesFull = new Map<string_AbsPath, KnownDazFile>()
@@ -85,6 +102,11 @@ export class DazMgr {
 
    // ---- Load
    /**  Load full Daz asset, from meta. */
+   async loadFileFromAbsPath(absPath: string_AbsPath): Promise<KnownDazFile> {
+      const file = await this._loadFromPathInfo(this._resolveAbsPath(absPath)) // Store the file path in the manager
+      await file.resolve()
+      return file
+   }
    async loadFile(relPath: string_RelPath) {
       const file = await this._loadFromPathInfo(this._resolveRelPath(relPath)) // Store the file path in the manager
       await file.resolve()
@@ -152,7 +174,7 @@ export class DazMgr {
    }
 
    parseUrl(url: string_DazUrl): DazUrlParts {
-      return getDazUrlParts(url)
+      return parseDazUrl(url)
    }
 
    // #region ---- Inspect Library

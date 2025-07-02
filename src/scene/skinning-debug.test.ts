@@ -22,7 +22,7 @@ describe('Skinning Debug', () => {
          if (!nodeRef.geometryInstances) continue
 
          for (const geometryRef of nodeRef.geometryInstances.values()) {
-            const resolvedInf = geometryRef.resolvedGeometryInf
+            const resolvedInf = geometryRef.geometry
             if (!resolvedInf) continue
 
             if (character.figure_orCrash.hasSkinData()) {

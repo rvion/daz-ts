@@ -1,6 +1,7 @@
 import type { PathInfo } from '../fs/PathInfo.js'
-import { $$dson, $$modifier, DazAssetType, string_DazId, string_DazUrl } from '../spec.js'
+import { $$dson, $$modifier, $$morph, DazAssetType, string_DazId, string_DazUrl } from '../spec.js'
 import { string_AbsPath, string_Ext, string_RelPath } from '../types.js'
+import { ASSERT, ASSERT_, bang } from '../utils/assert.js'
 import { fmtAbsPath } from '../utils/fmt.js'
 import { DazAbstraction } from './_DazAbstraction.js'
 import type { DazFileCharacter } from './DazFileCharacter.js'
@@ -49,6 +50,22 @@ export abstract class DsonFile extends DazAbstraction<PathInfo, $$dson> {
       return this._modifiers
    }
 
+   // #region morpth
+   /** returns the first morph modifier */
+   getMorphModifier(): $$morph | null {
+      ASSERT_(this.modifiers.size <= 1, 'too many modifiers in file; possibly wrong')
+      if (this.modifiers.size === 0) return null
+      const firstModifier = bang(this.modifierList[0])
+      return firstModifier.data.morph ?? null
+   }
+   getFirstAndOnlyModifier_orCrash(): $$modifier | null {
+      ASSERT_(this.modifiers.size <= 1, 'too many modifiers in file; possibly wrong')
+      if (this.modifiers.size === 0) return null
+      const firstModifier = bang(this.modifierList[0])
+      return firstModifier.data
+   }
+
+   // #region skin data
    hasSkinData(): boolean {
       const skinModifier = this.getSkinBindingModifier()
       return !!(skinModifier?.skin?.joints && skinModifier.skin.joints.length > 0)
@@ -64,34 +81,18 @@ export abstract class DsonFile extends DazAbstraction<PathInfo, $$dson> {
       return null
    }
 
-   get dazId(): string_DazUrl {
-      return this.data.asset_info.id
-   }
+   // #region ---- main properties
+   get dazId(): string_DazUrl { return this.data.asset_info.id } // biome-ignore format: misc
+   get assetType(): DazAssetType { return this.data.asset_info.type ?? 'unknown' } // biome-ignore format: misc
 
-   get assetType(): DazAssetType {
-      return this.data.asset_info.type ?? 'unknown'
-   }
+   // #region ---- paths
+   get absPath(): string_AbsPath { return this.source.absPath } // biome-ignore format: misc
+   get relPath(): string_RelPath { return this.source.relPath } // biome-ignore format: misc
+   get fileExt(): string_Ext { return this.source.fileExt } // biome-ignore format: misc
+   get rootDir(): string { return this.source.rootDir } // biome-ignore format: misc
+   get dazId_nice(): string { return this.dazId.replaceAll('%20', ' ') } // biome-ignore format: misc
 
-   get absPath(): string_AbsPath {
-      return this.source.absPath
-   }
-
-   get relPath(): string_RelPath {
-      return this.source.relPath
-   }
-
-   get fileExt(): string_Ext {
-      return this.source.fileExt
-   }
-
-   get rootDir(): string {
-      return this.source.rootDir
-   }
-
-   get dazId_nice(): string {
-      return this.dazId.replaceAll('%20', ' ')
-   }
-   // ---- print methods
+   // #region ---- print methods
    override printHeader(): void {
       // console.log(`[${this.emoji} ${this.assetType} #${fmtDazId(this.dazId)}] ${fmtAbsPath(this.absPath)} `)
       console.log(`[${this.emoji} ${this.assetType}] ${fmtAbsPath(this.absPath)}`)
