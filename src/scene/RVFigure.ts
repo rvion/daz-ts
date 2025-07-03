@@ -1,4 +1,3 @@
-import chalk from 'chalk'
 import * as THREE from 'three'
 import { DazFileCharacter } from '../core/DazFileCharacter.js'
 import { DazFilePose } from '../core/DazFilePose.js'
@@ -7,9 +6,8 @@ import { DazNode } from '../core/DazNode.js'
 import { DazNodeInstance } from '../core/DazNodeInstance.js'
 import { GLOBAL, getMgr } from '../DI.js'
 import { ModifierDB } from '../scripts/parse-modifiers.js'
-import { $$formula, $$morph, dazId, string_DazId, string_DazUrl } from '../spec.js'
+import { $$morph, dazId, string_DazId } from '../spec.js'
 import { ASSERT_, ASSERT_INSTANCE_OF, assertXYZChanels, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
-import { fmtAbsPath } from '../utils/fmt.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
 import { simplifyObject } from '../utils/simplifyObject.js'
 import { FormulaHelper } from './FormulaHelper.js'
@@ -433,7 +431,7 @@ export class RVFigure extends RVNode {
 
          // print debug
          const debug = simplifyObject(morphData)
-         console.log(`[🤠] ${JSON.stringify(debug)}`)
+         console.log(`[modifier.morph] ${JSON.stringify(debug)}`)
 
          // Get the parent URL of the modifier
          const parentUrl = mod.parent

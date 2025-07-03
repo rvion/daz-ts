@@ -229,6 +229,6 @@ export abstract class DsonFile extends DazAbstraction<PathInfo, $$dson> {
    // #region ---- print methods
    override printHeader(): void {
       // console.log(`[${this.emoji} ${this.assetType} #${fmtDazId(this.dazId)}] ${fmtAbsPath(this.absPath)} `)
-      console.log(`[${this.emoji} ${this.assetType}] ${fmtAbsPath(this.absPath)}`)
+      console.log(`[${this.emoji}] ${this.assetType.padEnd(10)} ${fmtAbsPath(this.absPath)}`)
    }
 }
