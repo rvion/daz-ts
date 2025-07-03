@@ -8,7 +8,6 @@ import { DazMgr } from '../mgr.js'
 import { RVCharacter } from './Character.js'
 
 describe('RVCharacter Modifier Tests', () => {
-   let character: DazFileCharacter
    let rvCharacter: RVCharacter
 
    beforeAll(async () => {
@@ -18,11 +17,10 @@ describe('RVCharacter Modifier Tests', () => {
       if (!(characterFile instanceof DazFileCharacter)) {
          throw new Error(`Expected DazCharacter, got ${characterFile.constructor.name}`)
       }
-      character = characterFile
-      rvCharacter = new RVCharacter(character)
+      rvCharacter = await RVCharacter.createFromFile(characterFile)
    })
 
-   test.only('should apply body_ctrl_WaistTwist modifier', async () => {
+   test('should apply body_ctrl_WaistTwist modifier', async () => {
       const lHand = rvCharacter.getBone_orCrash('l_hand')
       const initialPosition = lHand.getWorldPosition(new THREE.Vector3())
 
@@ -35,11 +33,12 @@ describe('RVCharacter Modifier Tests', () => {
 
    test('find modifier by name', () => {
       expect(rvCharacter.applicableModifiers).toBeDefined()
-      expect(rvCharacter.applicableModifiers['body_bs_ProportionArmsLength']).toBeDefined()
+      expect(rvCharacter.applicableModifiers.body_bs_ProportionArmsLength).toBeDefined()
       // rvCharacter.setModifierValue('body_bs_ProportionArmsLength', 3)
       // expect()
    })
 
+   // 🔴 this test is failing
    test('should apply body_bs_ProportionArmsLength modifier', async () => {
       const lHand = rvCharacter.getBone_orCrash('l_hand')
       const initialPosition = lHand.getWorldPosition(new THREE.Vector3())

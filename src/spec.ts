@@ -248,7 +248,7 @@ export const $ = scope({
       'directional?': 'light_directional',
       'spot?': 'light_spot',
       'on?': 'boolean', // for light
-      'children?': 'node[]',
+      // 'children?': 'node[]',
       '+': 'reject',
    },
 

@@ -1,9 +1,9 @@
-import { DazMgr } from '../mgr.js'
 import { $$node, $$node_type, string_DazId } from '../spec.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
-import { AnyDazAbstraction, DazAbstraction } from './_DazAbstraction.js'
+import { DazAbstraction } from './_DazAbstraction.js'
+import { DsonFile } from './_DsonFile.js'
 
-export class DazNode extends DazAbstraction<AnyDazAbstraction, $$node> {
+export class DazNode extends DazAbstraction<DsonFile, $$node> {
    get emoji() { return '🌳ℹ️' } // biome-ignore format: misc
    get kind() { return 'node_inf' } // biome-ignore format: misc
    get dazId(): string_DazId { return this.data.id } // biome-ignore format: misc
@@ -14,7 +14,7 @@ export class DazNode extends DazAbstraction<AnyDazAbstraction, $$node> {
    }
 
    get parent_orNull(): DazNode | null {
-      return this.getNode_orNull(this.parentId_orNull)
+      return this.source.getNode_orNull(this.parentId_orNull)
    }
 
    get parent_orCrash(): DazNode {
@@ -36,23 +36,4 @@ export class DazNode extends DazAbstraction<AnyDazAbstraction, $$node> {
       if (!parentId) return null
       return parentId
    }
-
-   // init
-   static async init(mgr: DazMgr, parent: AnyDazAbstraction, json: $$node): Promise<DazNode> {
-      const self = new DazNode(mgr, parent, json)
-      // self.printHeader()
-
-      // If this node_inf has children (e.g., a skeleton), hydrate them
-      if (self.data.children) {
-         for (const childNodeData of self.data.children) {
-            await self.hydrateNode(childNodeData) // Recursive call for child nodes
-         }
-      }
-      // TODO: Potentially hydrate other properties like formulas or specific extra channels if needed
-
-      return self
-   }
-
-   // TODO: Add methods to access specific properties from node_inf if required,
-   // e.g., get transformations, presentation details, etc.
 }

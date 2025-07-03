@@ -16,7 +16,6 @@ export class DazFilePose extends DsonFile {
       return self
    }
 
-   async resolve(): Promise<void> {}
    // "scene" : {
    // "animations" : [
    // 	{

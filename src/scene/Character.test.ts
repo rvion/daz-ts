@@ -27,12 +27,12 @@ describe('RVCharacter Skeleton Tests', () => {
    beforeAll(async () => {
       console.log(`[🤠] 🔴`)
       character = await loadGenesis9Character()
-      rvCharacter = new RVCharacter(character)
+      rvCharacter = await RVCharacter.createFromFile(character)
    })
 
-   test('should create character with resolved figure', () => {
-      expect(character.figure).toBeDefined()
-      expect(character.figure).not.toBeNull()
+   test('should create character with resolved figure', async () => {
+      expect(character.resolve()).toBeDefined()
+      expect(character.resolve()).not.toBeNull()
    })
 
    test('should build skeleton with bones', () => {

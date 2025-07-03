@@ -14,18 +14,5 @@ export class DazFileWearable extends DsonFile {
       return self
    }
 
-   async resolve(): Promise<void> {
-      // init
-      if (this.data.scene?.nodes) {
-         // scene or nodes might be optional
-         for (const nodeRefData of this.data.scene.nodes) {
-            await this.hydrateNodeInstances(nodeRefData) // Changed from hydrateNode
-         }
-      }
-      // if (this.data.node_library) {
-      //    for (const nodeRefData of this.data.node_library) {
-      //       await this.hydrateNodeRef(nodeRefData)
-      //    }
-      // }
-   }
+   // async resolve(): Promise<void> {}
 }

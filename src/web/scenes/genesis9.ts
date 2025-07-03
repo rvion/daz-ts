@@ -16,8 +16,8 @@ export async function initSceneGenesis9(characterData: DazFileCharacter) {
    runtimeScene = new RuntimeScene()
 
    // 2. Create new character instances from Daz data
-   const character = new RVCharacter(characterData)
-   const character2 = new RVCharacter(characterData)
+   const character = await RVCharacter.createFromFile(characterData)
+   const character2 = await RVCharacter.createFromFile(characterData)
 
    // Assuming Daz units are cm, 75 => 75cm => 0.75m
    character.x = -75 // Position character 1 to the left

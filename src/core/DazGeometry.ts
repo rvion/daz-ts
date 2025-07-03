@@ -8,7 +8,7 @@ export class DazGeometry extends DazAbstraction<DsonFile, $$geometry> {
    emoji = '🔻'
    kind = 'geometry'
    get dazId(): string_DazId { return this.data.id } // biome-ignore format: misc
-   async resolve(): Promise<void> {}
+   // async resolve(): Promise<void> {}
 
    override get summary(): string {
       const infos: string[] = []

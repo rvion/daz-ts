@@ -15,14 +15,7 @@ export class DazFileFigure extends DsonFile {
       return self
    }
 
-   async resolve(): Promise<void> {
-      // init
-      if (this.data.node_library) {
-         for (const nodeInfData of this.data.node_library) {
-            await this.hydrateNode(nodeInfData) // Use hydrateNodeInf for node_inf types
-         }
-      }
-   }
+   // async resolve(): Promise<void> {}
 
    get availableGeometryIds(): string_DazId[] {
       return Array.from(this.geometries.keys())

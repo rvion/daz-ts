@@ -15,7 +15,7 @@ describe('Bone Names Debug', () => {
       expect(characters.length).toBeGreaterThan(0)
       expect(characters[0].relPath).toBe('People/Genesis 9/Genesis 9.duf')
 
-      const character = new RVCharacter(characters[0])
+      const character = await RVCharacter.createFromFile(characters[0])
       expect(character.skeleton).toBeTruthy()
       expect(character.bones.size).toBeGreaterThan(0)
 

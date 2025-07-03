@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import '../DI.js'
+import { GLOBAL } from '../DI.js'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { dazId, dazUrl, string_DazUrl } from '../spec.js'
@@ -11,10 +12,14 @@ describe('DazFileModifier', () => {
       const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
 
       expect(mgr.countPerTypePerExt.get('total').get('modifier').x).toBe(0)
-      // Initialize the modifier
+
+      // load the modifier
       const entrypoint = 'data/DAZ 3D/Genesis 9/Base/Morphs/Daz 3D/Base Pose/body_ctrl_HipBend.dsf'
-      const modifier = await mgr.loadFile(entrypoint)
-      // entrypoint should itself references
+      const modifier = await mgr.loadFileAs(entrypoint, GLOBAL.DazFileModifier)
+      expect(mgr.countPerTypePerExt.get('total').get('modifier').x).toBe(1)
+
+      // entrypoint should itself references different other files
+      await modifier.resolveAllUrls()
       expect(mgr.countPerTypePerExt.get('total').get('modifier').x).toBe(3)
 
       if (!(modifier instanceof DazFileModifier)) {
@@ -34,8 +39,8 @@ describe('DazFileModifier', () => {
       expect(modifier.modifierLibrary[0].name).toBe('body_ctrl_HipBend')
 
       // Test scene modifiers
-      expect(modifier.sceneModifiers).toHaveLength(1)
-      expect(modifier.sceneModifiers[0].id).toBe(dazId('body_ctrl_HipBend'))
+      expect(modifier.sceneModifiersList).toHaveLength(1)
+      expect(modifier.sceneModifiersList[0].id).toBe(dazId('body_ctrl_HipBend'))
 
       // Test formula outputs
       const outputs = modifier.formulaOutputs
@@ -53,11 +58,11 @@ describe('DazFileModifier', () => {
       expect(parentRefs[0]).toBe('/data/Daz%203D/Genesis%209/Base/Genesis9.dsf#Genesis9' as string_DazUrl)
 
       // Test URL resolution - should resolve multiple files now
-      expect(modifier.resolvedUrls.size).toBeGreaterThan(0)
-      expect(modifier.resolvedUrls.has('/data/Daz%203D/Genesis%209/Base/Genesis9.dsf#Genesis9')).toBe(true)
+      expect(modifier._resolvedUrls.size).toBeGreaterThan(0)
+      expect(modifier._resolvedUrls.has('/data/Daz%203D/Genesis%209/Base/Genesis9.dsf#Genesis9')).toBe(true)
 
       // Check that we resolved the expected files
-      const resolvedIds = [...modifier.resolvedUrls.values()].map((f: KnownDazFile) => f.dazId).sort()
+      const resolvedIds = [...modifier._resolvedUrls.values()].map((f: KnownDazFile) => f.dazId).sort()
       expect(resolvedIds).toContain('/data/Daz%203D/Genesis%209/Base/Genesis9.dsf')
       expect(resolvedIds).toContain(
          '/data/Daz%203D/Genesis%209/Base/Morphs/Daz%203D/Base%20Pose/body_ctrl_HipBendFwd.dsf',

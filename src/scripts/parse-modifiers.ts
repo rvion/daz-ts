@@ -43,7 +43,7 @@ const MODIFIERS: DazModifier[] = []
 for (const a of modfiers /* .slice(1300) */) {
    checkpoint(`loading morph ${ix++}/${modfiers.length}`)
    try {
-      const _x = await mgr.loadFile_noResolve(a.relPath)
+      const _x = await mgr.loadFile(a.relPath)
       MODIFIERS.push(..._x.modifierList)
       // console.log(`[🤠] --------------------------------------------------`, x.constructor.name)
    } catch (err) {

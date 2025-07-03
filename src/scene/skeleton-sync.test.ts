@@ -11,11 +11,10 @@ import { RVCharacter } from './Character.js'
 describe('Skeleton Synchronization', () => {
    const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
 
-   test.only('skeleton helper should be visible without calling getWorldPosition', async () => {
+   test('skeleton helper should be visible without calling getWorldPosition', async () => {
       // Create a mock character with minimal data
-      const mockCharacter = await mgr.loadGenesis9CharacterFile()
-
-      const character = new RVCharacter(mockCharacter)
+      const genesis9: DazFileCharacter = await mgr.loadGenesis9CharacterFile()
+      const character: RVCharacter = await RVCharacter.createFromFile(genesis9)
 
       // Verify skeleton was created
       expect(character.skeleton).not.toBeNull()
@@ -47,9 +46,8 @@ describe('Skeleton Synchronization', () => {
    })
 
    test('skeleton matrices update during animation loop', async () => {
-      const mockCharacter = (await mgr.loadGenesis9CharacterFile()) as DazFileCharacter
-
-      const character = new RVCharacter(mockCharacter)
+      const mockCharacter: DazFileCharacter = await mgr.loadGenesis9CharacterFile()
+      const character = await RVCharacter.createFromFile(mockCharacter)
       const hipBone = character.bones.get(dazId('hip'))!
 
       // Modify bone rotation

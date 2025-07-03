@@ -1,7 +1,18 @@
 import type { PathInfo } from '../fs/PathInfo.js'
-import { $$dson, $$modifier, $$morph, DazAssetType, string_DazId, string_DazUrl } from '../spec.js'
-import { string_AbsPath, string_Ext, string_RelPath } from '../types.js'
-import { ASSERT, ASSERT_, bang } from '../utils/assert.js'
+import {
+   $$dson,
+   $$material_instance,
+   $$modifier,
+   $$modifier_instance,
+   $$morph,
+   $$node_instance,
+   $$uv_set_instance,
+   DazAssetType,
+   string_DazId,
+   string_DazUrl,
+} from '../spec.js'
+import { Maybe, string_AbsPath, string_Ext, string_RelPath } from '../types.js'
+import { ASSERT_, bang } from '../utils/assert.js'
 import { fmtAbsPath } from '../utils/fmt.js'
 import { DazAbstraction } from './_DazAbstraction.js'
 import type { DazFileCharacter } from './DazFileCharacter.js'
@@ -11,43 +22,147 @@ import type { DazFilePose } from './DazFilePose.js'
 import type { DazFileWearable } from './DazFileWearable.js'
 import { DazGeometry } from './DazGeometry.js'
 import { DazModifier } from './DazModifier.js'
+import { DazNode } from './DazNode.js'
+import { DazNodeInstance } from './DazNodeInstance.js'
 
 export type KnownDazFile = DazFileCharacter | DazFileWearable | DazFileFigure | DazFilePose | DazFileModifier
 
 export abstract class DsonFile extends DazAbstraction<PathInfo, $$dson> {
-   abstract resolve(): Promise<void>
-
-   // #region Geometry Library
-   private _geometries: Map<string_DazId, DazGeometry> | null = null
-   get geometries(): Map<string_DazId, DazGeometry> {
-      if (this._geometries != null) return this._geometries
-      this._geometries = new Map()
-      if (this.data.geometry_library) {
-         for (const geometryInfData of this.data.geometry_library) {
-            const geometry = new DazGeometry(this.mgr, this, geometryInfData)
-            this._geometries.set(geometry.dazId, geometry)
-         }
-      }
-      return this._geometries
+   // #region --------------- scene nodes -----------------
+   get sceneNodesList(): DazNodeInstance[] {
+      const value = Array.from(this.sceneNodes.values())
+      Object.defineProperty(this, 'sceneNodesList', { value })
+      return value
    }
 
-   // #region Modifier Library
-   private _modifiers: Map<string_DazId, DazModifier> | null = null
+   get sceneNodes(): Map<string_DazId, DazNodeInstance> {
+      const value = new Map<string_DazId, DazNodeInstance>()
+      const sceneNodes$: $$node_instance[] = this.data.scene?.nodes ?? []
+      for (const item of sceneNodes$) value.set(item.id, new DazNodeInstance(this.mgr, this, item))
+      Object.defineProperty(this, 'sceneNodes', { value })
+      return value
+   }
+
+   // #region --------------- scene uvs -----------------
+   get sceneUvsList(): $$uv_set_instance[] {
+      const value = Array.from(this.sceneUvs.values())
+      Object.defineProperty(this, 'sceneUvsList', { value })
+      return value
+   }
+
+   get sceneUvs(): Map<string_DazId, $$uv_set_instance> {
+      const value = new Map<string_DazId, $$uv_set_instance>()
+      for (const item of this.data.scene?.uvs ?? []) value.set(item.id, item)
+      Object.defineProperty(this, 'sceneUvs', { value })
+      return value
+   }
+
+   // #region --------------- scene modifiers -----------------
+   get sceneModifiersList(): $$modifier_instance[] {
+      const value = Array.from(this.sceneModifiers.values())
+      Object.defineProperty(this, 'sceneModifiersList', { value })
+      return value
+   }
+
+   get sceneModifiers(): Map<string_DazId, $$modifier_instance> {
+      const value = new Map<string_DazId, $$modifier_instance>()
+      for (const item of this.data.scene?.modifiers ?? []) value.set(item.id, item)
+      Object.defineProperty(this, 'sceneModifiers', { value })
+      return value
+   }
+
+   // #region --------------- scene materials -----------------
+   get sceneMaterialsList(): $$material_instance[] {
+      const value = Array.from(this.sceneMaterials.values())
+      Object.defineProperty(this, 'sceneMaterialsList', { value })
+      return value
+   }
+
+   get sceneMaterials(): Map<string_DazId, $$material_instance> {
+      const value = new Map<string_DazId, $$material_instance>()
+      for (const item of this.data.scene?.materials ?? []) value.set(item.id, item)
+      Object.defineProperty(this, 'sceneMaterials', { value })
+      return value
+   }
+
+   // #region --------------- scene animations -----------------
+   // get sceneAnimationsList(): $$channel_animation[] {
+   //    const value = Array.from(this.sceneAnimations.values())
+   //    Object.defineProperty(this, 'sceneAnimationsList', { value })
+   //    return value
+   // }
+
+   // get sceneAnimations(): Map<string_DazId, $$channel_animation> {
+   //    const value = new Map<string_DazId, $$channel_animation>()
+   //    for (const item of this.data.scene?.animations ?? []) value.set(item.id, item)
+   //    Object.defineProperty(this, 'sceneAnimations', { value })
+   //    return value
+   // }
+
+   // #region --------------- Geometries -----------------------
+   get geometryList(): DazGeometry[] {
+      const value = [...this.geometries.values()]
+      Object.defineProperty(this, 'geometryList', { value })
+      return value
+   }
+   get geometries(): Map<string_DazId, DazGeometry> {
+      const value = new Map<string_DazId, DazGeometry>()
+      if (this.data.geometry_library) {
+         for (const geometry$ of this.data.geometry_library) {
+            const geometry = new DazGeometry(this.mgr, this, geometry$)
+            value.set(geometry.dazId, geometry)
+         }
+      }
+      Object.defineProperty(this, 'geometries', { value })
+      return value
+   }
+
+   // #region --------------- Nodes -----------------------
+   get nodeList(): DazNode[] {
+      const value = [...this.nodes.values()]
+      Object.defineProperty(this, 'nodeList', { value })
+      return value
+   }
+   get nodes(): Map<string_DazId, DazNode> {
+      const value = new Map<string_DazId, DazNode>()
+      if (this.data.node_library) {
+         for (const node$ of this.data.node_library) {
+            const node = new DazNode(this.mgr, this, node$)
+            value.set(node.dazId, node)
+         }
+      }
+      Object.defineProperty(this, 'nodes', { value })
+      return value
+   }
+
+   getNode_orNull(nodeId?: Maybe<string_DazId>): DazNode | null {
+      if (nodeId == null) return null
+      return this.nodes.get(nodeId) ?? null
+   }
+
+   getNode_orCrash(nodeId?: Maybe<string_DazId>): DazNode {
+      if (nodeId == null) throw new Error(`Node ID is required to get node in ${this.kind} "${this.dazId}".`)
+      const node = this.nodes.get(nodeId)
+      if (node == null) throw new Error(`Node with ID "${nodeId}" not found in ${this.kind} "${this.dazId}".`)
+      return node
+   }
+
+   // #region --------------- Modifiers -----------------------
    get modifierList(): DazModifier[] {
       const value = [...this.modifiers.values()]
       Object.defineProperty(this, 'modifierList', { value })
       return value
    }
    get modifiers(): Map<string_DazId, DazModifier> {
-      if (this._modifiers != null) return this._modifiers
-      this._modifiers = new Map()
+      const value = new Map<string_DazId, DazModifier>()
       if (this.data.modifier_library) {
-         for (const modifierInfData of this.data.modifier_library) {
-            const modifier = new DazModifier(this.mgr, this, modifierInfData)
-            this._modifiers.set(modifier.dazId, modifier)
+         for (const modifier$ of this.data.modifier_library) {
+            const modifier = new DazModifier(this.mgr, this, modifier$)
+            value.set(modifier.dazId, modifier)
          }
       }
-      return this._modifiers
+      Object.defineProperty(this, 'modifiers', { value })
+      return value
    }
 
    // #region morpth

@@ -104,19 +104,21 @@ export class DazMgr {
    // ---- Load
    /**  Load full Daz asset, from meta. */
    async loadFileFromAbsPath(absPath: string_AbsPath): Promise<KnownDazFile> {
-      const file = await this._loadFromPathInfo(this._resolveAbsPath(absPath)) // Store the file path in the manager
-      await file.resolve()
-      return file
-   }
-   async loadFile(relPath: string_RelPath) {
-      const file = await this._loadFromPathInfo(this._resolveRelPath(relPath)) // Store the file path in the manager
-      await file.resolve()
-      return file
+      return await this._loadFromPathInfo(this._resolveAbsPath(absPath))
    }
 
-   /**  Load full Daz asset, from meta. */
-   async loadFile_noResolve(relPath: string_RelPath) {
-      return this._loadFromPathInfo(this._resolveRelPath(relPath)) // Store the file path in the manager
+   // async loadFileFromURL(dazurl: string_DazUrl): Promise<KnownDazFile> {
+   //    const parts = parseDazUrl(dazurl)
+   //    return await this._loadFromPathInfo(this._resolveRelPath(parts.file_path))
+   // }
+
+   async loadFile(relPath: string_RelPath) {
+      return await this._loadFromPathInfo(this._resolveRelPath(relPath))
+   }
+
+   async loadFileAs<T>(relPath: string_RelPath, TKlass: new (...args: any[]) => T): Promise<T> {
+      const file = await this._loadFromPathInfo(this._resolveRelPath(relPath))
+      return ASSERT_INSTANCE_OF(file, TKlass)
    }
 
    // ---- Load > Genesis 9 samples
@@ -240,8 +242,8 @@ export class DazMgr {
          // Ensure the data directory exists
          const outputDir = path.dirname(pathAssetList)
          await this.fs.mkdir(outputDir, { recursive: true })
-         await this._writeFile(pathAssetList, summary)
-         await this._writeFile(pathStats, this.statTable)
+         await this.fs.writeFile(pathAssetList, summary)
+         await this.fs.writeFile(pathStats, this.statTable)
          console.log(`Processed ${this.count} relevant files.`)
       } catch (err: unknown) {
          console.error(`Error writing to ${pathAssetList}`, err)
@@ -249,10 +251,6 @@ export class DazMgr {
    }
 
    // #region ---- Utils
-   private _writeFile(path: string, content: string): Promise<void> {
-      return this.fs.writeFile(path, content)
-   }
-
    private _resolveAbsPath(absPath: string_AbsPath): PathInfo {
       const relPath = path.relative(this.absRootPath, absPath) as string_RelPath
       return this.__resolveInteral(relPath, absPath)

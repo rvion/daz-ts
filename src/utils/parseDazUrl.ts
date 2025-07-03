@@ -93,7 +93,7 @@ Most channels may be named arbitrarily, but channels that deal with transform in
 */
 
 import { dazId, string_DazId, string_DazUrl } from '../spec.js'
-import { string_RelPath } from '../types.js'
+import { Maybe, string_RelPath } from '../types.js'
 
 export interface DazUrlParts {
    scheme: 'id' | 'name'
@@ -126,6 +126,11 @@ export interface DazUrlParts {
 
 //    return new URL(processedUrl, 'daz://')
 // }
+
+export const parseDazUrl_ = (dazUrl?: Maybe<string_DazUrl>): Maybe<DazUrlParts> => {
+   if (!dazUrl) return undefined
+   return parseDazUrl(dazUrl)
+}
 
 export const parseDazUrl = (dazUrl: string_DazUrl): DazUrlParts => {
    let urlToParse: string = dazUrl
@@ -190,22 +195,14 @@ export const getPathFromDazUrl = (dazUrl: string_DazUrl): string_RelPath | null 
    return parts ? parts.file_path : null
 }
 
-export const getDazPathAndIdFromDazURL_orCrash = (
-   dazUrl: string_DazUrl,
-): {
+// biome-ignore format: misc
+export const getDazPathAndIdFromDazURL_orCrash = (dazUrl: string_DazUrl): {
    file_path: string_RelPath
    asset_id: string_DazId
 } => {
    const parts = parseDazUrl(dazUrl)
-   if (!parts) {
-      throw new Error(`[getDazPathAndIdFromDazURL_orCrash] Failed to parse Daz URL into parts: "${dazUrl}"`)
-   }
-   if (!parts.asset_id) {
-      throw new Error(
-         `[getDazPathAndIdFromDazURL_orCrash] Daz URL does not contain an ID (hash part) required for this operation: "${dazUrl}"`,
-      )
-   }
-   // Type assertion is safe here due to the checks above
+   if (!parts) throw new Error(`[getDazPathAndIdFromDazURL_orCrash] Failed to parse Daz URL into parts: "${dazUrl}"`)
+   if (!parts.asset_id) throw new Error(`[getDazPathAndIdFromDazURL_orCrash] Daz URL does not contain an ID (hash part) required for this operation: "${dazUrl}"`)
    return {
       file_path: parts.file_path,
       asset_id: parts.asset_id,

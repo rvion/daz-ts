@@ -2,7 +2,6 @@
 
 import * as THREE from 'three'
 import { DazFileCharacter } from '../core/DazFileCharacter.js'
-import { DazFileFigure } from '../core/DazFileFigure.js'
 import { DazFilePose } from '../core/DazFilePose.js'
 import { DazGeometryInstance } from '../core/DazGeometryInstance.js'
 import { DazNode } from '../core/DazNode.js'
@@ -13,23 +12,9 @@ import { ASSERT_, ASSERT_INSTANCE_OF, assertXYZChanels, bang, NUMBER_OR_CRASH } 
 import { fmtAbsPath } from '../utils/fmt.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
 import { simplifyObject } from '../utils/simplifyObject.js'
-import { meshStandardMaterial1 } from './materials.js'
-import { getFallbackMaterial } from './misc.js'
+import { fallbackMesh, meshStandardMaterial1 } from './materials.js'
 
 export class RVCharacter {
-   _body_ctrl_WaistTwist: number = 0
-   get body_ctrl_WaistTwist(): number {
-      return this._body_ctrl_WaistTwist
-   }
-   set body_ctrl_WaistTwist(value: number) {
-      this._body_ctrl_WaistTwist = NUMBER_OR_CRASH(value, 'Waist Twist must be a valid number')
-      ASSERT_(
-         this._body_ctrl_WaistTwist >= -2 && this._body_ctrl_WaistTwist <= 2,
-         'Waist Twist must be between -2 and 2',
-      )
-      void this.setModifierValue('body_ctrl_WaistTwist', value)
-   }
-
    group: THREE.Group
    meshes: (THREE.Mesh | THREE.SkinnedMesh)[] = []
    skeleton: THREE.Skeleton | null = null
@@ -44,34 +29,53 @@ export class RVCharacter {
       return this.boneNameToIndex
    }
 
-   get figure_orCrash(): DazFileFigure { return this.character.figure_orCrash } // biome-ignore format: misc
+   // get figure_orCrash(): DazFileFigure { return this.character.figure_orCrash } // biome-ignore format: misc
 
-   constructor(public readonly character: DazFileCharacter) {
+   loaded: Promise<true>
+
+   static async createFromFile(dazCharacter: DazFileCharacter): Promise<RVCharacter> {
+      const char = new RVCharacter(dazCharacter)
+      await char.loaded // Ensure the character is fully loaded
+      return char
+   }
+
+   private constructor(public readonly dazCharacter: DazFileCharacter) {
       this.group = new THREE.Group()
-      this.group.name = `Character_${character.dazId}`
-      this.buildSkeleton()
-      this.buildMeshes()
+      this.group.name = `Character_${dazCharacter.dazId}`
+      this.loaded = this.load()
+   }
+
+   async load(): Promise<true> {
+      await this.buildSkeleton()
+      await this.buildMeshes()
 
       ASSERT_(this.skeleton != null, 'skeleton should not be null after buildSkeleton')
       ASSERT_(this.skeletonHelper != null, 'skeletonHelper should not be null after buildSkeleton')
 
       // Initial skeleton matrix update to ensure proper display
       this.updateSkeletonMatrices()
+      return true
    }
 
-   private buildMeshes(): void {
-      if (!this.character.figure) {
-         console.warn(`[RVCharacter] No resolved figure for character ${this.character.dazId}`)
+   private async buildMeshes(): Promise<void> {
+      const figure = await this.dazCharacter.resolve()
+      if (!figure) {
+         console.warn(`[RVCharacter] No resolved figure for character ${this.dazCharacter.dazId}`)
          this.createFallbackMesh()
          return
       }
 
       // Build meshes from character's node references
-      for (const nodeRef of this.character.nodeInstances.values()) {
-         if (!nodeRef.geometryInstances) continue
+      for (const nodeInstance of this.dazCharacter.sceneNodes.values()) {
+         // if (!nodeInstance.geometryInstances) {
+         //    console.warn('   - 🔶 no nodeInstance.geometryInstances')
+         //    continue
+         // }
 
-         for (const geometryRef of nodeRef.geometryInstances.values()) {
-            const mesh = this.createMeshFromGeometryInstance(geometryRef)
+         // for (const nodeInstance.geometries)
+         for (const geometryRef of nodeInstance.geometries) {
+            await geometryRef.resolve() // Ensure geometry is resolved before creating mesh
+            const mesh = await this.createMeshFromGeometryInstance(geometryRef)
             if (mesh) {
                this.meshes.push(mesh)
                this.group.add(mesh)
@@ -80,19 +84,19 @@ export class RVCharacter {
       }
 
       if (this.meshes.length === 0) {
-         console.warn(`[RVCharacter] No meshes created for character ${this.character.dazId}`)
+         console.warn(`[RVCharacter] No meshes created for character ${this.dazCharacter.dazId}`)
          this.createFallbackMesh()
       }
    }
 
-   private createMeshFromGeometryInstance(
+   private async createMeshFromGeometryInstance(
       geometryInstance: DazGeometryInstance,
-   ): THREE.Mesh | THREE.SkinnedMesh | null {
-      const resolvedInf = geometryInstance.geometry
-      if (!resolvedInf) return null
+   ): Promise<THREE.Mesh | THREE.SkinnedMesh | null> {
+      const dazGeometry = await geometryInstance.resolve()
+      if (!dazGeometry) return null
 
-      const vertices = resolvedInf.verticesForThree
-      const indices = resolvedInf.indicesForThree
+      const vertices = dazGeometry.verticesForThree
+      const indices = dazGeometry.indicesForThree
       if (!vertices?.length || !indices?.length) return null
 
       const geometry = new THREE.BufferGeometry()
@@ -106,8 +110,9 @@ export class RVCharacter {
       const allowRegular = false
 
       // Check if geometry has skin data and we have a skeleton
-      if (allowSkinning && this.figure_orCrash.hasSkinData() && this.skeleton) {
-         const skinData = resolvedInf.getSkinWeightsForThree()
+      const figure = await this.dazCharacter.resolve()
+      if (allowSkinning && figure.hasSkinData() && this.skeleton) {
+         const skinData = dazGeometry.getSkinWeightsForThree()
          if (skinData) {
             // Map bone names from skin data to skeleton bone indices
             const mappedBoneIndices = new Array(skinData.boneIndices.length)
@@ -154,22 +159,18 @@ export class RVCharacter {
 
       return null // Return null instead of throwing error
    }
+
    private createFallbackMesh(): void {
-      const geometry = new THREE.BoxGeometry(50, 170, 30) // Approximate human proportions in cm
-      const material = getFallbackMaterial()
-      const mesh = new THREE.Mesh(geometry, material)
-      mesh.name = 'FallbackMesh'
-      mesh.position.y = 85 // Half height to place on ground
-      mesh.castShadow = true
-      mesh.receiveShadow = true
+      const mesh = fallbackMesh()
       this.meshes.push(mesh)
       this.group.add(mesh)
    }
 
-   private buildSkeleton(): void {
+   private async buildSkeleton(): Promise<void> {
       // Build skeleton from figure's node_inf data
       const rootBones: THREE.Bone[] = []
-      const figureNodes = [...this.figure_orCrash.nodes.values()]
+      const figure = await this.dazCharacter.resolve()
+      const figureNodes = [...figure.nodes.values()]
       console.log(`❓ ---- buildSkeleton (${figureNodes.length} nodes)`)
 
       // Store absolute positions for relative calculation
@@ -325,10 +326,10 @@ export class RVCharacter {
    // Animation and pose methods
    applyPose(pose: DazFilePose): void {
       // checks
-      if (!this.skeleton) return void console.warn(`[RVCharacter] Cannot apply pose: no skeleton available for character ${this.character.dazId}`) // biome-ignore format: misc
+      if (!this.skeleton) return void console.warn(`[RVCharacter] Cannot apply pose: no skeleton available for character ${this.dazCharacter.dazId}`) // biome-ignore format: misc
       if (pose.changes == null || pose.changes.length === 0) return void console.warn(`[RVCharacter] No pose changes found in pose ${pose.dazId}`) // biome-ignore format: misc
       // apply pose
-      console.log(`[RVCharacter] Applying pose ${pose.dazId} to ${this.character.dazId}`)
+      console.log(`[RVCharacter] Applying pose ${pose.dazId} to ${this.dazCharacter.dazId}`)
       for (const change of pose.changes) this.applyPoseChange(change)
       this.updateSkeletonMatrices() // Update skeleton matrices after pose changes
    }
@@ -411,26 +412,25 @@ export class RVCharacter {
       return getMgr().getModifierDB_orCrash()
    }
 
-   // influences: THREE.MorphTarget[] = []
+   // debug
+   _body_ctrl_WaistTwist: number = 0
+   get body_ctrl_WaistTwist(): number { return this._body_ctrl_WaistTwist } // biome-ignore format: misc
+   set body_ctrl_WaistTwist(value: number) {
+      this._body_ctrl_WaistTwist = NUMBER_OR_CRASH(value, 'Waist Twist must be a valid number')
+      ASSERT_( this._body_ctrl_WaistTwist >= -2 && this._body_ctrl_WaistTwist <= 2, 'Waist Twist must be between -2 and 2') // biome-ignore format: misc
+      void this.setModifierValue('body_ctrl_WaistTwist', value)
+   }
+
    async setModifierValue(
       //
       modifierId: string,
       _value: number,
-      p: {
-         onMissingModifier?: (modifierId: string) => void
-         onMissingBone?: (boneId: string) => void
-      } = {},
    ) {
-      const mod = this.applicableModifiers[modifierId]
-      if (!mod) {
-         p.onMissingModifier?.(modifierId)
-         return void console.warn(`[RVCharacter] ❌ Modifier ${modifierId} not found in database`)
-      }
+      const mod = bang(this.applicableModifiers[modifierId], `❌ Modifier ${modifierId} not found in database`)
 
       console.log(`[🤠] A`)
       const FILE = await getMgr().loadFileFromAbsPath(mod.path)
       if (!FILE) {
-         p.onMissingModifier?.(modifierId)
          return void console.warn(`[RVCharacter] ❌ Morph file for ${modifierId} not found at ${mod.path}`)
       }
       // ensure it's a DazFileModifier and it has a morph
@@ -448,10 +448,8 @@ export class RVCharacter {
 
          // load file containing the modifier with the morph
          const morphData: $$morph | null = FILE.getMorphModifier()
-         if (!morphData) {
-            p.onMissingModifier?.(modifierId)
+         if (!morphData)
             return void console.warn(`[RVCharacter] ❌ Morph data for ${modifierId} not found in file ${mod.path}`)
-         }
 
          // print debug
          const debug = simplifyObject(morphData)
@@ -460,21 +458,19 @@ export class RVCharacter {
          // Get the parent URL of the modifier
          const parentUrl = mod.parent
          if (!parentUrl) {
-            p.onMissingModifier?.(modifierId)
             return void console.warn(`[RVCharacter] ❌ Modifier ${modifierId} is missing parent geometry reference.`)
          }
 
          // Get the target geometry ID from the parent URL
          const { asset_id: targetGeometryId } = parseDazUrl(parentUrl)
          if (!targetGeometryId) {
-            p.onMissingModifier?.(modifierId)
             return void console.warn(`[RVCharacter] ❌ Could not parse geometry ID from parent URL: ${parentUrl}`)
          }
 
          // Find the target geometry instance in the character's node instances
          let targetGeometryInstance: DazGeometryInstance | undefined
-         for (const nodeInst of this.character.nodeInstances.values()) {
-            for (const geomInst of nodeInst.geometryInstances.values()) {
+         for (const nodeInst of this.dazCharacter.sceneNodes.values()) {
+            for (const geomInst of nodeInst.geometries) {
                const { asset_id } = parseDazUrl(geomInst.url)
                if (asset_id === targetGeometryId) {
                   targetGeometryInstance = geomInst
@@ -484,10 +480,7 @@ export class RVCharacter {
             if (targetGeometryInstance) break
          }
          if (!targetGeometryInstance) {
-            p.onMissingModifier?.(modifierId)
-            return void console.warn(
-               `[RVCharacter] ❌ Geometry instance for morph ${modifierId} (geomId: ${targetGeometryId}) not found.`,
-            )
+            return void console.warn(`[RVCharacter] ❌ Geometry instance for morph ${modifierId} (geomId: ${targetGeometryId}) not found.`) // biome-ignore format: misc
          } else
             console.log(`[🤠] Found target geometry instance for morph ${modifierId}:`, targetGeometryInstance?.dazId)
 
@@ -495,7 +488,6 @@ export class RVCharacter {
          const meshName = `SkinnedMesh_${targetGeometryInstance.dazId}`
          const targetMesh = this.meshes.find((m) => m.name === meshName) as THREE.SkinnedMesh | undefined
          if (!targetMesh) {
-            p.onMissingModifier?.(modifierId)
             return void console.warn(`[RVCharacter] ❌ Mesh for morph ${modifierId} not found: ${meshName}`)
          }
 
@@ -558,13 +550,12 @@ export class RVCharacter {
          const formulas = bang(FILE.getFirstAndOnlyModifier_orCrash()?.formulas)
          for (const formula of formulas) {
             const result = this.evaluateFormula(formula)
-            console.log(`[🤠] `, formula, result)
+            console.log(`          value=${result}`)
 
             // Parse the output URL
             const output = parseDazUrl(formula.output)
             const bone = this.bones.get(output.node_path!)
             if (!bone) {
-               p.onMissingBone?.(output.node_path!)
                console.warn(`[RVCharacter] 🔴 Bone not found for modifier output: ${output.node_path!}`)
                continue
             }
@@ -577,7 +568,14 @@ export class RVCharacter {
             else if (property === 'translation/y') bone.position.y += result
             else if (property === 'translation/z') bone.position.z += result
             else if (property === 'scale/general') bone.scale.set(result, result, result)
-            else if (property === 'center_point/x') bone
+            // 🔴 ⁉️ center point
+            else if (property === 'center_point/x') bone.position.x += result
+            else if (property === 'center_point/y') bone.position.y += result
+            else if (property === 'center_point/z') bone.position.z += result
+            // 🔴 ⁉️ end_point
+            else if (property === 'end_point/x') bone.position.x += result
+            else if (property === 'end_point/y') bone.position.y += result
+            else if (property === 'end_point/z') bone.position.z += result
             else throw new Error(`[RVCharacter] ❌ Unknown property in modifier output: ${property}`)
          }
       }
@@ -596,14 +594,21 @@ export class RVCharacter {
       console.log(`[🧐] attempting to get the value at ${url}`)
       const res = parseDazUrl(url)
       console.log(`           ${JSON.stringify(res)}`)
-      if (!res.node_path) {
-         throw new Error(`[RVCharacter] ❌ Invalid URL: ${url} - missing node_path`)
-      }
+      if (!res.node_path) throw new Error(`[RVCharacter] ❌ Invalid URL: ${url} - missing node_path`)
+      // const node = this.getBone_orCrash(res.node_path)
+      // node.
+
       return 0.5
    }
 
    // @ts-ignore
    private evaluateFormula(formula: $$formula /* value: number */): number {
+      // ---------
+      console.log(`     formula:`)
+      for (const op of formula.operations) console.log(`        ${JSON.stringify(op)}`)
+      console.log(`        => ${JSON.stringify(formula.output)}`)
+
+      // ---------
       const stack: number[] = []
       for (const op of formula.operations) {
          switch (op.op) {
