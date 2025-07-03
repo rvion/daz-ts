@@ -25,7 +25,7 @@ describe('RVFigure Skeleton Tests', () => {
    let rvFigure: RVFigure
 
    beforeAll(async () => {
-      console.log(`[🤠] 🔴`)
+      // console.log(`[🤠] 🔴`)
       character = await loadGenesis9Character()
       const scene = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs).createScene()
       const { newTopLevelNodes } = await character.addToScene(scene)
@@ -67,9 +67,9 @@ describe('RVFigure Skeleton Tests', () => {
          bonesWithPositions++
 
          // Log first few bones for inspection
-         if (bonesWithPositions <= 5) {
-            console.log(`Bone ${boneId}: local(${bone.position.x.toFixed(2)}, ${bone.position.y.toFixed(2)}, ${bone.position.z.toFixed(2)}) world(${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}, ${worldPos.z.toFixed(2)})`) // biome-ignore format: misc
-         }
+         // if (bonesWithPositions <= 5) {
+         //    console.log(`Bone ${boneId}: local(${bone.position.x.toFixed(2)}, ${bone.position.y.toFixed(2)}, ${bone.position.z.toFixed(2)}) world(${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}, ${worldPos.z.toFixed(2)})`) // biome-ignore format: misc
+         // }
       }
 
       expect(bonesWithPositions).toBeGreaterThan(0)

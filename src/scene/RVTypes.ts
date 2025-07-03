@@ -10,36 +10,42 @@ import {
 import { RVNode } from './RVNode.js'
 
 export class RVNodeInstance extends RVNode {
+   override emoji: string ='🐄'
    constructor(public readonly data: $$node_instance) {
       super(data.id, data.id)
    }
 }
 
 export class RVGeometryInstance extends RVNode {
+   override emoji: string ='📐'
    constructor(public readonly data: $$geometry_instance) {
       super(data.id, data.id)
    }
 }
 
 export class RVUvSetInstance extends RVNode {
+   override emoji: string ='🌐'
    constructor(public readonly data: $$uv_set_instance) {
       super(data.id, data.id)
    }
 }
 
 export class RVModifierInstance extends RVNode {
+   override emoji: string ='🛠️'
    constructor(public readonly data: $$modifier_instance) {
       super(data.id, data.id)
    }
 }
 
 export class RVMaterialInstance extends RVNode {
+   override emoji: string ='🎨'
    constructor(public readonly data: $$material_instance) {
       super(data.id, data.id)
    }
 }
 
 export class RVBone extends RVNode {
+   override emoji: string ='🦴'
    public readonly bone: THREE.Bone
 
    constructor(public readonly nodeInstance: DazNodeInstance) {

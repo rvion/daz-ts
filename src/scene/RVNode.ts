@@ -7,10 +7,10 @@ import { string_DazId } from '../spec.js'
  * and maintains its own parent/child hierarchy.
  */
 export class RVNode {
+   readonly emoji: string ='❓'
    public readonly object3d: THREE.Object3D
    public readonly children: RVNode[] = []
    public parent?: RVNode
-
    constructor(
       public readonly dazId?: string_DazId,
       name?: string,

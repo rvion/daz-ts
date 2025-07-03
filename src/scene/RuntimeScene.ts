@@ -172,17 +172,21 @@ export class RuntimeScene extends RVNode {
       return traverse(this)
    }
 
-   getSceneGraphAsString(): string {
+   getSceneGraphAsString_simple = () => this.getSceneGraphAsString({ maxDepth: 2, emoji: true, material: false })
+   getSceneGraphAsString(p: { material?: boolean; maxDepth?: number; emoji?: boolean } = {}): string[] {
       const lines: string[] = []
       const traverse = (node: RVNode, depth = 0) => {
+         if (p.maxDepth !== undefined && depth > p.maxDepth) return
+         if (node instanceof RVMaterialInstance && !p.material) return // Skip materials if not requested
          const indent = '  '.repeat(depth)
-         lines.push(`${indent}- ${node.object3d.name} (${node.constructor.name})`)
+         lines.push(`${indent}- ${node.object3d.name} (${p.emoji ? node.emoji : node.constructor.name})`)
          for (const child of node.children) {
             traverse(child, depth + 1)
          }
       }
       traverse(this)
-      return lines.join('\n')
+      return lines //.join('\n')
+      // return lines.join('\n')
    }
 
    private setupGui(): void {

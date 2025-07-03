@@ -1,3 +1,4 @@
+import chalk from 'chalk'
 import * as THREE from 'three'
 import { DazFileCharacter } from '../core/DazFileCharacter.js'
 import { DazFilePose } from '../core/DazFilePose.js'
@@ -11,10 +12,12 @@ import { ASSERT_, ASSERT_INSTANCE_OF, assertXYZChanels, bang, NUMBER_OR_CRASH } 
 import { fmtAbsPath } from '../utils/fmt.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
 import { simplifyObject } from '../utils/simplifyObject.js'
+import { FormulaHelper } from './FormulaHelper.js'
 import { fallbackMesh, meshStandardMaterial1 } from './materials.js'
 import { RVNode } from './RVNode.js'
 
 export class RVFigure extends RVNode {
+   override emoji: string = '🧑‍🎤'
    meshes: (THREE.Mesh | THREE.SkinnedMesh)[] = []
    skeleton: THREE.Skeleton | null = null
    skeletonHelper: THREE.SkeletonHelper | null = null
@@ -149,7 +152,7 @@ export class RVFigure extends RVNode {
       const rootBones: THREE.Bone[] = []
       const figure = await this.dazCharacter.resolve()
       const figureNodes = [...figure.nodes.values()]
-      console.log(`❓ ---- buildSkeleton (${figureNodes.length} nodes)`)
+      // console.log(`❓ ---- buildSkeleton (${figureNodes.length} nodes)`)
 
       // Store absolute positions for relative calculation
       const absolutePositions = new Map<string, THREE.Vector3>()
@@ -400,26 +403,27 @@ export class RVFigure extends RVNode {
    async setModifierValue(
       //
       modifierId: string,
-      _value: number,
+      value: number,
+      p: { printFormulas?: boolean | number } = {},
    ) {
       const mod = bang(this.applicableModifiers[modifierId], `❌ Modifier ${modifierId} not found in database`)
 
-      console.log(`[🤠] A`)
+      // console.log(`[🤠] A`, new Error().stack)
       const FILE = await getMgr().loadFileFromAbsPath(mod.path)
       if (!FILE) {
          return void console.warn(`[RVFigure] ❌ Morph file for ${modifierId} not found at ${mod.path}`)
       }
       // ensure it's a DazFileModifier and it has a morph
-      console.log(`[🤠] B`)
+      // console.log(`[🤠] B`)
       ASSERT_INSTANCE_OF(FILE, GLOBAL.DazFileModifier)
 
-      console.log(`[🤠] C`, fmtAbsPath(mod.path))
+      // console.log(`[🤠] C`, fmtAbsPath(mod.path))
       if (mod.morph) {
          // If morph already applied, just update influence
          if (this.morphData.has(modifierId)) {
             const data = this.morphData.get(modifierId)!
-            data.mesh.morphTargetInfluences![data.influenceIndex] = _value
-            return void console.log(`[RVFigure] ✅ Morph ${modifierId} influence updated to ${_value}`)
+            data.mesh.morphTargetInfluences![data.influenceIndex] = value
+            return void console.log(`[RVFigure] ✅ Morph ${modifierId} influence updated to ${value}`)
          }
 
          // load file containing the modifier with the morph
@@ -500,11 +504,11 @@ export class RVFigure extends RVNode {
             targetMesh.morphTargetInfluences.push(0)
          }
 
-         targetMesh.morphTargetInfluences[influenceIndex] = _value
+         targetMesh.morphTargetInfluences[influenceIndex] = value
          targetMesh.updateMorphTargets()
          this.morphData.set(modifierId, { mesh: targetMesh, influenceIndex })
 
-         console.log(`[RVFigure] ✅ Morph ${modifierId} applied with value ${_value}`)
+         console.log(`[RVFigure] ✅ Morph ${modifierId} applied with value ${value}`)
       }
 
       const outputs: {
@@ -524,9 +528,21 @@ export class RVFigure extends RVNode {
          //      node_path           asset_id
 
          const formulas = bang(FILE.getFirstAndOnlyModifier_orCrash()?.formulas)
+
+         let maxPrint =
+            typeof p.printFormulas === 'number'
+               ? p.printFormulas
+               : p.printFormulas === true
+                 ? Infinity
+                 : p.printFormulas == null
+                   ? 3
+                   : 0
+
          for (const formula of formulas) {
-            const result = this.evaluateFormula(formula)
-            console.log(`          value=${result}`)
+            // console.log(`[🤠] ${fmtAbsPath(this.nodeInstance.file.absPath)}`,this.nodeInstance.data)
+            const result = this.formulaHelper.evaluate(formula)
+            if (maxPrint-- > 0) this.formulaHelper.printFormula(formula, result)
+            // console.log(`          value=${result}`)
 
             // Parse the output URL
             const output = parseDazUrl(formula.output)
@@ -535,7 +551,7 @@ export class RVFigure extends RVNode {
                console.warn(`[RVFigure] 🔴 Bone not found for modifier output: ${output.node_path!}`)
                continue
             }
-            console.log(`[🤠] bone=${bone.name}`)
+            // console.log(`[🤠] bone=${bone.name}`)
             const property = output.property_path
             if (property === 'rotation/x') bone.rotation.x = (result * Math.PI) / 180
             else if (property === 'rotation/y') bone.rotation.y = (result * Math.PI) / 180
@@ -566,65 +582,10 @@ export class RVFigure extends RVNode {
       console.log(`[🤠] Final Outputs:`, finalOutputs)
    }
 
-   getValueFromUrl(url: string_DazUrl): number {
-      console.log(`[🧐] attempting to get the value at ${url}`)
-      const res = parseDazUrl(url)
-      console.log(`           ${JSON.stringify(res)}`)
-      if (!res.node_path) throw new Error(`[RVFigure] ❌ Invalid URL: ${url} - missing node_path`)
-      // const node = this.getBone_orCrash(res.node_path)
-      // node.
-
-      return 0.5
-   }
-
-   private evaluateFormula(formula: $$formula): number {
-      // ---------
-      console.log(`     formula:`)
-      for (const op of formula.operations) console.log(`        ${JSON.stringify(op)}`)
-      console.log(`        => ${JSON.stringify(formula.output)}`)
-
-      // ---------
-      const stack: number[] = []
-      for (const op of formula.operations) {
-         switch (op.op) {
-            case 'push':
-               if ('url' in op) {
-                  const value = this.getValueFromUrl(op.url)
-                  stack.push(value)
-               } else if ('val' in op) {
-                  if (typeof op.val !== 'number') {
-                     throw new Error(`[evaluateFormula] ❌ Invalid value in push operation: ${JSON.stringify(op)}`)
-                  }
-                  stack.push(op.val)
-               }
-               break
-            case 'mult': {
-               stack.push(bang(stack.pop()) * bang(stack.pop()))
-               break
-            }
-            // @ts-ignore
-            case 'add': {
-               stack.push(bang(stack.pop()) + bang(stack.pop()))
-               break
-            }
-            // @ts-ignore
-            case 'sub': {
-               stack.push(bang(stack.pop()) - bang(stack.pop()))
-               break
-            }
-            // @ts-ignore
-            case 'div':
-               {
-                  const a = bang(stack.pop())
-                  const b = bang(stack.pop())
-                  stack.push(b / a)
-               }
-               break
-            default:
-               throw new Error(`[evaluateFormula] ❌ Unknown formula operation: ${op.op}`)
-         }
-      }
-      return stack[0]
+   get formulaHelper(): FormulaHelper {
+      const value = new FormulaHelper(this)
+      Object.defineProperty(this, 'formulaHelper', { value })
+      return value
    }
 
    // Debug and utility methods
@@ -689,7 +650,7 @@ export class RVFigure extends RVNode {
 
    getSkeletonHierarchyString(): string {
       if (this.bones.size === 0) return 'No skeleton available'
-      console.log(`🟢`, this.bones.size, 'bones')
+      // ⏸️ console.log(`🟢`, this.bones.size, 'bones')
 
       const lines = ['=== Skeleton Hierarchy ===']
       const visited = new Set<string>()
@@ -699,7 +660,7 @@ export class RVFigure extends RVNode {
       const rootBones = [...this.bones.keys()].filter(
          (boneId) => ![...this.boneHierarchy.values()].some((children) => children.includes(boneId)),
       )
-      console.log(`🟢 root bones: ${rootBones.map((rb) => rb).join(', ')}`)
+      // ⏸️ console.log(`🟢 root bones: ${rootBones.map((rb) => rb).join(', ')}`)
       const logBone = (boneId: string, depth = 0): void => {
          if (visited.has(boneId)) return
          visited.add(boneId)
@@ -722,7 +683,7 @@ export class RVFigure extends RVNode {
 
       rootBones.forEach((rootBoneId) => logBone(rootBoneId))
       const result = lines.join('\n')
-      console.log(result)
+      // ⏸️ console.log(result)
       return result
    }
 

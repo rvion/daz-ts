@@ -8,15 +8,16 @@ import { RVFigure } from './RVFigure.js'
 describe('Skinning Debug', () => {
    test('should debug skin data structure', async () => {
       const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
-      const dazChar = await mgr.loadGenesis9CharacterFile()
-      await dazChar.resolve() // ensure all data is loaded
-
-      const characterNode = dazChar.sceneNodesList[0]
-      if (!characterNode) {
-         throw new Error('No nodes found in character file')
-      }
-      const character = new RVFigure(characterNode)
-      await character.load()
+      const scene = mgr.createScene()
+      const action = await scene.loadFile('People/Genesis 9/Genesis 9.duf')
+      const character = action.addedFigure_orCrash
+      expect(scene.getSceneGraphAsString({ maxDepth: 3, emoji: true, material: false })).toStrictEqual([
+         '- RuntimeScene (❓)',
+         '  - Figure_Genesis9 (🧑‍🎤)',
+         '    - Bone_hip (🦴)',
+         '      - Bone_pelvis (🦴)',
+         '      - Bone_spine1 (🦴)',
+      ])
       expect(character.skeleton).toBeTruthy()
       expect(character.bones.size).toBeGreaterThan(0)
 
