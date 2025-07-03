@@ -1,8 +1,8 @@
 import GUI from 'lil-gui'
 import * as path from 'pathe'
 import { getMgr } from '../../DI.js'
-import { RVCharacter } from '../../scene/Character.js'
 import { RuntimeScene } from '../../scene/RuntimeScene.js'
+import { RVCharacter } from '../../scene/RVCharacter.js'
 import { DazAssetType } from '../../spec.js'
 import { string_RelPath } from '../../types.js'
 

@@ -4,7 +4,7 @@ import { describe, expect, test } from 'bun:test'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { dazIds } from '../spec.js'
-import { RVCharacter } from './Character.js'
+import { RVCharacter } from './RVCharacter.js'
 
 describe('Bone Names Debug', () => {
    test('should list all bone names to find arm bones', async () => {

@@ -7,7 +7,7 @@ import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { dazId } from '../spec.js'
 import { bang } from '../utils/assert.js'
-import { RVCharacter } from './Character.js'
+import { RVCharacter } from './RVCharacter.js'
 
 async function loadGenesis9Character(): Promise<DazFileCharacter> {
    // Create DazMgr instance with the same path as main.ts

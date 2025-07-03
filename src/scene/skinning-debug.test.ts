@@ -3,7 +3,7 @@ import '../DI.js'
 import { describe, expect, test } from 'bun:test'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
-import { RVCharacter } from './Character.js'
+import { RVCharacter } from './RVCharacter.js'
 
 describe('Skinning Debug', () => {
    test('should debug skin data structure', async () => {

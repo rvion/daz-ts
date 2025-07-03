@@ -6,7 +6,7 @@ import { DazFileCharacter } from '../core/DazFileCharacter.js'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { dazId } from '../spec.js'
-import { RVCharacter } from './Character.js'
+import { RVCharacter } from './RVCharacter.js'
 
 describe('Skeleton Synchronization', () => {
    const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)

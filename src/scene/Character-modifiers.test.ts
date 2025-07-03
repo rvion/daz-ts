@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { DazFileCharacter } from '../core/DazFileCharacter.js'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
-import { RVCharacter } from './Character.js'
+import { RVCharacter } from './RVCharacter.js'
 
 describe('RVCharacter Modifier Tests', () => {
    let rvCharacter: RVCharacter

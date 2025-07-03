@@ -1,7 +1,7 @@
 import GUI from 'lil-gui'
 import * as THREE from 'three'
 import { CameraController } from '../web/CameraController.js'
-import { RVCharacter } from './Character.js'
+import { RVCharacter } from './RVCharacter.js'
 
 export class RuntimeScene {
    gui: GUI | null = null

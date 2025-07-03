@@ -1,6 +1,6 @@
 import { DazFileCharacter } from '../../core/DazFileCharacter.js'
-import { RVCharacter } from '../../scene/Character.js'
 import { RuntimeScene } from '../../scene/RuntimeScene.js'
+import { RVCharacter } from '../../scene/RVCharacter.js'
 import { setupDebugGUI } from './setupDebugGUI.js'
 
 export let runtimeScene: RuntimeScene | null = null
