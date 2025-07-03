@@ -11,6 +11,7 @@ import { checkpoint, GLOBAL, registerMgrInstance } from './DI.js'
 import type { FS } from './fs/fsNode.js'
 import type { PathInfo } from './fs/PathInfo.js'
 import { processFiles, type WalkOptions } from './fs/walk.js'
+import { RuntimeScene } from './scene/RuntimeScene.js'
 import { ModifierDB } from './scripts/parse-modifiers.js'
 import { $$, $$asset_info, $$dson, DazAssetType, string_DazUrl } from './spec.js'
 import { relPath, string_AbsPath, string_Ext, string_RelPath } from './types.js'
@@ -100,6 +101,10 @@ export class DazMgr {
       public absRootPath: string_AbsPath,
       public fs: FS,
    ) {}
+
+   createScene(): RuntimeScene {
+      return new RuntimeScene(this)
+   }
 
    // ---- Load
    /**  Load full Daz asset, from meta. */

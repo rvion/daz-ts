@@ -7,7 +7,7 @@ import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { dazId } from '../spec.js'
 import { bang } from '../utils/assert.js'
-import { RVCharacter } from './RVCharacter.js'
+import { RVFigure } from './RVFigure.js'
 
 async function loadGenesis9Character(): Promise<DazFileCharacter> {
    // Create DazMgr instance with the same path as main.ts
@@ -20,14 +20,16 @@ async function loadGenesis9Character(): Promise<DazFileCharacter> {
    return character
 }
 
-describe('RVCharacter Skeleton Tests', () => {
+describe('RVFigure Skeleton Tests', () => {
    let character: DazFileCharacter
-   let rvCharacter: RVCharacter
+   let rvFigure: RVFigure
 
    beforeAll(async () => {
       console.log(`[🤠] 🔴`)
       character = await loadGenesis9Character()
-      rvCharacter = await RVCharacter.createFromFile(character)
+      const scene = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs).createScene()
+      const { newTopLevelNodes } = await character.addToScene(scene)
+      rvFigure = newTopLevelNodes[0] as RVFigure
    })
 
    test('should create character with resolved figure', async () => {
@@ -36,11 +38,13 @@ describe('RVCharacter Skeleton Tests', () => {
    })
 
    test('should build skeleton with bones', () => {
-      expect(rvCharacter.bones.size).toBeGreaterThan(0)
+      expect(rvFigure.bones.size).toBeGreaterThan(0)
    })
 
    test('should have proper bone hierarchy', () => {
-      const hierarchyString = rvCharacter.skeletonHierarchyString
+      const hierarchyString = rvFigure.getSkeletonHierarchyString()
+      expect(hierarchyString).toBeDefined()
+      if (!hierarchyString) return
       expect(hierarchyString).toContain('=== Skeleton Hierarchy ===')
       expect(hierarchyString.length).toBeGreaterThan(50)
    })
@@ -49,7 +53,7 @@ describe('RVCharacter Skeleton Tests', () => {
       const worldPos = new THREE.Vector3()
       let bonesWithPositions = 0
 
-      for (const [boneId, bone] of rvCharacter.bones) {
+      for (const [boneId, bone] of rvFigure.bones) {
          bone.getWorldPosition(worldPos)
 
          // Check that positions are reasonable numbers (not NaN or Infinity)
@@ -73,8 +77,8 @@ describe('RVCharacter Skeleton Tests', () => {
 
    test('should have reasonable bone hierarchy structure', () => {
       // Check that head is higher than feet
-      const headBone = rvCharacter.bones.get(dazId('head'))
-      const toeBone = rvCharacter.bones.get(dazId('lToe'))
+      const headBone = rvFigure.bones.get(dazId('head'))
+      const toeBone = rvFigure.bones.get(dazId('lToe'))
 
       if (headBone && toeBone) {
          const headWorldPos = new THREE.Vector3()
@@ -90,30 +94,32 @@ describe('RVCharacter Skeleton Tests', () => {
    })
 
    test('should have proper parent-child relationships', () => {
-      const hipBone = bang(rvCharacter.bones.get(dazId('hip')))
-      const pelvisBone = bang(rvCharacter.bones.get(dazId('pelvis')))
+      const hipBone = bang(rvFigure.bones.get(dazId('hip')))
+      const pelvisBone = bang(rvFigure.bones.get(dazId('pelvis')))
       expect(hipBone.children).toContain(pelvisBone)
    })
 
    test('debug controls should work', () => {
       // Test wireframe toggle
-      const initialWireframe = rvCharacter.wireframeEnabled
-      rvCharacter.toggleWireframe()
-      expect(rvCharacter.wireframeEnabled).toBe(!initialWireframe)
+      const initialWireframe = rvFigure.wireframeEnabled
+      rvFigure.toggleWireframe()
+      expect(rvFigure.wireframeEnabled).toBe(!initialWireframe)
 
       // Test ghost mode toggle
-      const initialGhost = rvCharacter.ghostModeEnabled
-      rvCharacter.toggleGhostMode()
-      expect(rvCharacter.ghostModeEnabled).toBe(!initialGhost)
+      const initialGhost = rvFigure.ghostModeEnabled
+      rvFigure.toggleGhostMode()
+      expect(rvFigure.ghostModeEnabled).toBe(!initialGhost)
 
       // Test bone helper toggle
-      const initialBoneHelper = rvCharacter.boneHelperVisible
-      rvCharacter.toggleBoneHelperVisibility()
-      expect(rvCharacter.boneHelperVisible).toBe(!initialBoneHelper)
+      const initialBoneHelper = rvFigure.boneHelperVisible
+      rvFigure.toggleBoneHelperVisibility()
+      expect(rvFigure.boneHelperVisible).toBe(!initialBoneHelper)
    })
 
    test('should generate expected hierarchy string format', () => {
-      const hierarchyString = rvCharacter.skeletonHierarchyString
+      const hierarchyString = rvFigure.getSkeletonHierarchyString()
+      expect(hierarchyString).toBeDefined()
+      if (!hierarchyString) return
 
       // Should contain bone names and position data
       expect(hierarchyString).toContain('hip:')

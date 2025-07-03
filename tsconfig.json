@@ -9,6 +9,7 @@
         "allowJs": true,
         "strict": true,
         "resolveJsonModule": true,
-        "noImplicitOverride": true
+        "noImplicitOverride": true,
+        "noEmit": true
     }
 }

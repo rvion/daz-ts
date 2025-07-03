@@ -3,7 +3,7 @@ import '../DI.js'
 import { describe, expect, test } from 'bun:test'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
-import { RVCharacter } from './RVCharacter.js'
+import { RVFigure } from './RVFigure.js'
 
 describe('Skinning Debug', () => {
    test('should debug skin data structure', async () => {
@@ -11,7 +11,12 @@ describe('Skinning Debug', () => {
       const dazChar = await mgr.loadGenesis9CharacterFile()
       await dazChar.resolve() // ensure all data is loaded
 
-      const character = await RVCharacter.createFromFile(dazChar)
+      const characterNode = dazChar.sceneNodesList[0]
+      if (!characterNode) {
+         throw new Error('No nodes found in character file')
+      }
+      const character = new RVFigure(characterNode)
+      await character.load()
       expect(character.skeleton).toBeTruthy()
       expect(character.bones.size).toBeGreaterThan(0)
 
@@ -39,7 +44,7 @@ describe('Skinning Debug', () => {
                   // Check bone name mapping
                   const unmappedBones: string[] = []
                   for (const boneName of skinData.boneNames) {
-                     if (!character.boneNameToIndexMap.has(boneName)) {
+                     if (!(character as any).boneNameToIndex.has(boneName)) {
                         unmappedBones.push(boneName)
                      }
                   }

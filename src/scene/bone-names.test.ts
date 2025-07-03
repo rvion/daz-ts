@@ -1,21 +1,20 @@
 import '../DI.js'
 
 import { describe, expect, test } from 'bun:test'
+import { DazFileCharacter } from '../core/DazFileCharacter.js'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { dazIds } from '../spec.js'
-import { RVCharacter } from './RVCharacter.js'
+import { RVFigure } from './RVFigure.js'
 
 describe('Bone Names Debug', () => {
    test('should list all bone names to find arm bones', async () => {
       const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
-      const dazChar = await mgr.loadGenesis9CharacterFile()
+      const scene = mgr.createScene()
+      const dazChar = await mgr.loadFileAs('People/Genesis 9/Genesis 9.duf', DazFileCharacter)
+      const { newTopLevelNodes } = await dazChar.addToScene(scene)
+      const character = newTopLevelNodes[0] as RVFigure
 
-      const characters = [dazChar]
-      expect(characters.length).toBeGreaterThan(0)
-      expect(characters[0].relPath).toBe('People/Genesis 9/Genesis 9.duf')
-
-      const character = await RVCharacter.createFromFile(characters[0])
       expect(character.skeleton).toBeTruthy()
       expect(character.bones.size).toBeGreaterThan(0)
 
@@ -24,7 +23,7 @@ describe('Bone Names Debug', () => {
 
       // Filter for arm-related bones
       const armBones = boneNames.filter(
-         (name) =>
+         (name: string) =>
             name.includes('arm') ||
             name.includes('shoulder') ||
             name.includes('shldr') ||
@@ -40,8 +39,8 @@ describe('Bone Names Debug', () => {
       ]))
 
       // Also check for common patterns
-      const leftBones = boneNames.filter((name) => name.startsWith('l_')).slice(0, 20)
-      const rightBones = boneNames.filter((name) => name.startsWith('r_')).slice(0, 20)
+      const leftBones = boneNames.filter((name: string) => name.startsWith('l_')).slice(0, 20)
+      const rightBones = boneNames.filter((name: string) => name.startsWith('r_')).slice(0, 20)
 
       // biome-ignore format: misc
       expect(leftBones).toStrictEqual(dazIds([

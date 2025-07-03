@@ -1,4 +1,6 @@
 import type { PathInfo } from '../fs/PathInfo.js'
+import type { RuntimeScene } from '../scene/RuntimeScene.js'
+import type { AddToSceneSummary } from '../scene/RVTypes.js'
 import {
    $$dson,
    $$material_instance,
@@ -11,7 +13,7 @@ import {
    string_DazId,
    string_DazUrl,
 } from '../spec.js'
-import { Maybe, string_AbsPath, string_Ext, string_RelPath } from '../types.js'
+import type { Maybe, string_AbsPath, string_Ext, string_RelPath } from '../types.js'
 import { ASSERT_, bang } from '../utils/assert.js'
 import { fmtAbsPath } from '../utils/fmt.js'
 import { DazAbstraction } from './_DazAbstraction.js'
@@ -28,6 +30,23 @@ import { DazNodeInstance } from './DazNodeInstance.js'
 export type KnownDazFile = DazFileCharacter | DazFileWearable | DazFileFigure | DazFilePose | DazFileModifier
 
 export abstract class DsonFile extends DazAbstraction<PathInfo, $$dson> {
+   public async addToScene(runtimeScene: RuntimeScene): Promise<AddToSceneSummary> {
+      const summary: AddToSceneSummary = {
+         newTopLevelNodes: [],
+         newNodesAttachedToExistingNodes: [],
+      }
+      const scene = this.data.scene
+      if (!scene) {
+         return summary
+      }
+
+      const { newTopLevelNodes, newNodesAttachedToExistingNodes } = await runtimeScene.addDazFile(this)
+
+      summary.newTopLevelNodes.push(...newTopLevelNodes)
+      summary.newNodesAttachedToExistingNodes.push(...newNodesAttachedToExistingNodes)
+
+      return summary
+   }
    // #region --------------- scene nodes -----------------
    get sceneNodesList(): DazNodeInstance[] {
       const value = Array.from(this.sceneNodes.values())

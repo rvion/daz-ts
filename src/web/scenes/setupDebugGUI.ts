@@ -2,15 +2,17 @@ import GUI from 'lil-gui'
 import * as path from 'pathe'
 import { getMgr } from '../../DI.js'
 import { RuntimeScene } from '../../scene/RuntimeScene.js'
-import { RVCharacter } from '../../scene/RVCharacter.js'
+import { RVFigure } from '../../scene/RVFigure.js'
+import { RVNode } from '../../scene/RVNode.js'
 import { DazAssetType } from '../../spec.js'
 import { string_RelPath } from '../../types.js'
 
 export async function setupDebugGUI(
    //
-   character1: RVCharacter,
+   characterNode: RVNode,
    rt: RuntimeScene,
 ) {
+   const character1 = characterNode as RVFigure
    // Dispose existing GUI if present
    if (rt.gui) {
       rt.gui.destroy()
@@ -28,7 +30,7 @@ export async function setupDebugGUI(
    // add slider for `body_ctrl_WaistTwist` modifier
    char1Folder.add(character1, 'body_ctrl_WaistTwist', 0, 1).name('Waist Twist')
    char1Folder
-      .add({ logHierarchy: () => console.log(character1.skeletonHierarchyString) }, 'logHierarchy')
+      .add({ logHierarchy: () => console.log(character1.getSkeletonHierarchyString()) }, 'logHierarchy')
       .name('Log Skeleton')
 
    // Pose selection

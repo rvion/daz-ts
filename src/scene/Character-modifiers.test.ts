@@ -5,46 +5,45 @@ import * as THREE from 'three'
 import { DazFileCharacter } from '../core/DazFileCharacter.js'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
-import { RVCharacter } from './RVCharacter.js'
+import { RVFigure } from './RVFigure.js'
 
-describe('RVCharacter Modifier Tests', () => {
-   let rvCharacter: RVCharacter
+describe('RVFigure Modifier Tests', () => {
+   let rvFigure: RVFigure
 
    beforeAll(async () => {
       const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
       await mgr.loadModifiersDb()
-      const characterFile = await mgr.loadFile('People/Genesis 9/Genesis 9.duf')
-      if (!(characterFile instanceof DazFileCharacter)) {
-         throw new Error(`Expected DazCharacter, got ${characterFile.constructor.name}`)
-      }
-      rvCharacter = await RVCharacter.createFromFile(characterFile)
+      const scene = mgr.createScene()
+      const characterFile = await mgr.loadFileAs('People/Genesis 9/Genesis 9.duf', DazFileCharacter)
+      const { newTopLevelNodes } = await characterFile.addToScene(scene)
+      rvFigure = newTopLevelNodes[0] as RVFigure
    })
 
    test('should apply body_ctrl_WaistTwist modifier', async () => {
-      const lHand = rvCharacter.getBone_orCrash('l_hand')
+      const lHand = rvFigure.getBone_orCrash('l_hand')
       const initialPosition = lHand.getWorldPosition(new THREE.Vector3())
 
-      await rvCharacter.setModifierValue('body_ctrl_WaistTwist', 8)
-      rvCharacter.updateSkeletonMatrices()
+      await rvFigure.setModifierValue('body_ctrl_WaistTwist', 8)
+      rvFigure.updateSkeletonMatrices()
 
       const finalPosition = lHand.getWorldPosition(new THREE.Vector3())
       expect(finalPosition.z).toBeLessThan(initialPosition.z)
    })
 
    test('find modifier by name', () => {
-      expect(rvCharacter.applicableModifiers).toBeDefined()
-      expect(rvCharacter.applicableModifiers.body_bs_ProportionArmsLength).toBeDefined()
-      // rvCharacter.setModifierValue('body_bs_ProportionArmsLength', 3)
+      expect(rvFigure.applicableModifiers).toBeDefined()
+      expect(rvFigure.applicableModifiers.body_bs_ProportionArmsLength).toBeDefined()
+      // rvFigure.setModifierValue('body_bs_ProportionArmsLength', 3)
       // expect()
    })
 
    // 🔴 this test is failing
    test('should apply body_bs_ProportionArmsLength modifier', async () => {
-      const lHand = rvCharacter.getBone_orCrash('l_hand')
+      const lHand = rvFigure.getBone_orCrash('l_hand')
       const initialPosition = lHand.getWorldPosition(new THREE.Vector3())
       console.log(`[🤠] ----`)
-      await rvCharacter.setModifierValue('body_bs_ProportionArmsLength', 2)
-      rvCharacter.updateSkeletonMatrices()
+      await rvFigure.setModifierValue('body_bs_ProportionArmsLength', 2)
+      rvFigure.updateSkeletonMatrices()
       console.log(`[🤠] ----`)
 
       const finalPosition = lHand.getWorldPosition(new THREE.Vector3())

@@ -6,15 +6,16 @@ import { DazFileCharacter } from '../core/DazFileCharacter.js'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { dazId } from '../spec.js'
-import { RVCharacter } from './RVCharacter.js'
+import { RVFigure } from './RVFigure.js'
 
 describe('Skeleton Synchronization', () => {
    const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
 
    test('skeleton helper should be visible without calling getWorldPosition', async () => {
-      // Create a mock character with minimal data
-      const genesis9: DazFileCharacter = await mgr.loadGenesis9CharacterFile()
-      const character: RVCharacter = await RVCharacter.createFromFile(genesis9)
+      const scene = mgr.createScene()
+      const characterFile = await mgr.loadFileAs('People/Genesis 9/Genesis 9.duf', DazFileCharacter)
+      const { newTopLevelNodes } = await characterFile.addToScene(scene)
+      const character = newTopLevelNodes[0] as RVFigure
 
       // Verify skeleton was created
       expect(character.skeleton).not.toBeNull()
@@ -46,8 +47,10 @@ describe('Skeleton Synchronization', () => {
    })
 
    test('skeleton matrices update during animation loop', async () => {
-      const mockCharacter: DazFileCharacter = await mgr.loadGenesis9CharacterFile()
-      const character = await RVCharacter.createFromFile(mockCharacter)
+      const scene = mgr.createScene()
+      const characterFile = await mgr.loadFileAs('People/Genesis 9/Genesis 9.duf', DazFileCharacter)
+      const { newTopLevelNodes } = await characterFile.addToScene(scene)
+      const character = newTopLevelNodes[0] as RVFigure
       const hipBone = character.bones.get(dazId('hip'))!
 
       // Modify bone rotation
