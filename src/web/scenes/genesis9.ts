@@ -1,4 +1,3 @@
-import { DazFileCharacter } from '../../core/DazFileCharacter.js'
 import { getMgr } from '../../DI.js'
 import { DazMgr } from '../../mgr.js'
 import { RuntimeScene } from '../../scene/RuntimeScene.js'
@@ -15,17 +14,15 @@ export async function initSceneGenesis9(mgr: DazMgr) {
 
    // 1. Initialize the main scene manager
    scene = mgr.createScene()
+   const action1 = await scene.loadFile('People/Genesis 9/Genesis 9.duf')
+   const character = action1.addedFigure_orCrash
 
    // Adjust camera for a wider view to see both characters
    // Assuming characters are around 170 units (cm) tall
    const characterAvgHeight = 170
-   scene.camera.position.set(0, characterAvgHeight * 0.75, 300) // Position camera further back
+   scene.camera.position.set(0, characterAvgHeight * 1.75, 300) // Position camera further back
    scene.camera.lookAt(0, characterAvgHeight / 2, 0) // Look at the center point between characters at mid-height
    scene.camera.updateProjectionMatrix()
-
-   const charFile = await mgr.loadFileAs('People/Genesis 9/Genesis 9.duf', DazFileCharacter)
-   await charFile.addToScene(scene)
-   const character = scene.children[0]!
 
    console.log(`[🤠] Character loaded`, character)
    // 4. Setup debug GUI
@@ -33,7 +30,6 @@ export async function initSceneGenesis9(mgr: DazMgr) {
 
    // 5. Start the rendering loop
    scene.start()
-
    console.log('RuntimeScene initialized with RVFigure.')
 }
 

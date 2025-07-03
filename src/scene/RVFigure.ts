@@ -602,14 +602,17 @@ export class RVFigure extends RVNode {
                stack.push(bang(stack.pop()) * bang(stack.pop()))
                break
             }
+            // @ts-ignore
             case 'add': {
                stack.push(bang(stack.pop()) + bang(stack.pop()))
                break
             }
+            // @ts-ignore
             case 'sub': {
                stack.push(bang(stack.pop()) - bang(stack.pop()))
                break
             }
+            // @ts-ignore
             case 'div':
                {
                   const a = bang(stack.pop())

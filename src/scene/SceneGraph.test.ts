@@ -3,7 +3,7 @@ import '../DI.js'
 
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
-import { RuntimeScene } from './RuntimeScene.js'
+import type { RuntimeScene } from './RuntimeScene.js'
 
 describe('SceneGraph', () => {
    let mgr: DazMgr
@@ -15,7 +15,7 @@ describe('SceneGraph', () => {
    })
 
    test('should build a scene graph from a character file', async () => {
-      runtimeScene = new RuntimeScene(800, 600)
+      runtimeScene = mgr.createScene()
       const characterFile = await mgr.loadGenesis9CharacterFile()
       await runtimeScene.addDazFile(characterFile)
 

@@ -28,7 +28,6 @@ export class RuntimeScene extends RVNode {
    private isDisposed = false
 
    constructor(
-      //
       public mgr: DazMgr,
       width?: number,
       height?: number,
@@ -48,6 +47,19 @@ export class RuntimeScene extends RVNode {
       this.setupLights()
       this.setupEventListeners()
       this.setupGui()
+   }
+
+   async loadFile(filepath: string) {
+      const file = await this.mgr.loadFile(filepath)
+      const summary = await file.addToScene(this)
+      return {
+         ...summary,
+         get addedFigure_orCrash(): RVFigure {
+            const figure = summary.newTopLevelNodes.find((n) => n instanceof RVFigure)
+            if (!figure) throw new Error('No figure found in the loaded file')
+            return figure
+         },
+      }
    }
 
    async addDazFile(file: DsonFile): Promise<{
