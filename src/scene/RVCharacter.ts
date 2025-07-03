@@ -623,34 +623,25 @@ export class RVCharacter {
                   stack.push(op.val)
                }
                break
-            case 'mult':
-               {
-                  const a = stack.pop()!
-                  const b = stack.pop()!
-                  stack.push(a * b)
-               }
+            case 'mult': {
+               stack.push(bang(stack.pop()) * bang(stack.pop()))
                break
+            }
             // @ts-ignore
-            case 'add':
-               {
-                  const a = stack.pop()!
-                  const b = stack.pop()!
-                  stack.push(a + b)
-               }
+            case 'add': {
+               stack.push(bang(stack.pop()) + bang(stack.pop()))
                break
+            }
             // @ts-ignore
-            case 'sub':
-               {
-                  const a = stack.pop()!
-                  const b = stack.pop()!
-                  stack.push(b - a)
-               }
+            case 'sub': {
+               stack.push(bang(stack.pop()) - bang(stack.pop()))
                break
+            }
             // @ts-ignore
             case 'div':
                {
-                  const a = stack.pop()!
-                  const b = stack.pop()!
+                  const a = bang(stack.pop())
+                  const b = bang(stack.pop())
                   stack.push(b / a)
                }
                break
