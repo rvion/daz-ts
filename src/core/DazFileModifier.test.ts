@@ -4,7 +4,7 @@ import { GLOBAL } from '../DI.js'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { dazId, dazUrl, string_DazUrl } from '../spec.js'
-import { KnownDazFile } from './_DsonFile.js'
+import { KnownDazFile } from './DazFile.js'
 import { DazFileModifier } from './DazFileModifier.js'
 
 describe('DazFileModifier', () => {

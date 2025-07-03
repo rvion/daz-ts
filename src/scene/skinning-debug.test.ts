@@ -12,7 +12,6 @@ describe('Skinning Debug', () => {
       await dazChar.resolve() // ensure all data is loaded
 
       const character = await RVCharacter.createFromFile(dazChar)
-      await character.loaded // resolve the character
       expect(character.skeleton).toBeTruthy()
       expect(character.bones.size).toBeGreaterThan(0)
 

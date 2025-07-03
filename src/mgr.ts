@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import { DefaultMap } from 'mnemonist'
 import * as path from 'pathe'
-import { KnownDazFile } from './core/_DsonFile.js'
+import { KnownDazFile } from './core/DazFile.js'
 import { DazFileCharacter } from './core/DazFileCharacter.js'
 import { DazFileFigure } from './core/DazFileFigure.js'
 import { DazFileModifier } from './core/DazFileModifier.js'

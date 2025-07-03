@@ -2,7 +2,7 @@ import { DazMgr } from '../mgr.js'
 import { $$geometry, $$point3d, $$point5or6d, string_DazId } from '../spec.js'
 import { bang } from '../utils/assert.js'
 import { DazAbstraction } from './_DazAbstraction.js'
-import { DsonFile } from './_DsonFile.js'
+import { DsonFile } from './DazFile.js'
 
 export class DazGeometry extends DazAbstraction<DsonFile, $$geometry> {
    emoji = '🔻'

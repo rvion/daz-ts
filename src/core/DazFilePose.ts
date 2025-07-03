@@ -3,7 +3,7 @@ import { DazMgr } from '../mgr.js'
 import { $$, $$dson, string_DazUrl } from '../spec.js'
 import { check_orCrash } from '../utils/arkutils.js'
 import { ASSERT_, bang } from '../utils/assert.js'
-import { DsonFile } from './_DsonFile.js'
+import { DsonFile } from './DazFile.js'
 
 export class DazFilePose extends DsonFile {
    emoji = '👤'

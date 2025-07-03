@@ -5,7 +5,7 @@ import { string_RelPath } from '../types.js'
 import { check_orCrash } from '../utils/arkutils.js'
 import { bang } from '../utils/assert.js'
 import { getDazPathAndIdFromDazURL_orCrash } from '../utils/parseDazUrl.js'
-import { DsonFile } from './_DsonFile.js'
+import { DsonFile } from './DazFile.js'
 import { DazFileFigure } from './DazFileFigure.js'
 import { DazNodeInstance } from './DazNodeInstance.js'
 

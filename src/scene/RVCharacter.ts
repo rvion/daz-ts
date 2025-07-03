@@ -31,21 +31,17 @@ export class RVCharacter {
 
    // get figure_orCrash(): DazFileFigure { return this.character.figure_orCrash } // biome-ignore format: misc
 
-   loaded: Promise<true>
-
    static async createFromFile(dazCharacter: DazFileCharacter): Promise<RVCharacter> {
       const char = new RVCharacter(dazCharacter)
-      await char.loaded // Ensure the character is fully loaded
-      return char
+      return await char.load() // Ensure the character is fully loaded
    }
 
    private constructor(public readonly dazCharacter: DazFileCharacter) {
       this.group = new THREE.Group()
       this.group.name = `Character_${dazCharacter.dazId}`
-      this.loaded = this.load()
    }
 
-   async load(): Promise<true> {
+   async load(): Promise<this> {
       await this.buildSkeleton()
       await this.buildMeshes()
 
@@ -54,7 +50,7 @@ export class RVCharacter {
 
       // Initial skeleton matrix update to ensure proper display
       this.updateSkeletonMatrices()
-      return true
+      return this
    }
 
    private async buildMeshes(): Promise<void> {

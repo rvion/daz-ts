@@ -17,15 +17,15 @@ export async function initSceneGenesis9(characterData: DazFileCharacter) {
 
    // 2. Create new character instances from Daz data
    const character = await RVCharacter.createFromFile(characterData)
-   const character2 = await RVCharacter.createFromFile(characterData)
+   // ⏸️ const character2 = await RVCharacter.createFromFile(characterData)
 
    // Assuming Daz units are cm, 75 => 75cm => 0.75m
-   character.x = -75 // Position character 1 to the left
-   character2.setPosition(75, 0, 0)
+   // ⏸️ character.x = -75 // Position character 1 to the left
+   // ⏸️ character2.setPosition(75, 0, 0)
 
    // 3. Add the characters to the scene
    runtimeScene.addCharacter(character)
-   runtimeScene.addCharacter(character2)
+   // ⏸️ runtimeScene.addCharacter(character2)
 
    // Adjust camera for a wider view to see both characters
    // Assuming characters are around 170 units (cm) tall

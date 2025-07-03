@@ -1,7 +1,7 @@
 import { $$node, $$node_type, string_DazId } from '../spec.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
 import { DazAbstraction } from './_DazAbstraction.js'
-import { DsonFile } from './_DsonFile.js'
+import { DsonFile } from './DazFile.js'
 
 export class DazNode extends DazAbstraction<DsonFile, $$node> {
    get emoji() { return '🌳ℹ️' } // biome-ignore format: misc

@@ -1,6 +1,6 @@
 import { $$modifier, string_DazId } from '../spec.js'
 import { DazAbstraction } from './_DazAbstraction.js'
-import { DsonFile } from './_DsonFile.js'
+import { DsonFile } from './DazFile.js'
 
 export class DazModifier extends DazAbstraction<DsonFile, $$modifier> {
    get emoji() {

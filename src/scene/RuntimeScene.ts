@@ -86,7 +86,6 @@ export class RuntimeScene {
 
    start(): void {
       if (this.isDisposed) return
-
       // Remove existing canvas if present
       const existingCanvas = document.querySelector('canvas')
       if (existingCanvas) {
@@ -99,36 +98,28 @@ export class RuntimeScene {
 
    private animate = (): void => {
       if (this.isDisposed) return
-
       this.animationId = requestAnimationFrame(this.animate)
-
       // Update camera controller
       this.cameraController?.update()
-
       // Update characters
       for (const character of this.characters) {
          character.update()
       }
-
       this.renderer.render(this.scene, this.camera)
    }
 
    dispose(): void {
       if (this.isDisposed) return
-
       this.isDisposed = true
-
       // Stop animation loop
       if (this.animationId !== null) {
          cancelAnimationFrame(this.animationId)
          this.animationId = null
       }
-
       // Remove canvas
       if (document.body.contains(this.renderer.domElement)) {
          document.body.removeChild(this.renderer.domElement)
       }
-
       // Dispose characters
       for (const character of this.characters) {
          character.dispose()
@@ -143,7 +134,6 @@ export class RuntimeScene {
 
       // Remove event listeners
       window.removeEventListener('resize', this.onWindowResize.bind(this))
-
-      console.log('RuntimeScene disposed')
+      console.log('✅ RuntimeScene disposed')
    }
 }

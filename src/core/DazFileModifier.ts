@@ -4,7 +4,7 @@ import { $$, $$dson, string_DazUrl } from '../spec.js'
 import { check_orCrash } from '../utils/arkutils.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
 // import { parseDazUrl } from '../utils/parseDazUrl.js'
-import { DsonFile, KnownDazFile } from './_DsonFile.js'
+import { DsonFile, KnownDazFile } from './DazFile.js'
 
 export class DazFileModifier extends DsonFile {
    emoji = '🔧'
