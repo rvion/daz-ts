@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { DazFileCharacter } from '../core/DazFileCharacter.js'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
+import { dazId } from '../spec.js'
 import { RuntimeScene } from './RuntimeScene.js'
 import { RVFigure } from './RVFigure.js'
 
@@ -56,6 +57,7 @@ describe('RVFigure Modifier Tests', () => {
       // change arm length
       await rvFigure.setModifierValue('body_bs_ProportionArmsLength', 1.3, { printFormulas: 3 })
 
+      expect(rvFigure.dazId).toBe(dazId`Genesis9`)
       rvFigure.updateSkeletonMatrices()
       expect(scene.getSceneGraphAsString_simple()).toStrictEqual([
          '- RuntimeScene (❓)',

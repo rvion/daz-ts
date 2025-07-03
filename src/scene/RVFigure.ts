@@ -281,26 +281,12 @@ export class RVFigure extends RVNode {
       this.object3d.position.set(x, y, z)
    }
 
-   get x(): number {
-      return this.object3d.position.x
-   }
-   set x(value: number) {
-      this.object3d.position.x = value
-   }
-
-   get y(): number {
-      return this.object3d.position.y
-   }
-   set y(value: number) {
-      this.object3d.position.y = value
-   }
-
-   get z(): number {
-      return this.object3d.position.z
-   }
-   set z(value: number) {
-      this.object3d.position.z = value
-   }
+   get x(): number { return this.object3d.position.x } // biome-ignore format: misc
+   get y(): number { return this.object3d.position.y } // biome-ignore format: misc
+   get z(): number { return this.object3d.position.z } // biome-ignore format: misc
+   set x(value: number)   { this.object3d.position.x = value } // biome-ignore format: misc
+   set y(value: number)   { this.object3d.position.y = value } // biome-ignore format: misc
+   set z(value: number)   { this.object3d.position.z = value } // biome-ignore format: misc
 
    // Animation and pose methods
    applyPose(pose: DazFilePose): void {
