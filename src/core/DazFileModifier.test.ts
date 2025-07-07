@@ -40,7 +40,7 @@ describe('DazFileModifier', () => {
 
       // Test scene modifiers
       expect(modifier.sceneModifiersList).toHaveLength(1)
-      expect(modifier.sceneModifiersList[0].id).toBe(dazId('body_ctrl_HipBend'))
+      expect(modifier.sceneModifiersList[0].dazId).toBe(dazId('body_ctrl_HipBend'))
 
       // Test formula outputs
       const outputs = modifier.formulaOutputs

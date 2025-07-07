@@ -1,24 +1,46 @@
+import chalk from 'chalk'
 import GUI from 'lil-gui'
 import * as THREE from 'three'
-import { DsonFile } from '../core/DazFile.js'
-import { DazNodeInstance } from '../core/DazNodeInstance.js'
+import { DsonFile, KnownDazFile } from '../core/DazFile.js'
+import { DazGeometryDef } from '../core/DazGeometryDef.js'
+import { DazModifierDef } from '../core/DazModifierDef.js'
+import { DazNodeInst } from '../core/DazNodeInst.js'
 import { DazMgr } from '../mgr.js'
+import { $$modifier, dazId, string_DazUrl } from '../spec.js'
+import { string_AbsPath, string_RelPath } from '../types.js'
+import { bang } from '../utils/assert.js'
+import { parseDazUrl } from '../utils/parseDazUrl.js'
 import { CameraController } from '../web/CameraController.js'
 import { RVFigure } from './RVFigure.js'
-import { RVNode } from './RVNode.js'
+import { RVNode, RVNodeQuery } from './RVNode.js'
 import {
    RVBone,
    RVCamera,
+   RVGeometryInstance,
    RVLight,
    RVMaterialInstance,
-   RVModifierInstance,
+   RVModifier,
    RVProp,
    RVUvSetInstance,
 } from './RVTypes.js'
 
+type KnownRVNodes = RVFigure | RVBone | RVCamera | RVLight | RVProp
+
+type RVAddition = {
+   file: KnownDazFile
+   nodeMap: Map<string, RVNode>
+   newTopLevelNodes: RVNode[]
+   newNodesAttachedToExistingNodes: {
+      node: RVNode
+      attachedTo: RVNode
+      at: string
+   }[]
+}
+
 export class RuntimeScene extends RVNode {
+   override emoji: string = '🎬'
    gui: GUI | null = null
-   public scene: THREE.Scene
+   public sceneThree: THREE.Scene
    public camera: THREE.PerspectiveCamera
    public renderer?: THREE.WebGLRenderer
    public cameraController!: CameraController
@@ -32,8 +54,8 @@ export class RuntimeScene extends RVNode {
       width?: number,
       height?: number,
    ) {
-      super(undefined, 'RuntimeScene')
-      this.scene = this.object3d as THREE.Scene
+      super(dazId`root`, '', '', 'RuntimeScene')
+      this.sceneThree = this.object3d as THREE.Scene
       width = width ?? (typeof window !== 'undefined' ? window.innerWidth : 800)
       height = height ?? (typeof window !== 'undefined' ? window.innerHeight : 600)
       this.camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000)
@@ -62,25 +84,40 @@ export class RuntimeScene extends RVNode {
       }
    }
 
-   async addDazFile(file: DsonFile): Promise<{
-      nodeMap: Map<string, RVNode>
-      newTopLevelNodes: RVNode[]
-      newNodesAttachedToExistingNodes: { node: RVNode; attachedTo: RVNode; at: string }[]
-   }> {
+   async addDazFileFromRelPath(relPath: string_RelPath): Promise<RVAddition> {
+      return await this.mgr.loadFile(relPath).then((f) => this.addDazFile(f))
+   }
+
+   async addDazFileFromAbsPath(absPath: string_AbsPath): Promise<RVAddition> {
+      return await this.mgr.loadFileFromAbsPath(absPath).then((f) => this.addDazFile(f))
+   }
+
+   async addDazFile(file: DsonFile): Promise<RVAddition> {
       const scene = file.data.scene
       const nodeMap = new Map<string, RVNode>()
       const newTopLevelNodes: RVNode[] = []
       const newNodesAttachedToExistingNodes: { node: RVNode; attachedTo: RVNode; at: string }[] = []
 
       if (!scene) {
-         return { nodeMap, newTopLevelNodes, newNodesAttachedToExistingNodes }
+         console.warn(`[❌] ${file.dazId} has no scene defined. nothing to add.`)
+         return { nodeMap, newTopLevelNodes, newNodesAttachedToExistingNodes, file }
       }
 
       // Create all nodes
-      for (const nodeInstance of file.sceneNodesList) {
-         const rvNode = await this.createRvNode(nodeInstance)
-         if (rvNode) {
-            nodeMap.set(nodeInstance.dazId, rvNode)
+      for (const dNodeInst of file.sceneNodesList) {
+         // parenting will be done right below once all nodes are created.
+         const rvNode = await this.createRvNode(dNodeInst)
+         if (rvNode) nodeMap.set(dNodeInst.dazId, rvNode)
+
+         for (const dGeoInst of dNodeInst.geometries) {
+            const dGeoDef: DazGeometryDef = await dGeoInst.resolveDef()
+            const rvGeometry = new RVGeometryInstance(this, dGeoInst, dGeoDef)
+            rvNode.addChild(rvGeometry)
+            // console.log(`[🟢🟢🟢🟢🟢] ${rvGeometry.path}`)
+            // if (rvGeometry) {
+            //    rvNode.addChild(rvGeometry)
+            //    nodeMap.set(geo.id, rvGeometry)
+            // }
          }
       }
 
@@ -90,103 +127,154 @@ export class RuntimeScene extends RVNode {
          if (!rvNode) continue
 
          const parentId = nodeInstance.parent?.asset_id
+         // console.log(`[⁉️] parentId=${parentId} for ${nodeInstance.dazId}`)
          const parentNode = parentId ? (nodeMap.get(parentId) ?? this.findNodeById(parentId)) : this
 
          if (parentNode) {
-            parentNode.add(rvNode)
-            if (parentNode === this) {
-               newTopLevelNodes.push(rvNode)
-            } else {
-               newNodesAttachedToExistingNodes.push({
-                  node: rvNode,
-                  attachedTo: parentNode,
-                  at: parentId!,
-               })
-            }
+            parentNode.addChild(rvNode)
+            if (parentNode === this) newTopLevelNodes.push(rvNode)
+            else newNodesAttachedToExistingNodes.push({ node: rvNode, attachedTo: parentNode, at: bang(parentId) })
          }
       }
 
       // Create and parent modifiers
-      for (const modifier of scene.modifiers ?? []) {
-         const rvModifier = new RVModifierInstance(modifier)
-         const parentNode = modifier.parent ? nodeMap.get(modifier.parent) : this
-         parentNode?.add(rvModifier)
-         nodeMap.set(modifier.id, rvModifier)
+      for (const dModInst of file.sceneModifiers.values()) {
+         // console.log(`[⁉️] ${chalk.red(modifierInstance.url)}`)
+         const dModDef: DazModifierDef = await dModInst.resolveDef()
+         const parentUrl: string_DazUrl = bang(dModInst.data.parent ?? dModDef.data.parent)
+         // const dazModifier = new DazModifier(this.mgr, file, modifierData)
+         const rvModifier = new RVModifier(this, dModDef, dModInst)
+
+         // console.log(`[⁉️] ${chalk.red(parentUrl)}`)
+         // const parentNode = parentUrl ? nodeMap.get(parentUrl) : this
+         let parentNode = this.findNodeByURL(parentUrl)
+         if (parentNode == null) {
+            console.log(chalk.red(`[⁉️] FAILURE to find ${parentUrl}`))
+            console.log(`[⁉️] dModInst.data.parent=${dModInst.data.parent}`)
+            console.log(`[⁉️]  dModDef.data.parent=${dModDef.data.parent}`)
+            parentNode = this
+         }
+         parentNode?.addChild(rvModifier)
+         nodeMap.set(dModInst.data.id, rvModifier)
+         console.log(
+            `➕ modifier id=${chalk.yellow(dModInst.data.id)} parent=${chalk.blue(parentUrl)} => ${parentNode?.dazId}(${parentNode?.uid_})`,
+         )
       }
 
       // Create and parent materials
       for (const material of scene.materials ?? []) {
-         const rvMaterial = new RVMaterialInstance(material)
+         const rvMaterial = new RVMaterialInstance(this, material)
          // Materials are parented to nodes, but the link is through geometry.
          // This needs more sophisticated handling. For now, add to scene root.
-         this.add(rvMaterial)
+         this.addChild(rvMaterial)
          nodeMap.set(material.id, rvMaterial)
       }
 
       // Create and parent UV sets
       for (const uv of scene.uvs ?? []) {
-         const rvUv = new RVUvSetInstance(uv)
+         const rvUv = new RVUvSetInstance(this, uv)
          const parentNode = uv.parent ? nodeMap.get(uv.parent) : this
-         parentNode?.add(rvUv)
+         parentNode?.addChild(rvUv)
          nodeMap.set(uv.id, rvUv)
       }
 
       this.refreshGui()
-      return { nodeMap, newTopLevelNodes, newNodesAttachedToExistingNodes }
+      return { nodeMap, newTopLevelNodes, newNodesAttachedToExistingNodes, file }
    }
 
-   private async createRvNode(nodeInstance: DazNodeInstance): Promise<RVNode | null> {
-      const node = await nodeInstance.resolve()
-      if (!node) {
-         return null
-      }
-      switch (node.type) {
-         case 'figure':
-            return await new RVFigure(nodeInstance).load()
-         case 'bone':
-            return new RVBone(nodeInstance)
-         case 'camera':
-            return new RVCamera(nodeInstance)
-         case 'light':
-            return new RVLight(nodeInstance)
-         case 'node':
-            return new RVProp(nodeInstance)
-         default:
-            return null
-      }
+   private async createRvNode(dNodeInst: DazNodeInst): Promise<KnownRVNodes> {
+      const dNodeDef = await dNodeInst.resolveDef()
+      if (dNodeDef.type === 'figure') return await new RVFigure(this, dNodeDef, dNodeInst).load()
+      else if (dNodeDef.type === 'bone') return new RVBone(this, dNodeDef, dNodeInst)
+      else if (dNodeDef.type === 'camera') return new RVCamera(this, dNodeDef, dNodeInst)
+      else if (dNodeDef.type === 'light') return new RVLight(this, dNodeDef, dNodeInst)
+      else if (dNodeDef.type === 'node') return new RVProp(this, dNodeDef, dNodeInst)
+      else throw new Error(`Unsupported node type: ${dNodeDef.type} for ${dNodeInst.dazId}`)
    }
 
-   findNodeById(id: string): RVNode | undefined {
+   findNodeByURL(url: string_DazUrl): RVNode | undefined {
+      const parts = parseDazUrl(url)
+      const q: RVNodeQuery = {
+         id: parts.asset_id,
+         defPath: parts.file_path,
+      }
+      return this.findNode(q)
+   }
+
+   findNode(q: RVNodeQuery): RVNode | undefined {
+      // console.log(`[🤠] query: ${JSON.stringify(q)}`)
       const traverse = (node: RVNode): RVNode | undefined => {
-         if (node.dazId === id) {
-            return node
-         }
+         const isMatching = node.match(q)
+         // console.log(` node {${node.dazId} ! ${node.dazDefPath}} matches? ${isMatching ? '🟢' : '❌'}`)
+         if (isMatching) return node
          for (const child of node.children) {
             const found = traverse(child)
-            if (found) {
-               return found
-            }
+            if (found) return found
          }
          return undefined
       }
       return traverse(this)
    }
 
-   getSceneGraphAsString_simple = () => this.getSceneGraphAsString({ maxDepth: 2, emoji: true, material: false })
-   getSceneGraphAsString(p: { material?: boolean; maxDepth?: number; emoji?: boolean } = {}): string[] {
+   findNodeById(id: string): RVNode | undefined {
+      const traverse = (node: RVNode): RVNode | undefined => {
+         if (node.dazId === id) return node
+         for (const child of node.children) {
+            const found = traverse(child)
+            if (found) return found
+         }
+         return undefined
+      }
+      return traverse(this)
+   }
+
+   getSceneGraphAsString_simple = (p: GraphPrintingConf = {}) =>
+      this.getSceneGraphAsString({ maxDepth: 3, emoji: true, showMaterial: false, ...p })
+
+   getSceneGraphAsString(p: GraphPrintingConf = {}): string[] {
       const lines: string[] = []
+      const {
+         showPath = false,
+         showMaterial = false,
+         maxDepth = Infinity,
+         emoji,
+         colors = false, // Default to true for colors
+         showName = false,
+         showIndent = true,
+      } = p
       const traverse = (node: RVNode, depth = 0) => {
-         if (p.maxDepth !== undefined && depth > p.maxDepth) return
-         if (node instanceof RVMaterialInstance && !p.material) return // Skip materials if not requested
-         const indent = '  '.repeat(depth)
-         lines.push(`${indent}- ${node.object3d.name} (${p.emoji ? node.emoji : node.constructor.name})`)
+         if (depth > maxDepth) return
+         if (node instanceof RVMaterialInstance && !showMaterial) return // Skip materials if not requested
+         let indent = '   '.repeat(depth)
+         if (colors) indent = chalk.gray.dim(indent)
+         let id: string = node.dazId
+         let path: string = node.dazDefPath
+         if (colors) id = chalk.red(id)
+         if (colors) path = chalk.blue(path)
+         lines.push(
+            [
+               showIndent ? indent : '',
+               `${emoji ? `${node.emoji}` : ''}`,
+               showPath ? path : '',
+               `#${id}`,
+               showName ? `${node.object3d.name}` : '',
+               !emoji ? `(${node.constructor.name})` : '',
+               `${node.channelValue ? `= ${node.channelValue}` : ''}`,
+            ]
+               .filter(Boolean)
+               .join(' '),
+         )
          for (const child of node.children) {
             traverse(child, depth + 1)
          }
       }
       traverse(this)
-      return lines //.join('\n')
-      // return lines.join('\n')
+      return lines
+   }
+
+   setSelectedItem(node: RVNode | null): void {
+      this.selection = node
+      this.refreshGui()
    }
 
    private setupGui(): void {
@@ -209,8 +297,8 @@ export class RuntimeScene extends RVNode {
       folder.domElement.style.marginLeft = '10px'
 
       // Add properties for the node itself
-      if (rvNode instanceof RVModifierInstance) {
-         const mod = rvNode.data as any
+      if (rvNode instanceof RVModifier) {
+         const mod: $$modifier = rvNode.dModDef.data
          // Assuming a 'value' property exists for demonstration
          if (mod.channel && 'current_value' in mod.channel) {
             folder.add(mod.channel, 'current_value').name('Value').listen()
@@ -224,7 +312,7 @@ export class RuntimeScene extends RVNode {
    }
 
    private setupScene(): void {
-      this.scene.background = new THREE.Color(0x87ceeb) // Sky blue background
+      this.sceneThree.background = new THREE.Color(0x87ceeb) // Sky blue background
    }
 
    private setupRenderer(width: number, height: number): void {
@@ -248,14 +336,14 @@ export class RuntimeScene extends RVNode {
 
    private setupLights(): void {
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
-      this.scene.add(ambientLight)
+      this.sceneThree.add(ambientLight)
 
       const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8)
       directionalLight.position.set(5, 10, 7.5)
       directionalLight.castShadow = true
       directionalLight.shadow.mapSize.width = 2048
       directionalLight.shadow.mapSize.height = 2048
-      this.scene.add(directionalLight)
+      this.sceneThree.add(directionalLight)
    }
 
    private setupEventListeners(): void {
@@ -293,7 +381,7 @@ export class RuntimeScene extends RVNode {
       this.animationId = requestAnimationFrame(this.animate)
       this.cameraController?.update()
       // Here you could add update logic for all RVNodes if needed
-      this.renderer?.render(this.scene, this.camera)
+      this.renderer?.render(this.sceneThree, this.camera)
    }
 
    dispose(): void {
@@ -318,4 +406,18 @@ export class RuntimeScene extends RVNode {
       }
       console.log('✅ RuntimeScene disposed')
    }
+}
+
+type GraphPrintingConf = {
+   showPath?: boolean
+   showMaterial?: boolean
+   maxDepth?: number
+   /** default: true */
+   emoji?: boolean
+   /** default: true */
+   colors?: boolean
+   /** default: false */
+   showName?: boolean
+   /** default: true */
+   showIndent?: boolean
 }

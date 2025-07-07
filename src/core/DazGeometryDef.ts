@@ -4,7 +4,7 @@ import { bang } from '../utils/assert.js'
 import { DazAbstraction } from './_DazAbstraction.js'
 import { DsonFile } from './DazFile.js'
 
-export class DazGeometry extends DazAbstraction<DsonFile, $$geometry> {
+export class DazGeometryDef extends DazAbstraction<DsonFile, $$geometry> {
    emoji = '🔻'
    kind = 'geometry'
    get dazId(): string_DazId { return this.data.id } // biome-ignore format: misc
@@ -19,8 +19,8 @@ export class DazGeometry extends DazAbstraction<DsonFile, $$geometry> {
    }
 
    // init
-   static async init(mgr: DazMgr, parent: DsonFile, json: $$geometry): Promise<DazGeometry> {
-      const self = new DazGeometry(mgr, parent, json)
+   static async init(mgr: DazMgr, parent: DsonFile, json: $$geometry): Promise<DazGeometryDef> {
+      const self = new DazGeometryDef(mgr, parent, json)
       self.printHeader()
       // await self.load()
       return self

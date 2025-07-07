@@ -2,7 +2,7 @@ import { basename, resolve } from 'pathe'
 import '../DI.js'
 
 import chalk from 'chalk'
-import { DazModifier } from '../core/DazModifier.js'
+import { DazModifierDef } from '../core/DazModifierDef.js'
 import { checkpoint } from '../DI.js'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
@@ -39,12 +39,12 @@ console.log(
 // load all modifiers
 let ix = 0
 const NOT_FOUND: string[] = []
-const MODIFIERS: DazModifier[] = []
+const MODIFIERS: DazModifierDef[] = []
 for (const a of modfiers /* .slice(1300) */) {
    checkpoint(`loading morph ${ix++}/${modfiers.length}`)
    try {
       const _x = await mgr.loadFile(a.relPath)
-      MODIFIERS.push(..._x.modifierList)
+      MODIFIERS.push(..._x.modifierDefList)
       // console.log(`[🤠] --------------------------------------------------`, x.constructor.name)
    } catch (err) {
       if (err instanceof Error) {
@@ -86,7 +86,7 @@ export type ModifierDBEntry = {
 // must be serializable to JSON
 export type ModifierDB = Record<string, ModifierDBEntry>
 
-function buildJsonDb(modifiers: DazModifier[]) {
+function buildJsonDb(modifiers: DazModifierDef[]) {
    const db: ModifierDB = {}
 
    // for each modifier

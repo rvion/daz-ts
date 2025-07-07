@@ -53,7 +53,7 @@ describe('RVFigure Skeleton Tests', () => {
       const worldPos = new THREE.Vector3()
       let bonesWithPositions = 0
 
-      for (const [boneId, bone] of rvFigure.bones) {
+      for (const [_boneId, bone] of rvFigure.bones) {
          bone.getWorldPosition(worldPos)
 
          // Check that positions are reasonable numbers (not NaN or Infinity)

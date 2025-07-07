@@ -5,10 +5,10 @@ import { DazFileCharacter } from './core/DazFileCharacter.js'
 import { DazFileFigure } from './core/DazFileFigure.js'
 import { DazFileModifier } from './core/DazFileModifier.js'
 import { DazFilePose } from './core/DazFilePose.js'
-import { DazGeometry } from './core/DazGeometry.js'
-import { DazGeometryInstance } from './core/DazGeometryInstance.js'
-import { DazNode } from './core/DazNode.js' // New import
-import { DazNodeInstance } from './core/DazNodeInstance.js' // Corrected import path
+import { DazGeometryDef } from './core/DazGeometryDef.js'
+import { DazGeometryInst } from './core/DazGeometryInst.js'
+import { DazNodeDef } from './core/DazNodeDef.js' // New import
+import { DazNodeInst } from './core/DazNodeInst.js' // Corrected import path
 import type { DazMgr } from './mgr.js'
 import type { number_Timestamp } from './types.js'
 
@@ -21,12 +21,12 @@ export const GLOBAL = {
    DazFileModifier: DazFileModifier,
 
    // geometry
-   DazGeometryInstance: DazGeometryInstance,
-   DazGeometry: DazGeometry,
+   DazGeometryInstance: DazGeometryInst,
+   DazGeometry: DazGeometryDef,
 
    // node
-   DazNodeInstance: DazNodeInstance,
-   DazNode: DazNode, // Added DazNodeInf
+   DazNodeInstance: DazNodeInst,
+   DazNode: DazNodeDef, // Added DazNodeInf
 }
 
 // -------- Timestamp utilities --------

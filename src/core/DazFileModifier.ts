@@ -82,6 +82,14 @@ export class DazFileModifier extends DsonFile {
       return this.data.modifier_library || []
    }
 
+   override getFirstAndOnlyModifier_orCrash() {
+      const modifiers = this.modifierLibrary
+      if (modifiers.length !== 1) {
+         throw new Error(`Expected 1 modifier, found ${modifiers.length}`)
+      }
+      return modifiers[0]
+   }
+
    // Get all formula outputs (useful for understanding what this modifier affects)
    get formulaOutputs(): string_DazUrl[] {
       const outputs: string_DazUrl[] = []

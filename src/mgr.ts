@@ -7,6 +7,8 @@ import { DazFileFigure } from './core/DazFileFigure.js'
 import { DazFileModifier } from './core/DazFileModifier.js'
 import { DazFilePose } from './core/DazFilePose.js'
 import { DazFileWearable } from './core/DazFileWearable.js'
+import { DazModifierDef } from './core/DazModifierDef.js'
+import { DazNodeDef } from './core/DazNodeDef.js'
 import { checkpoint, GLOBAL, registerMgrInstance } from './DI.js'
 import type { FS } from './fs/fsNode.js'
 import type { PathInfo } from './fs/PathInfo.js'
@@ -30,6 +32,7 @@ type CachedLibraryFiles = {
 
 export class DazMgr {
    /** @internal */ private ____DI____ = (() => registerMgrInstance(this))()
+   public scene: RuntimeScene | null = null
    public modifiersDb: ModifierDB | null = null
    public getModifierDB_orCrash(): ModifierDB {
       if (this.modifiersDb) return this.modifiersDb
@@ -121,6 +124,7 @@ export class DazMgr {
       return await this._loadFromPathInfo(this._resolveRelPath(relPath))
    }
 
+   // biome-ignore lint/suspicious/noExplicitAny: misc
    async loadFileAs<T>(relPath: string_RelPath, TKlass: new (...args: any[]) => T): Promise<T> {
       const file = await this._loadFromPathInfo(this._resolveRelPath(relPath))
       return ASSERT_INSTANCE_OF(file, TKlass)
@@ -255,6 +259,35 @@ export class DazMgr {
       }
    }
 
+   async resolveModifierDef(url: string_DazUrl | DazUrlParts, FROM: KnownDazFile): Promise<DazModifierDef> {
+      const parts: DazUrlParts = typeof url === 'string' ? this.parseUrl(url) : url
+      const file = await this.resolveFileFromUrl(parts, FROM)
+      if (parts.asset_id == null) throw new Error('Asset ID is missing in the URL parts.')
+      const asset = file.modifierDefMap.get(parts.asset_id) // biome-ignore format: misc
+      if (asset == null) throw new Error(`Modifier with ID "${parts.asset_id}" not found in file "${file.absPath}".`)
+      return asset
+   }
+
+   async resolveNodeDef(url: string_DazUrl | DazUrlParts, FROM: KnownDazFile): Promise<DazNodeDef> {
+      const parts: DazUrlParts = typeof url === 'string' ? this.parseUrl(url) : url
+      const file = await this.resolveFileFromUrl(parts, FROM)
+      if (parts.asset_id == null) throw new Error('Asset ID is missing in the URL parts.')
+      const asset = file.nodeDefMap.get(parts.asset_id) // biome-ignore format: misc
+      if (asset == null) throw new Error(`Node with ID "${parts.asset_id}" not found in file "${file.absPath}".`)
+      return asset
+   }
+
+   resolveFileFromUrl(url: string_DazUrl | DazUrlParts, FROM: KnownDazFile): Promise<KnownDazFile> {
+      const parts: DazUrlParts = typeof url === 'string' ? this.parseUrl(url) : url
+      if (!parts.file_path) return Promise.resolve(FROM)
+      // all daz urls should be relative.
+      let relPath = parts.file_path as string_RelPath
+      if (relPath.startsWith('/')) {
+         relPath = relPath.slice(1) as string_RelPath // Remove leading slash for relative path
+         console.log(`[⁉️#wEj22WfFZ5] "${parts.file_path}" starts with a slash, treating as relative path.`)
+      }
+      return this.loadFile(relPath)
+   }
    // #region ---- Utils
    private _resolveAbsPath(absPath: string_AbsPath): PathInfo {
       const relPath = path.relative(this.absRootPath, absPath) as string_RelPath

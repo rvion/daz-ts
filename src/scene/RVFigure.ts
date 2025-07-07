@@ -1,35 +1,46 @@
 import * as THREE from 'three'
 import { DazFileCharacter } from '../core/DazFileCharacter.js'
 import { DazFilePose } from '../core/DazFilePose.js'
-import { DazGeometryInstance } from '../core/DazGeometryInstance.js'
-import { DazNode } from '../core/DazNode.js'
-import { DazNodeInstance } from '../core/DazNodeInstance.js'
-import { GLOBAL, getMgr } from '../DI.js'
+import { DazGeometryInst } from '../core/DazGeometryInst.js'
+import { DazNodeDef } from '../core/DazNodeDef.js'
+import { DazNodeInst } from '../core/DazNodeInst.js'
+import { getMgr } from '../DI.js'
 import { ModifierDB } from '../scripts/parse-modifiers.js'
 import { $$morph, dazId, string_DazId } from '../spec.js'
-import { ASSERT_, ASSERT_INSTANCE_OF, assertXYZChanels, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
+import { ASSERT_, assertXYZChanels, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
 import { simplifyObject } from '../utils/simplifyObject.js'
 import { FormulaHelper } from './FormulaHelper.js'
 import { fallbackMesh, meshStandardMaterial1 } from './materials.js'
+import { RuntimeScene } from './RuntimeScene.js'
 import { RVNode } from './RVNode.js'
 
 export class RVFigure extends RVNode {
-   override emoji: string = '🧑‍🎤'
+   override emoji: string = '🧑'
    meshes: (THREE.Mesh | THREE.SkinnedMesh)[] = []
    skeleton: THREE.Skeleton | null = null
    skeletonHelper: THREE.SkeletonHelper | null = null
    bones: Map<string_DazId, THREE.Bone> = new Map()
    boneHierarchy: Map<string, string[]> = new Map() // parent -> children mapping
-   private boneNameToIndex: Map<string, number> = new Map() // bone name -> skeleton bone index
+   boneNameToIndex: Map<string, number> = new Map() // bone name -> skeleton bone index
    private morphData: Map<string, { mesh: THREE.SkinnedMesh; influenceIndex: number }> = new Map()
 
-   constructor(public readonly nodeInstance: DazNodeInstance) {
-      super(nodeInstance.dazId, `Figure_${nodeInstance.dazId}`)
+   constructor(
+      public readonly sceneDaz: RuntimeScene,
+      public readonly dNodeDef: DazNodeDef,
+      public readonly dNodeInst: DazNodeInst,
+   ) {
+      super(
+         //
+         dNodeInst.dazId,
+         dNodeInst.relPath,
+         dNodeDef.relPath,
+         `Figure_${dNodeInst.dazId}`,
+      )
    }
 
    get dazCharacter(): DazFileCharacter {
-      return this.nodeInstance.file as DazFileCharacter
+      return this.dNodeInst.file as DazFileCharacter
    }
 
    async load(): Promise<this> {
@@ -53,8 +64,8 @@ export class RVFigure extends RVNode {
       }
 
       // Build meshes from character's node references
-      for (const geometryRef of this.nodeInstance.geometries) {
-         await geometryRef.resolve() // Ensure geometry is resolved before creating mesh
+      for (const geometryRef of this.dNodeInst.geometries) {
+         await geometryRef.resolveDef() // Ensure geometry is resolved before creating mesh
          const mesh = await this.createMeshFromGeometryInstance(geometryRef)
          if (mesh) {
             this.meshes.push(mesh)
@@ -69,9 +80,9 @@ export class RVFigure extends RVNode {
    }
 
    private async createMeshFromGeometryInstance(
-      geometryInstance: DazGeometryInstance,
+      geometryInstance: DazGeometryInst,
    ): Promise<THREE.Mesh | THREE.SkinnedMesh | null> {
-      const dazGeometry = await geometryInstance.resolve()
+      const dazGeometry = await geometryInstance.resolveDef()
       if (!dazGeometry) return null
 
       const vertices = dazGeometry.verticesForThree
@@ -149,7 +160,7 @@ export class RVFigure extends RVNode {
       // Build skeleton from figure's node_inf data
       const rootBones: THREE.Bone[] = []
       const figure = await this.dazCharacter.resolve()
-      const figureNodes = [...figure.nodes.values()]
+      const figureNodes = [...figure.nodeDefMap.values()]
       // console.log(`❓ ---- buildSkeleton (${figureNodes.length} nodes)`)
 
       // Store absolute positions for relative calculation
@@ -230,7 +241,7 @@ export class RVFigure extends RVNode {
       }
    }
 
-   private createBoneFromDazBoneNode(node: DazNode): THREE.Bone {
+   private createBoneFromDazBoneNode(node: DazNodeDef): THREE.Bone {
       ASSERT_(node.type === 'bone', `Node ${node.dazId} is not a bone type`)
       const bone = new THREE.Bone()
       bone.name = node.data.name || node.dazId
@@ -392,21 +403,33 @@ export class RVFigure extends RVNode {
    ) {
       const mod = bang(this.applicableModifiers[modifierId], `❌ Modifier ${modifierId} not found in database`)
 
-      // console.log(`[🤠] A`, new Error().stack)
-      const FILE = await getMgr().loadFileFromAbsPath(mod.path)
-      if (!FILE) {
-         return void console.warn(`[RVFigure] ❌ Morph file for ${modifierId} not found at ${mod.path}`)
-      }
+      this.sceneDaz.setSelectedItem(this)
+      const additions = await this.sceneDaz.addDazFileFromAbsPath(mod.path)
+      const FILE = additions.file
+      // console.log(`[ADDITIONS]`, {
+      //    a: additions.newTopLevelNodes.length,
+      //    b: [...additions.nodeMap.keys()],
+      //    b2: [...additions.nodeMap.values()].map((i) => ({
+      //       path: i.path,
+      //       id: i.dazId,
+      //    })),
+      //    c: additions.newNodesAttachedToExistingNodes.map((i) => i.at),
+      // })
+      // const FILE = await this.sceneDaz.mgr.loadFileFromAbsPath(mod.path)
+      // if (!FILE) return void console.warn(`[RVFigure] ❌ Morph file for ${modifierId} not found at ${mod.path}`)
+
       // ensure it's a DazFileModifier and it has a morph
-      // console.log(`[🤠] B`)
-      ASSERT_INSTANCE_OF(FILE, GLOBAL.DazFileModifier)
+      // ASSERT_INSTANCE_OF(FILE, GLOBAL.DazFileModifier)
+      // const modifier = bang(FILE.getFirstAndOnlyModifier_orCrash())
+      // const rvModifier = new RVModifierInstance(new DazModifier(getMgr(), FILE, modifier))
+      // this.add(rvModifier)
 
       // console.log(`[🤠] C`, fmtAbsPath(mod.path))
       if (mod.morph) {
          // If morph already applied, just update influence
          if (this.morphData.has(modifierId)) {
-            const data = this.morphData.get(modifierId)!
-            data.mesh.morphTargetInfluences![data.influenceIndex] = value
+            const data = bang(this.morphData.get(modifierId))
+            bang(data.mesh.morphTargetInfluences)[data.influenceIndex] = value
             return void console.log(`[RVFigure] ✅ Morph ${modifierId} influence updated to ${value}`)
          }
 
@@ -432,7 +455,7 @@ export class RVFigure extends RVNode {
          }
 
          // Find the target geometry instance in the character's node instances
-         let targetGeometryInstance: DazGeometryInstance | undefined
+         let targetGeometryInstance: DazGeometryInst | undefined
          for (const nodeInst of this.dazCharacter.sceneNodes.values()) {
             for (const geomInst of nodeInst.geometries) {
                const { asset_id } = parseDazUrl(geomInst.url)
@@ -530,9 +553,10 @@ export class RVFigure extends RVNode {
 
             // Parse the output URL
             const output = parseDazUrl(formula.output)
-            const bone = this.bones.get(output.node_path!)
+            const node_path = bang(output.node_path)
+            const bone = this.bones.get(node_path)
             if (!bone) {
-               console.warn(`[RVFigure] 🔴 Bone not found for modifier output: ${output.node_path!}`)
+               console.warn(`[RVFigure] 🔴 Bone not found for modifier output: ${node_path}`)
                continue
             }
             // console.log(`[🤠] bone=${bone.name}`)

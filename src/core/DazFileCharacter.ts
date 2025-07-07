@@ -7,7 +7,7 @@ import { bang } from '../utils/assert.js'
 import { getDazPathAndIdFromDazURL_orCrash } from '../utils/parseDazUrl.js'
 import { DsonFile } from './DazFile.js'
 import { DazFileFigure } from './DazFileFigure.js'
-import { DazNodeInstance } from './DazNodeInstance.js'
+import { DazNodeInst } from './DazNodeInst.js'
 
 export class DazFileCharacter extends DsonFile {
    emoji = '😄'
@@ -43,14 +43,14 @@ export class DazFileCharacter extends DsonFile {
    ]
    private figure: DazFileFigure | null = null
 
-   findNodeInstanceToFigure(): DazNodeInstance | undefined {
+   findNodeInstanceToFigure(): DazNodeInst | undefined {
       // Attempt to find and load the associated DazFigure
-      let figureNodeRef: DazNodeInstance | undefined
+      let figureNodeRef: DazNodeInst | undefined
 
       // Try common IDs first
       const commonFigureNodeIds: string_DazId[] = this._commonFigureNodeIds
       for (const id of commonFigureNodeIds) {
-         const nodeRef: DazNodeInstance | undefined = this.sceneNodes.get(id)
+         const nodeRef: DazNodeInst | undefined = this.sceneNodes.get(id)
          if (nodeRef?.data?.preview?.type === 'figure' || (nodeRef && id === dazId('Genesis9'))) {
             figureNodeRef = nodeRef
             break

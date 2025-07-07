@@ -3,7 +3,6 @@ import '../DI.js'
 import { describe, expect, test } from 'bun:test'
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
-import { RVFigure } from './RVFigure.js'
 
 describe('Skinning Debug', () => {
    test('should debug skin data structure', async () => {
@@ -11,12 +10,20 @@ describe('Skinning Debug', () => {
       const scene = mgr.createScene()
       const action = await scene.loadFile('People/Genesis 9/Genesis 9.duf')
       const character = action.addedFigure_orCrash
-      expect(scene.getSceneGraphAsString({ maxDepth: 3, emoji: true, material: false })).toStrictEqual([
-         '- RuntimeScene (❓)',
-         '  - Figure_Genesis9 (🧑‍🎤)',
-         '    - Bone_hip (🦴)',
-         '      - Bone_pelvis (🦴)',
-         '      - Bone_spine1 (🦴)',
+      expect(scene.getSceneGraphAsString({ maxDepth: 3, emoji: true, showMaterial: false })).toStrictEqual([
+         '🎬 #root',
+         '    🧑 #Genesis9',
+         '       📐 #Genesis9-1',
+         '       🦴 #hip',
+         '          🦴 #pelvis',
+         '          🦴 #spine1',
+         '       🛠️ #body_bs_Navel_HD3',
+         '          📡 #value = 0',
+         '       🛠️ #head_bs_MouthRealism_HD3',
+         '          📡 #value = 0',
+         '       🛠️ #SkinBinding',
+         '       🛠️ #facs_ctrl_EyeRestingFocalPoint',
+         '          📡 #value = 0',
       ])
       expect(character.skeleton).toBeTruthy()
       expect(character.bones.size).toBeGreaterThan(0)
@@ -24,7 +31,7 @@ describe('Skinning Debug', () => {
       // Debug the first geometry with skin data
       for (const nodeInstance of character.dazCharacter.sceneNodes.values()) {
          for (const dazGeometryInstance of nodeInstance.geometries) {
-            const resolvedInf = await dazGeometryInstance.resolve()
+            const resolvedInf = await dazGeometryInstance.resolveDef()
             const figure = await character.dazCharacter.resolve()
             if (figure.hasSkinData()) {
                const skinData = resolvedInf.getSkinWeightsForThree()
@@ -45,7 +52,7 @@ describe('Skinning Debug', () => {
                   // Check bone name mapping
                   const unmappedBones: string[] = []
                   for (const boneName of skinData.boneNames) {
-                     if (!(character as any).boneNameToIndex.has(boneName)) {
+                     if (!character.boneNameToIndex.has(boneName)) {
                         unmappedBones.push(boneName)
                      }
                   }

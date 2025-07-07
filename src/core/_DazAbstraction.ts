@@ -1,18 +1,18 @@
 import type { DazMgr } from '../mgr.js'
 import type { string_DazId, string_DazUrl } from '../spec.js'
-import { DazGeometry } from './DazGeometry.js'
-import type { DazGeometryInstance } from './DazGeometryInstance.js'
-import type { DazNode } from './DazNode.js' // New file
-import type { DazNodeInstance } from './DazNodeInstance.js' // Corrected to DazNodeRef.js due to file rename
+import { DazGeometryDef } from './DazGeometryDef.js'
+import type { DazGeometryInst } from './DazGeometryInst.js'
+import type { DazNodeDef } from './DazNodeDef.js' // New file
+import type { DazNodeInst } from './DazNodeInst.js' // Corrected to DazNodeRef.js due to file rename
 
 // biome-ignore format: misc
 export type AnyDazAbstraction =
    // biome-ignore lint/suspicious/noExplicitAny: misc
    | DazAbstraction<any, any>
-   | DazNodeInstance
-   | DazNode
-   | DazGeometry
-   | DazGeometryInstance // Made more specific
+   | DazNodeInst
+   | DazNodeDef
+   | DazGeometryDef
+   | DazGeometryInst // Made more specific
 
 export abstract class DazAbstraction<PARENT, DATA> {
    abstract emoji: string
