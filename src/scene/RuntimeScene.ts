@@ -11,18 +11,16 @@ import { dazId, string_DazUrl } from '../spec.js'
 import { string_AbsPath, string_RelPath } from '../types.js'
 import { ASSERT_RVFIGURE, bang } from '../utils/assert.js'
 import { CameraController } from '../web/CameraController.js'
+import { RVBone } from './RVBone.js'
+import { RVCamera } from './RVCamera.js'
 import { RVFigure } from './RVFigure.js'
+import { RVGeometryInstance } from './RVGeometryInstance.js'
+import { RVLight } from './RVLight.js'
+import { RVMaterialInstance } from './RVMaterialInstance.js'
+import { RVModifier } from './RVModifier.js'
 import { RVNode } from './RVNode.js'
-import {
-   RVBone,
-   RVCamera,
-   RVGeometryInstance,
-   RVLight,
-   RVMaterialInstance,
-   RVModifier,
-   RVProp,
-   RVUvSetInstance,
-} from './RVTypes.js'
+import { RVProp } from './RVProp.js'
+import { RVUvSetInstance } from './RVUvSetInstance.js'
 
 export type KnownRVNodes = RVFigure | RVBone | RVCamera | RVLight | RVProp
 
@@ -114,22 +112,20 @@ export class RuntimeScene extends RVNode {
          return { nodeMap, newTopLevelNodes, newNodesAttachedToExistingNodes, file }
       }
 
-      // Create all nodes
+      // Create all nodes and add them to a temporary list
+      const createdNodes: RVNode[] = []
       for (const dNodeInst of file.sceneNodesList) {
-         // parenting will be done right below once all nodes are created.
          const rvNode = await this.createRvNode(dNodeInst)
          console.log(`[🤠] created ${rvNode.dNodeDef.type} ${dNodeInst.dazId}`)
-         if (rvNode) nodeMap.set(dNodeInst.dazId, rvNode)
+         if (rvNode) {
+            nodeMap.set(dNodeInst.dazId, rvNode)
+            createdNodes.push(rvNode)
+         }
 
          for (const dGeoInst of dNodeInst.geometries) {
             const dGeoDef: DazGeometryDef = await dGeoInst.resolveDef()
             const rvGeometry = new RVGeometryInstance(this, dGeoInst, dGeoDef)
             rvNode.addChild(rvGeometry)
-            // console.log(`[🟢🟢🟢🟢🟢] ${rvGeometry.path}`)
-            // if (rvGeometry) {
-            //    rvNode.addChild(rvGeometry)
-            //    nodeMap.set(geo.id, rvGeometry)
-            // }
          }
       }
 
@@ -139,7 +135,6 @@ export class RuntimeScene extends RVNode {
          if (!rvNode) continue
 
          const parentId = nodeInstance.parent?.asset_id
-         // console.log(`[⁉️] parentId=${parentId} for ${nodeInstance.dazId}`)
          const parentNode = parentId ? (nodeMap.get(parentId) ?? this.findNodeById(parentId)) : this
 
          if (parentNode) {
@@ -147,6 +142,13 @@ export class RuntimeScene extends RVNode {
             if (parentNode === this) newTopLevelNodes.push(rvNode)
             else newNodesAttachedToExistingNodes.push({ node: rvNode, attachedTo: parentNode, at: bang(parentId) })
          }
+      }
+
+      // Call load method on all created nodes in reverse order
+      // This ensures that parent nodes (like RVFigure) load their skeleton
+      // after their bone children have been created and added to the scene graph.
+      for (let i = createdNodes.length - 1; i >= 0; i--) {
+         await createdNodes[i].load()
       }
 
       // Create and parent modifiers
@@ -196,7 +198,7 @@ export class RuntimeScene extends RVNode {
 
    private async createRvNode(dNodeInst: DazNodeInst): Promise<KnownRVNodes> {
       const dNodeDef = await dNodeInst.resolveDef()
-      if (dNodeDef.type === 'figure') return await new RVFigure(this, dNodeDef, dNodeInst).load()
+      if (dNodeDef.type === 'figure') return new RVFigure(this, dNodeDef, dNodeInst)
       else if (dNodeDef.type === 'bone') return new RVBone(this, dNodeDef, dNodeInst)
       else if (dNodeDef.type === 'camera') return new RVCamera(this, dNodeDef, dNodeInst)
       else if (dNodeDef.type === 'light') return new RVLight(this, dNodeDef, dNodeInst)

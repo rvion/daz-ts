@@ -10,7 +10,7 @@ import { dazUrl } from '../spec.js'
 import { ASSERT_INSTANCE_OF, bang } from '../utils/assert.js'
 import { RuntimeScene } from './RuntimeScene.js'
 import { RVFigure } from './RVFigure.js'
-import { RVModifier } from './RVTypes.js'
+import { RVModifier } from './RVModifier.js'
 
 const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
 

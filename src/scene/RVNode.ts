@@ -29,6 +29,15 @@ export abstract class RVNode {
    public parent?: RVNode
    abstract sceneDaz: RuntimeScene
 
+   /**
+    * Called after the node is created and parented in the scene graph.
+    * Subclasses should override this to perform any specific loading logic,
+    * such as building meshes or skeletons.
+    */
+   async load(): Promise<this> {
+      return this
+   }
+
    setupNodeChannels(data: $$node): void {
       // 'center_point?': 'any_channel[]
       if (data.center_point) {

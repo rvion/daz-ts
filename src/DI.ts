@@ -11,7 +11,8 @@ import { DazNodeDef } from './core/DazNodeDef.js' // New import
 import { DazNodeInst } from './core/DazNodeInst.js' // Corrected import path
 import type { DazMgr } from './mgr.js'
 import { RVFigure } from './scene/RVFigure.js'
-import { RVMaterialInstance, RVModifier } from './scene/RVTypes.js'
+import { RVMaterialInstance } from './scene/RVMaterialInstance.js'
+import { RVModifier } from './scene/RVModifier.js'
 import type { number_Timestamp } from './types.js'
 
 // -------- Class DI utilities --------

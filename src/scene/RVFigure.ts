@@ -43,7 +43,7 @@ export class RVFigure extends RVNode {
       return this.dNodeInst.file as DazFileCharacter
    }
 
-   async load(): Promise<this> {
+   override async load(): Promise<this> {
       await this.buildSkeleton()
       await this.buildMeshes()
 
