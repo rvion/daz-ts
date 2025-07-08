@@ -41,21 +41,6 @@ export class RVUvSetInstance extends RVNode {
 
 export class RVModifier extends RVNode {
    override emoji: string = '🛠️'
-   public readonly channel?: RVChannel
-
-   // get value() {
-   //    return bang(this.channel).value
-   // }
-
-   // set value(newValue: unknown) {
-   //    bang(this.channel).value = newValue
-   // }
-
-   // override getPropertyValue(propertyPath: Maybe<string>): unknown {
-   //    if (propertyPath === 'value') return this.value
-   //    return super.getPropertyValue(propertyPath)
-   // }
-
    constructor(
       public readonly sceneDaz: RuntimeScene,
       public readonly dModDef: DazModifierDef,

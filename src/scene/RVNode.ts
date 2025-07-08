@@ -84,17 +84,12 @@ export abstract class RVNode {
    }
 
    getValueFromUrl(url: string_DazUrl): unknown {
-      // console.log(`[🧐] attempting to get the value at ${url}`)
       const res = parseDazUrl(url)
       const node = this.findNodeByURL(url)
       const value = node?.getPropertyValue(res.property_path)
       console.log(`[getValueFromUrl()] node ${url}`, node?.constructor.name, node?.path, `= ${value}`)
-      // console.log(`           ${JSON.stringify(res)}`)
       if (!res.node_path) throw new Error(`[RVFigure] ❌ Invalid URL: ${url} - missing node_path`)
-      // const node = this.getBone_orCrash(res.node_path)
-      // node.
       return value
-      // return 0.5
    }
 
    /** lazily initialized record of property channels */

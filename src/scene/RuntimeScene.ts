@@ -5,14 +5,14 @@ import { DsonFile, KnownDazFile } from '../core/DazFile.js'
 import { DazGeometryDef } from '../core/DazGeometryDef.js'
 import { DazModifierDef } from '../core/DazModifierDef.js'
 import { DazNodeInst } from '../core/DazNodeInst.js'
+import { GLOBAL } from '../DI.js'
 import { DazMgr } from '../mgr.js'
-import { $$modifier, dazId, string_DazUrl } from '../spec.js'
+import { dazId, string_DazUrl } from '../spec.js'
 import { string_AbsPath, string_RelPath } from '../types.js'
-import { bang } from '../utils/assert.js'
-import { parseDazUrl } from '../utils/parseDazUrl.js'
+import { ASSERT_RVFIGURE, bang } from '../utils/assert.js'
 import { CameraController } from '../web/CameraController.js'
 import { RVFigure } from './RVFigure.js'
-import { RVNode, RVNodeQuery } from './RVNode.js'
+import { RVNode } from './RVNode.js'
 import {
    RVBone,
    RVCamera,
@@ -39,7 +39,8 @@ export type RVAddition = {
 
 export class RuntimeScene extends RVNode {
    override emoji: string = '🎬'
-   gui: GUI | null = null
+   mainGui: GUI | null = null
+   sceneGraphGui: GUI | null = null
    public sceneThree: THREE.Scene
    public camera: THREE.PerspectiveCamera
    public renderer?: THREE.WebGLRenderer
@@ -47,6 +48,14 @@ export class RuntimeScene extends RVNode {
    public selection: RVNode | null = null
 
    get sceneDaz(): RuntimeScene { return this } // biome-ignore format: misc
+
+   focusNodeInView(node: RVNode): void {
+      console.log(`[🤠] hello`, node.path)
+      const worldPosition = new THREE.Vector3()
+      node.object3d.getWorldPosition(worldPosition)
+      console.log(`[🤠] worldPosition=${worldPosition.toArray()}`)
+      this.cameraController.controls.target.copy(worldPosition)
+   }
 
    private animationId: number | null = null
    private isDisposed = false
@@ -180,7 +189,7 @@ export class RuntimeScene extends RVNode {
          nodeMap.set(uv.id, rvUv)
       }
 
-      this.refreshGui()
+      this.refreshSceneGraph()
       return { nodeMap, newTopLevelNodes, newNodesAttachedToExistingNodes, file }
    }
 
@@ -196,42 +205,92 @@ export class RuntimeScene extends RVNode {
 
    setSelectedItem(node: RVNode | null): void {
       this.selection = node
-      this.refreshGui()
+      this.refreshSceneGraph()
    }
 
    private setupGui(): void {
       if (typeof window !== 'undefined') {
-         this.gui = new GUI()
-         this.gui.title('Scene Graph')
+         this.mainGui = new GUI()
+         this.mainGui.title('Debug Controls')
+         this.mainGui.domElement.style.left = '0px'
+
+         this.sceneGraphGui = new GUI({ title: 'Scene Graph' })
+         this.sceneGraphGui.domElement.style.position = 'absolute'
+         this.sceneGraphGui.domElement.style.right = '0px'
       }
    }
 
    // TODO: this should not remove the entire GUI, but rather
    // update the relevant parts.
-   private refreshGui(): void {
-      if (!this.gui) return
+   private refreshSceneGraph(): void {
+      if (!this.sceneGraphGui) return
+
+      const savedState = this.sceneGraphGui.save()
+
       // Clear existing folders
-      this.gui.children.forEach((c) => c.destroy())
-      this.buildGuiNode(this, this.gui)
+      this.sceneGraphGui.children.forEach((c) => c.destroy())
+      this.buildGuiNode(this, this.sceneGraphGui, 0)
+
+      this.sceneGraphGui.load(savedState)
    }
 
-   private buildGuiNode(rvNode: RVNode, parentGui: GUI): void {
-      const folder = parentGui.addFolder(rvNode.object3d.name)
-      folder.domElement.style.borderLeft = '2px solid #888'
-      folder.domElement.style.marginLeft = '10px'
+   private buildGuiNode(rvNode: RVNode, parentGui: GUI, depth: number): void {
+      const nodeName = `${rvNode.emoji} ${rvNode.object3d.name}`
 
-      // Add properties for the node itself
       if (rvNode instanceof RVModifier) {
-         const mod: $$modifier = rvNode.dModDef.data
-         // Assuming a 'value' property exists for demonstration
-         if (mod.channel && 'current_value' in mod.channel) {
-            folder.add(mod.channel, 'current_value').name('Value').listen()
+         if (rvNode.channels.value) {
+            const channel = rvNode.channels.value
+            const channelData = channel.data
+            if (channelData.type === 'float') {
+               const min = channelData.min
+               const max = channelData.max
+               parentGui
+                  .add(channel, 'value', min, max)
+                  .name(nodeName)
+                  .listen()
+                  .onChange((next: number) => {
+                     const figure = ASSERT_RVFIGURE(rvNode.parent)
+                     figure.setModifierValue(rvNode.dazId, next)
+                     console.log(`[🤠] new value is ${next}`)
+                  })
+            } else if (channelData.type === 'int') {
+               const min = channelData.min
+               const max = channelData.max
+               parentGui.add(channel, 'value', min, max).name(nodeName).listen()
+            } else if (channelData.type === 'float_color') {
+               parentGui.addColor(channel, 'value').name(nodeName).listen()
+            } else {
+               parentGui.add(channel, 'value').name(nodeName).listen()
+            }
          }
-      }
+      } else if (rvNode.children.length > 0) {
+         const folder = parentGui.addFolder(nodeName)
+         folder.domElement.style.borderLeft = '2px solid #888'
+         folder.domElement.style.marginLeft = '10px'
+         folder.domElement.addEventListener('click', (ev) => {
+            this.focusNodeInView(rvNode)
+            ev.stopPropagation()
+            ev.preventDefault()
+         })
 
-      // Recursively add children
-      for (const child of rvNode.children) {
-         this.buildGuiNode(child, folder)
+         if (depth < 2) {
+            folder.open()
+         } else {
+            folder.close()
+         }
+
+         // Recursively add children
+         for (const child of rvNode.children) {
+            this.buildGuiNode(child, folder, depth + 1)
+         }
+      } else {
+         // If no children and not a modifier with a specific control, just add a display item
+         const displayItem = parentGui.add({ name: nodeName }, 'name').disable().name(nodeName)
+         displayItem.domElement.addEventListener('click', (ev) => {
+            this.focusNodeInView(rvNode)
+            ev.stopPropagation()
+            ev.preventDefault()
+         })
       }
    }
 
@@ -306,6 +365,13 @@ export class RuntimeScene extends RVNode {
       this.cameraController?.update()
       // Here you could add update logic for all RVNodes if needed
       this.renderer?.render(this.sceneThree, this.camera)
+
+      // this should be a scene traversal
+      for (const child of this.children) {
+         if (child instanceof GLOBAL.RVFigure) {
+            child.update() // Call update on each RVNode
+         }
+      }
    }
 
    dispose(): void {
@@ -321,7 +387,8 @@ export class RuntimeScene extends RVNode {
          document.body.removeChild(this.renderer.domElement)
       }
 
-      this.gui?.destroy()
+      this.mainGui?.destroy()
+      this.sceneGraphGui?.destroy()
       this.cameraController?.dispose()
       this.renderer?.dispose()
 

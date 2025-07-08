@@ -5,8 +5,8 @@ import { DazGeometryInst } from '../core/DazGeometryInst.js'
 import { DazNodeDef } from '../core/DazNodeDef.js'
 import { DazNodeInst } from '../core/DazNodeInst.js'
 import { GLOBAL, getMgr } from '../DI.js'
-import { ModifierDB } from '../scripts/parse-modifiers.js'
-import { $$morph, dazId, string_DazId } from '../spec.js'
+import { ModifierDB, ModifierDBEntry } from '../scripts/parse-modifiers.js'
+import { $$formula, $$morph, dazId, string_DazId } from '../spec.js'
 import { ASSERT_, ASSERT_INSTANCE_OF, assertXYZChanels, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
 import { simplifyObject } from '../utils/simplifyObject.js'
@@ -395,19 +395,38 @@ export class RVFigure extends RVNode {
       void this.setModifierValue('body_ctrl_WaistTwist', value)
    }
 
+   async loadModifierFile(modifierId: string) {
+      const modifierDBEntry = bang(
+         this.applicableModifiers[modifierId],
+         `❌ Modifier ${modifierId} not found in database`,
+      )
+      this.sceneDaz.setSelectedItem(this)
+      const filePath = modifierDBEntry.path
+      const _additions = await this.sceneDaz.addDazFileFromAbsPath(filePath)
+      ASSERT_INSTANCE_OF(bang(this.findNodeById(modifierId)), GLOBAL.RVModifier)
+      // const FILE = additions.file
+   }
+
    async setModifierValue(
       //
       modifierId: string,
       value: number,
       p: { printFormulas?: boolean | number } = {},
    ) {
-      const mod = bang(this.applicableModifiers[modifierId], `❌ Modifier ${modifierId} not found in database`)
+      const mod: ModifierDBEntry = bang(
+         this.applicableModifiers[modifierId],
+         `❌ Modifier ${modifierId} not found in database`,
+      )
+      const absPath = mod.path
 
-      this.sceneDaz.setSelectedItem(this)
-      const additions = await this.sceneDaz.addDazFileFromAbsPath(mod.path)
-      const FILE = additions.file
+      // this.sceneDaz.setSelectedItem(this)
+      // const additions = await this.sceneDaz.addDazFileFromAbsPath(mod.path)
+      // const FILE = additions.file
+      const FILE = this.sceneDaz.mgr.getPreviouslyLoadedFile_orCrash(absPath)
 
-      const modifier = ASSERT_INSTANCE_OF(bang(this.findNodeById(modifierId)), GLOBAL.RVModifier)
+      const node_ = bang(this.findNodeById(modifierId), `❌ Modifier node ${modifierId} not found in scene`)
+      const modifier = ASSERT_INSTANCE_OF(bang(node_), GLOBAL.RVModifier)
+      // const mod = modifier.dModDef.data
       modifier.setPropertyValue('value', value)
 
       // console.log(`[ADDITIONS]`, {
@@ -528,7 +547,8 @@ export class RVFigure extends RVNode {
          //          |                   |
          //      node_path           asset_id
 
-         const formulas = bang(FILE.getFirstAndOnlyModifier_orCrash()?.formulas)
+         // const formulas = bang(FILE.getFirstAndOnlyModifier_orCrash()?.formulas)
+         const formulas: $$formula[] = bang(modifier.dModDef.data.formulas)
 
          let maxPrint =
             typeof p.printFormulas === 'number'

@@ -1,7 +1,6 @@
 import GUI from 'lil-gui'
 import * as path from 'pathe'
 import { getMgr } from '../../DI.js'
-import { RuntimeScene } from '../../scene/RuntimeScene.js'
 import { RVFigure } from '../../scene/RVFigure.js'
 import { RVNode } from '../../scene/RVNode.js'
 import { DazAssetType } from '../../spec.js'
@@ -10,20 +9,12 @@ import { string_RelPath } from '../../types.js'
 export async function setupDebugGUI(
    //
    characterNode: RVNode,
-   rt: RuntimeScene,
+   mainGui: GUI,
 ) {
    const character1 = characterNode as RVFigure
-   // Dispose existing GUI if present
-   if (rt.gui) {
-      rt.gui.destroy()
-   }
-
-   rt.gui = new GUI()
-   rt.gui.title('Debug Controls')
-   const gui = rt.gui
 
    // Character 1 controls
-   const char1Folder = gui.addFolder('Character 1')
+   const char1Folder = mainGui.addFolder('Character 1')
    char1Folder.add(character1, 'wireframeEnabled').name('Wireframe')
    char1Folder.add(character1, 'ghostModeEnabled').name('Ghost Mode')
    char1Folder.add(character1, 'boneHelperVisible').name('Show Skeleton')

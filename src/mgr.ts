@@ -53,6 +53,11 @@ export class DazMgr {
 
    // ---- files
    filesFull = new Map<string_AbsPath, KnownDazFile>()
+   getPreviouslyLoadedFile_orCrash(absPath: string_AbsPath): KnownDazFile {
+      const file = this.filesFull.get(absPath)
+      if (!file) throw new Error(`File not found: ${absPath}`)
+      return file
+   }
    register(file: KnownDazFile) {
       this.filesFull.set(file.absPath, file)
    }

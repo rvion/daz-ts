@@ -64,6 +64,7 @@ export class FormulaHelper {
             case 'push':
                if ('url' in op) {
                   const value = this.figure.getValueFromUrl(op.url)
+                  if (typeof value !== 'number') throw new Error(`[evaluateFormula] ❌ expected a number`)
                   stack.push(value)
                } else if ('val' in op) {
                   if (typeof op.val !== 'number') {

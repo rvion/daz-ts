@@ -1,3 +1,5 @@
+import { GLOBAL } from '../DI.js'
+import { RVFigure } from '../scene/RVFigure.js'
 import type { Maybe } from '../types.js'
 
 export const ASSERT = (condition: boolean, message: string): asserts condition => {
@@ -38,6 +40,13 @@ export const ASSERT_ERROR = (err: unknown): Error => {
       throw new Error(`Expected an Error, but got: ${typeof err} - ${err}`)
    }
    return err
+}
+
+export const ASSERT_RVFIGURE = (obj: unknown): RVFigure => {
+   if (!(obj instanceof GLOBAL.RVFigure)) {
+      throw new Error(`Expected instance of RVFigure, but got: ${typeof obj} - ${obj}`)
+   }
+   return obj as RVFigure
 }
 
 export const ASSERT_INSTANCE_OF = <T>(

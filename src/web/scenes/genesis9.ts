@@ -1,5 +1,6 @@
 import { DazMgr } from '../../mgr.js'
 import { RuntimeScene } from '../../scene/RuntimeScene.js'
+import { bang } from '../../utils/assert.js'
 import { setupDebugGUI } from './setupDebugGUI.js'
 
 export let scene: RuntimeScene | null = null
@@ -14,7 +15,9 @@ export async function initSceneGenesis9(mgr: DazMgr) {
    // 1. Initialize the main scene manager
    scene = mgr.createScene()
    const action1 = await scene.loadFile('People/Genesis 9/Genesis 9.duf')
-   const character = action1.addedFigure_orCrash
+   const figure = action1.addedFigure_orCrash
+   await figure.loadModifierFile('body_ctrl_WaistTwist') // Load the waist twist modifier
+   // await figure.loadModifierFile('body_bs_ProportionArmsLength') // Load the waist twist modifier
    // const action2 = await scene.loadFile('People/Genesis 9/Genesis 9.duf')
    // const character2 = action1.addedFigure_orCrash
    // character2.x += 50
@@ -26,9 +29,9 @@ export async function initSceneGenesis9(mgr: DazMgr) {
    scene.camera.lookAt(0, characterAvgHeight / 2, 0) // Look at the center point between characters at mid-height
    scene.camera.updateProjectionMatrix()
 
-   console.log(`[🤠] Character loaded`, character)
+   console.log(`[🤠] Character loaded`, figure)
    // 4. Setup debug GUI
-   await setupDebugGUI(character, scene)
+   await setupDebugGUI(figure, bang(scene.mainGui))
 
    // 5. Start the rendering loop
    scene.start()
@@ -42,9 +45,14 @@ export function cleanupSceneGenesis9(rt: RuntimeScene) {
       console.log('RuntimeScene cleaned up.')
    }
 
-   if (rt.gui) {
-      rt.gui.destroy()
-      rt.gui = null
-      console.log('GUI cleaned up.')
+   if (rt.mainGui) {
+      rt.mainGui.destroy()
+      rt.mainGui = null
+      console.log('Main GUI cleaned up.')
+   }
+   if (rt.sceneGraphGui) {
+      rt.sceneGraphGui.destroy()
+      rt.sceneGraphGui = null
+      console.log('Scene Graph GUI cleaned up.')
    }
 }

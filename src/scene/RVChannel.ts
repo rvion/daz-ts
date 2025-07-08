@@ -1,4 +1,4 @@
-import { $$any_channel } from '../spec.js'
+import { $$any_channel, $$channel } from '../spec.js'
 import { RuntimeScene } from './RuntimeScene.js'
 
 export class RVChannel /* extends RVNode */ {
@@ -6,6 +6,9 @@ export class RVChannel /* extends RVNode */ {
    // this is where the RV... store the actual value
    value: unknown
 
+   get type(): $$channel['type'] {
+      return this.data.type
+   }
    // TODO: this should be a getter to retrieve the default value,
    // not some overridable method
    /** @deprecated */
