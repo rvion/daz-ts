@@ -14,7 +14,7 @@ describe('Skeleton Synchronization', () => {
    test('skeleton helper should be visible without calling getWorldPosition', async () => {
       const scene = mgr.createScene()
       const characterFile = await mgr.loadFileAs('People/Genesis 9/Genesis 9.duf', DazFileCharacter)
-      const { newTopLevelNodes } = await characterFile.addToScene(scene)
+      const { newTopLevelNodes } = await scene.loadFile(characterFile)
       const character = newTopLevelNodes[0] as RVFigure
 
       // Verify skeleton was created
@@ -49,7 +49,7 @@ describe('Skeleton Synchronization', () => {
    test('skeleton matrices update during animation loop', async () => {
       const scene = mgr.createScene()
       const characterFile = await mgr.loadFileAs('People/Genesis 9/Genesis 9.duf', DazFileCharacter)
-      const { newTopLevelNodes } = await characterFile.addToScene(scene)
+      const { newTopLevelNodes } = await scene.loadFile(characterFile)
       const character = newTopLevelNodes[0] as RVFigure
       const hipBone = character.bones.get(dazId('hip'))!
 

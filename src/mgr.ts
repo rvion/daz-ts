@@ -13,7 +13,7 @@ import { checkpoint, GLOBAL, registerMgrInstance } from './DI.js'
 import type { FS } from './fs/fsNode.js'
 import type { PathInfo } from './fs/PathInfo.js'
 import { processFiles, type WalkOptions } from './fs/walk.js'
-import { RuntimeScene } from './scene/RuntimeScene.js'
+import { RVScene } from './scene/RVScene.js'
 import { ModifierDB } from './scripts/parse-modifiers.js'
 import { $$, $$asset_info, $$dson, DazAssetType, string_DazUrl } from './spec.js'
 import { relPath, string_AbsPath, string_Ext, string_RelPath } from './types.js'
@@ -32,7 +32,7 @@ type CachedLibraryFiles = {
 
 export class DazMgr {
    /** @internal */ private ____DI____ = (() => registerMgrInstance(this))()
-   public scene: RuntimeScene | null = null
+   public scene: RVScene | null = null
    public modifiersDb: ModifierDB | null = null
    public getModifierDB_orCrash(): ModifierDB {
       if (this.modifiersDb) return this.modifiersDb
@@ -110,8 +110,8 @@ export class DazMgr {
       public fs: FS,
    ) {}
 
-   createScene(): RuntimeScene {
-      return new RuntimeScene(this)
+   createScene(): RVScene {
+      return new RVScene(this)
    }
 
    // ---- Load
@@ -120,12 +120,7 @@ export class DazMgr {
       return await this._loadFromPathInfo(this._resolveAbsPath(absPath))
    }
 
-   // async loadFileFromURL(dazurl: string_DazUrl): Promise<KnownDazFile> {
-   //    const parts = parseDazUrl(dazurl)
-   //    return await this._loadFromPathInfo(this._resolveRelPath(parts.file_path))
-   // }
-
-   async loadFile(relPath: string_RelPath) {
+   async loadFileFromRelPath(relPath: string_RelPath) {
       return await this._loadFromPathInfo(this._resolveRelPath(relPath))
    }
 
@@ -140,16 +135,16 @@ export class DazMgr {
    private genesis9baseDsf = relPath`data/DAZ 3D/Genesis 9/Base/Genesis9.dsf`
 
    async loadGenesis9CharacterFile(): Promise<DazFileCharacter> {
-      const f = await this.loadFile(this.genesis9baseDuf)
+      const f = await this.loadFileFromRelPath(this.genesis9baseDuf)
       return ASSERT_INSTANCE_OF(f, GLOBAL.DazFileCharacter)
    }
    async loadGenesis9FigureFile(): Promise<DazFileFigure> {
-      const f = await this.loadFile(this.genesis9baseDsf)
+      const f = await this.loadFileFromRelPath(this.genesis9baseDsf)
       return ASSERT_INSTANCE_OF(f, GLOBAL.DazFileFigure)
    }
 
    async loadPoseFile(relPath: string_RelPath): Promise<DazFilePose> {
-      const f = await this.loadFile(relPath)
+      const f = await this.loadFileFromRelPath(relPath)
       return ASSERT_INSTANCE_OF(f, GLOBAL.DazFilePose)
    }
 
@@ -173,7 +168,7 @@ export class DazMgr {
    }
 
    async loadDazFigureByRelPath_orCrash(relPath: string_RelPath): Promise<DazFileFigure> {
-      const file = await this.loadFile(relPath)
+      const file = await this.loadFileFromRelPath(relPath)
       if (file instanceof GLOBAL.DazFileFigure) return file
       const errMst = `Expected DazFigure at "${relPath}", but found ${file.constructor.name} (AssetType: ${file.assetType}, DazID: ${file.dazId})`
       throw new Error(errMst)
@@ -291,7 +286,7 @@ export class DazMgr {
          relPath = relPath.slice(1) as string_RelPath // Remove leading slash for relative path
          console.log(`[⁉️#wEj22WfFZ5] "${parts.file_path}" starts with a slash, treating as relative path.`)
       }
-      return this.loadFile(relPath)
+      return this.loadFileFromRelPath(relPath)
    }
    // #region ---- Utils
    private _resolveAbsPath(absPath: string_AbsPath): PathInfo {

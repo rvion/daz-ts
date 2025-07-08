@@ -8,7 +8,7 @@ describe('Skinning Debug', () => {
    test('should debug skin data structure', async () => {
       const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
       const scene = mgr.createScene()
-      const action = await scene.loadFile('People/Genesis 9/Genesis 9.duf')
+      const action = await scene.loadFileFromRelPath('People/Genesis 9/Genesis 9.duf')
       const character = action.addedFigure_orCrash
       expect(scene.getSceneGraphAsString({ maxDepth: 3, emoji: true, showMaterial: false })).toStrictEqual([
          '🎬 #root',

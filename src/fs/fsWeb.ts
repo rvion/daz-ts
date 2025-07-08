@@ -14,7 +14,7 @@ export const fs: FS = {
        if (path.startsWith(DAZ_LIB_ROOT)) {
            const relativePath = path.substring(DAZ_LIB_ROOT.length);
            const url = `${SERVER_URL}/${relativePath}`;
-           console.log(`Fetching Daz file from server: ${url}`);
+           // console.log(`Fetching Daz file from server: ${url}`);
            const response = await fetch(url);
            if (!response.ok) {
                throw new Error(`Failed to fetch ${url}: ${response.statusText}`);

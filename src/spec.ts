@@ -675,8 +675,8 @@ export const $ = scope({
       type: 'string',
       label: 'string',
       description: 'string',
-      icon_large: 'string', // path
-      'icon_small?': 'string', // path
+      icon_large: 'dazUrl', // path
+      'icon_small?': 'dazUrl', // path
       colors: 'float3[]', // array of 2
    },
 

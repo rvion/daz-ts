@@ -12,7 +12,7 @@ describe('Bone Names Debug', () => {
       const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
       const scene = mgr.createScene()
       const dazChar = await mgr.loadFileAs('People/Genesis 9/Genesis 9.duf', DazFileCharacter)
-      const { newTopLevelNodes } = await dazChar.addToScene(scene)
+      const { newTopLevelNodes } = await scene.loadFile(dazChar)
       const character = newTopLevelNodes[0] as RVFigure
 
       expect(character.skeleton).toBeTruthy()

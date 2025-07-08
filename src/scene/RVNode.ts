@@ -7,8 +7,8 @@ import { $$node, string_DazId, string_DazUrl } from '../spec.js'
 import { Maybe, string_RelPath } from '../types.js'
 import { assertXYZChanels, bang } from '../utils/assert.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
-import { GraphPrintingConf, RuntimeScene } from './RuntimeScene.js'
 import { RVChannel } from './RVChannel.js'
+import { GraphPrintingConf, RVScene } from './RVScene.js'
 
 export type RVNodeQuery = {
    id?: Maybe<string_DazId>
@@ -27,7 +27,7 @@ export abstract class RVNode {
    public object3d: THREE.Object3D
    public readonly children: RVNode[] = []
    public parent?: RVNode
-   abstract sceneDaz: RuntimeScene
+   abstract sceneDaz: RVScene
 
    /**
     * Called after the node is created and parented in the scene graph.
@@ -35,6 +35,11 @@ export abstract class RVNode {
     * such as building meshes or skeletons.
     */
    async load(): Promise<this> {
+      return this
+   }
+
+   select(): this {
+      this.sceneDaz.selectNode(this)
       return this
    }
 
@@ -88,7 +93,7 @@ export abstract class RVNode {
 
    setValueAtUrl(url: string_DazUrl, value: unknown): void {
       const res = parseDazUrl(url)
-      const node = bang(this.findNodeByURL(url))
+      const node = bang(this.findNodeByURL(url), `❌ missing node: ${url}`)
       node.setPropertyValue(res.property_path, value)
    }
 
@@ -215,6 +220,11 @@ export abstract class RVNode {
       return this.findNode(q)
    }
 
+   findNode_orCrash(q: RVNodeQuery): RVNode {
+      const node = this.findNode(q)
+      if (!node) throw new Error(`❌ Node not found for query: ${JSON.stringify(q)} in ${this.constructor.name}`)
+      return node
+   }
    findNode(q: RVNodeQuery): RVNode | undefined {
       // console.log(`[🤠] query: ${JSON.stringify(q)}`)
       const traverse = (node: RVNode): RVNode | undefined => {

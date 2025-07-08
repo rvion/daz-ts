@@ -83,7 +83,9 @@ describe('DazFileModifier', () => {
          file_path: 'data/Daz 3D/G9ToonCommon/Genesis 9 Toon Floating Iris/G9ToonFloatingIris.dsf',
       })
 
-      await mgr.loadFile(`/data/AprilYSH/EirgridGenesis/EirgridHairG9/Morphs/AprilYSH/Base/body_cbs_head_x30n.dsf`)
+      await mgr.loadFileFromRelPath(
+         `/data/AprilYSH/EirgridGenesis/EirgridHairG9/Morphs/AprilYSH/Base/body_cbs_head_x30n.dsf`,
+      )
       expect(1).toBe(1)
    })
 })

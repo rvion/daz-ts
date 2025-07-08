@@ -1,5 +1,5 @@
 import { $$any_channel, $$channel } from '../spec.js'
-import { RuntimeScene } from './RuntimeScene.js'
+import { RVScene } from './RVScene.js'
 
 export class RVChannel /* extends RVNode */ {
    // override emoji: string = '📡'
@@ -31,7 +31,7 @@ export class RVChannel /* extends RVNode */ {
    }
 
    constructor(
-      public readonly sceneDaz: RuntimeScene,
+      public readonly sceneDaz: RVScene,
       public readonly data: $$any_channel,
    ) {
       // super(data.id, '🔴⁉️', '🔴⁉️', data.id)

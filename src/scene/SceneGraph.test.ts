@@ -3,11 +3,11 @@ import '../DI.js'
 
 import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
-import type { RuntimeScene } from './RuntimeScene.js'
+import type { RVScene } from './RVScene.js'
 
 describe('SceneGraph', () => {
    let mgr: DazMgr
-   let runtimeScene: RuntimeScene
+   let runtimeScene: RVScene
 
    beforeAll(async () => {
       mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
@@ -17,7 +17,7 @@ describe('SceneGraph', () => {
    test('should build a scene graph from a character file', async () => {
       runtimeScene = mgr.createScene()
       const characterFile = await mgr.loadGenesis9CharacterFile()
-      await runtimeScene.addDazFile(characterFile)
+      await runtimeScene.loadFile(characterFile)
 
       // Add a utility method to print the scene graph for debugging
       const sceneGraphString = runtimeScene.getSceneGraphAsString({ maxDepth: 4 })

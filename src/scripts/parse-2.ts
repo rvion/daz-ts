@@ -12,7 +12,7 @@ const entrypoints = [
    'People/Genesis 9/Poses/Daz Originals/Base Poses/Base Feminine/G9 Base Pose 09 Seated G9F.duf',
 ]
 for (const entry of entrypoints) {
-   await mgr.loadFile(entry)
+   await mgr.loadFileFromRelPath(entry)
 }
 // await mgr.loadFull_FromRelPath('People/Genesis 9/Poses/Daz Originals/Base Poses/Base Feminine/G9 Base Pose 09 Seated G9F.duf',)
 console.log(`[🤠] done`)

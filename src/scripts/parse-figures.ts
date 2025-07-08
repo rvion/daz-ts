@@ -19,7 +19,7 @@ console.log(
    charAssets.map((i) => basename(i.relPath)),
 )
 for (const a of charAssets) {
-   await mgr.loadFile(a.relPath)
+   await mgr.loadFileFromRelPath(a.relPath)
 }
 checkpoint('✅ done')
 // // duf are user files

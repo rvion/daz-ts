@@ -12,9 +12,9 @@ import { parseDazUrl } from '../utils/parseDazUrl.js'
 import { simplifyObject } from '../utils/simplifyObject.js'
 import { FormulaHelper } from './FormulaHelper.js'
 import { fallbackMesh, meshStandardMaterial1 } from './materials.js'
-import { RuntimeScene } from './RuntimeScene.js'
 import { RVBone } from './RVBone.js'
 import { RVNode } from './RVNode.js'
+import { RVScene } from './RVScene.js'
 
 export class RVFigure extends RVNode {
    override emoji: string = '🧑'
@@ -27,7 +27,7 @@ export class RVFigure extends RVNode {
    private morphData: Map<string, { mesh: THREE.SkinnedMesh; influenceIndex: number }> = new Map()
 
    constructor(
-      public readonly sceneDaz: RuntimeScene,
+      public readonly sceneDaz: RVScene,
       public readonly dNodeDef: DazNodeDef,
       public readonly dNodeInst: DazNodeInst,
    ) {
@@ -371,15 +371,40 @@ export class RVFigure extends RVNode {
       void this.setModifierValue('body_ctrl_WaistTwist', value)
    }
 
-   async loadModifierFile(modifierId: string) {
+   async loadModifierFile(
+      //
+      modifierId: string,
+   ): Promise<void> {
+      console.log(`[🔴 RVFigure.loadModifierFile] ------------------------- `)
       const modifierDBEntry = bang(
          this.applicableModifiers[modifierId],
          `❌ Modifier ${modifierId} not found in database`,
       )
-      this.sceneDaz.setSelectedItem(this)
+      this.select()
       const filePath = modifierDBEntry.path
-      const _additions = await this.sceneDaz.addDazFileFromAbsPath(filePath)
+      const _additions = await this.sceneDaz.loadFileFromAbsPath(filePath)
       ASSERT_INSTANCE_OF(bang(this.findNodeById(modifierId)), GLOBAL.RVModifier)
+
+      const queue = [_additions.file]
+      let next: typeof _additions.file | undefined
+      const seen = new Set<string>() // to avoid loading the same file multiple times
+      while ((next = queue.shift())) {
+         if (seen.has(next.dazId)) continue // already processed this file
+         seen.add(next.dazId)
+         console.log(`[🟢] Processing ${next.dazId}`)
+         for (const i of next.modifierDefList) {
+            if (i.data.formulas == null) continue
+            console.log(`    [🟢]  > modifier: ${i.dazId}`)
+            for (const formula of i.data.formulas) {
+               console.log(`              [🟢]  > formula: (${formula.output})`)
+               const parts = parseDazUrl(formula.output)
+               if (parts.file_path /* && !this.sceneDaz.filesLoaded.has(parts.file_path) */) {
+                  const x = await this.sceneDaz.loadFileFromRelPath(parts.file_path)
+                  if (!seen.has(x.file.dazId)) queue.push(x.file)
+               }
+            }
+         }
+      }
       // const FILE = additions.file
    }
 

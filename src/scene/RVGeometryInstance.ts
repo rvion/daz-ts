@@ -1,13 +1,13 @@
 import { DazGeometryDef } from '../core/DazGeometryDef.js'
 import { DazGeometryInst } from '../core/DazGeometryInst.js'
 import { bang } from '../utils/assert.js'
-import { RuntimeScene } from './RuntimeScene.js'
 import { RVNode } from './RVNode.js'
+import { RVScene } from './RVScene.js'
 
 export class RVGeometryInstance extends RVNode {
    override emoji: string = '📐'
    constructor(
-      public readonly sceneDaz: RuntimeScene,
+      public readonly sceneDaz: RVScene,
       public readonly dGeoInst: DazGeometryInst,
       public readonly dGeoDef: DazGeometryDef,
    ) {

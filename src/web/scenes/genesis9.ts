@@ -1,26 +1,21 @@
 import { DazMgr } from '../../mgr.js'
-import { RuntimeScene } from '../../scene/RuntimeScene.js'
+import { RVScene } from '../../scene/RVScene.js'
+import { dazId } from '../../spec.js'
 import { bang } from '../../utils/assert.js'
 import { setupDebugGUI } from './setupDebugGUI.js'
 
-export let scene: RuntimeScene | null = null
+export let scene: RVScene | null = null
 
 export async function initSceneGenesis9(mgr: DazMgr) {
    // If a scene already exists, dispose of it properly
-   if (scene) {
-      scene.dispose()
-      scene = null
-   }
+   if (scene) scene.dispose()
 
    // 1. Initialize the main scene manager
    scene = mgr.createScene()
-   const action1 = await scene.loadFile('People/Genesis 9/Genesis 9.duf')
+   const action1 = await scene.loadFileFromRelPath('People/Genesis 9/Genesis 9.duf')
    const figure = action1.addedFigure_orCrash
    await figure.loadModifierFile('body_ctrl_WaistTwist') // Load the waist twist modifier
-   await figure.loadModifierFile('body_bs_ProportionArmsLength') // Load the waist twist modifier
-   // const action2 = await scene.loadFile('People/Genesis 9/Genesis 9.duf')
-   // const character2 = action1.addedFigure_orCrash
-   // character2.x += 50
+   await figure.loadModifierFile('Amala_figure_ctrl_Character') // Load the waist twist modifier
 
    // Adjust camera for a wider view to see both characters
    // Assuming characters are around 170 units (cm) tall
@@ -35,10 +30,11 @@ export async function initSceneGenesis9(mgr: DazMgr) {
 
    // 5. Start the rendering loop
    scene.start()
+   scene.centerCameraOnNodeId('head') // Center camera on the right hand bone
    console.log('RuntimeScene initialized with RVFigure.')
 }
 
-export function cleanupSceneGenesis9(rt: RuntimeScene) {
+export function cleanupSceneGenesis9(rt: RVScene) {
    if (scene) {
       scene.dispose()
       scene = null

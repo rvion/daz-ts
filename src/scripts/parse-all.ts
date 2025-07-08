@@ -22,7 +22,7 @@ for (const a of assets /* .slice(1300) */) {
    if (a.assetType === 'preset_render_settings') continue
    checkpoint(`loading morph ${ix++}/${assets.length}`)
    try {
-      const _x = await mgr.loadFile(a.relPath)
+      const _x = await mgr.loadFileFromRelPath(a.relPath)
       // console.log(`[🤠] --------------------------------------------------`, x.constructor.name)
    } catch (err) {
       if (err instanceof Error) {

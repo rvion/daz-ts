@@ -2,8 +2,8 @@ import * as THREE from 'three'
 import { DazNodeDef } from '../core/DazNodeDef.js'
 import { DazNodeInst } from '../core/DazNodeInst.js'
 import { ASSERT_, assertXYZChanels } from '../utils/assert.js'
-import { RuntimeScene } from './RuntimeScene.js'
 import { RVNode } from './RVNode.js'
+import { RVScene } from './RVScene.js'
 
 // #region RVNode
 // RVNodeInstance is actually splitted into different classes for convernience.
@@ -25,7 +25,7 @@ export class RVBone extends RVNode {
    //    return super.getPropertyValue(propertyPath)
    // }
    constructor(
-      public readonly sceneDaz: RuntimeScene,
+      public readonly sceneDaz: RVScene,
       public readonly dNodeDef: DazNodeDef,
       public readonly dNodeInst: DazNodeInst,
    ) {

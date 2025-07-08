@@ -74,7 +74,7 @@ export class DazFileModifier extends DsonFile {
       // We can't resolve these to external files
       if (!parts.file_path) return Promise.resolve(this)
       if (parts.file_path === '') return Promise.resolve(this)
-      return this.mgr.loadFile(parts.file_path)
+      return this.mgr.loadFileFromRelPath(parts.file_path)
    }
 
    // Getter for easy access to modifier library entries

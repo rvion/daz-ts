@@ -8,15 +8,15 @@ import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { dazUrl } from '../spec.js'
 import { ASSERT_INSTANCE_OF, bang } from '../utils/assert.js'
-import { RuntimeScene } from './RuntimeScene.js'
 import { RVFigure } from './RVFigure.js'
 import { RVModifier } from './RVModifier.js'
+import { RVScene } from './RVScene.js'
 
 const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
 
 describe('RVFigure Modifier Tests', () => {
    let rvFigure: RVFigure
-   let scene: RuntimeScene
+   let scene: RVScene
 
    beforeAll(async () => {
       await mgr.loadModifiersDb()
@@ -25,7 +25,7 @@ describe('RVFigure Modifier Tests', () => {
    beforeEach(async () => {
       scene = mgr.createScene()
       const characterFile = await mgr.loadFileAs('People/Genesis 9/Genesis 9.duf', DazFileCharacter)
-      const res = await characterFile.addToScene(scene)
+      const res = await scene.loadFile(characterFile)
       rvFigure = ASSERT_INSTANCE_OF(res.newTopLevelNodes[0], GLOBAL.RVFigure)
       await rvFigure.loadModifierFile('body_ctrl_WaistTwist') // Load the waist twist modifier
    })

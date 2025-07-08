@@ -9,7 +9,7 @@ import { GLOBAL } from '../DI.js'
 import { DazMgr } from '../mgr.js'
 import { dazId, string_DazUrl } from '../spec.js'
 import { string_AbsPath, string_RelPath } from '../types.js'
-import { ASSERT_RVFIGURE, bang } from '../utils/assert.js'
+import { bang } from '../utils/assert.js'
 import { CameraController } from '../web/CameraController.js'
 import { RVBone } from './RVBone.js'
 import { RVCamera } from './RVCamera.js'
@@ -33,9 +33,10 @@ export type RVAddition = {
       attachedTo: RVNode
       at: string
    }[]
+   readonly addedFigure_orCrash: RVFigure
 }
 
-export class RuntimeScene extends RVNode {
+export class RVScene extends RVNode {
    override emoji: string = '🎬'
    mainGui: GUI | null = null
    sceneGraphGui: GUI | null = null
@@ -45,14 +46,20 @@ export class RuntimeScene extends RVNode {
    public cameraController!: CameraController
    public selection: RVNode | null = null
 
-   get sceneDaz(): RuntimeScene { return this } // biome-ignore format: misc
+   get sceneDaz(): RVScene { return this } // biome-ignore format: misc
 
-   focusNodeInView(node: RVNode): void {
+   centerCameraOnNodeId(nodeId: string): this {
+      const node = this.findNode_orCrash({ id: dazId(nodeId) })
+      return this.centerCameraOnNode(node)
+   }
+   centerCameraOnNode(node: RVNode): this {
       console.log(`[🤠] hello`, node.path)
       const worldPosition = new THREE.Vector3()
       node.object3d.getWorldPosition(worldPosition)
       console.log(`[🤠] worldPosition=${worldPosition.toArray()}`, node)
       this.cameraController.controls.target.copy(worldPosition)
+      this.cameraController.controls.object.position.set(worldPosition.x, worldPosition.y, worldPosition.z + 100)
+      return this
    }
 
    private animationId: number | null = null
@@ -80,28 +87,34 @@ export class RuntimeScene extends RVNode {
       this.setupGui()
    }
 
-   async loadFile(filepath: string) {
-      const file = await this.mgr.loadFile(filepath)
-      const summary = await file.addToScene(this)
-      return {
-         ...summary,
+   async loadFileFromRelPath(relPath: string_RelPath): Promise<RVAddition> {
+      return await this.mgr.loadFileFromRelPath(relPath).then((f) => this.loadFile(f))
+   }
+
+   async loadFileFromAbsPath(absPath: string_AbsPath): Promise<RVAddition> {
+      return await this.mgr.loadFileFromAbsPath(absPath).then((f) => this.loadFile(f))
+   }
+
+   static NO_ADDITION(file: DsonFile): RVAddition {
+      return Object.freeze({
+         file,
+         nodeMap: new Map<string, RVNode>(),
+         newTopLevelNodes: [],
+         newNodesAttachedToExistingNodes: [],
          get addedFigure_orCrash(): RVFigure {
-            const figure = summary.newTopLevelNodes.find((n) => n instanceof RVFigure)
-            if (!figure) throw new Error('No figure found in the loaded file')
-            return figure
+            throw new Error('No figure found in the loaded file')
          },
-      }
+      })
    }
 
-   async addDazFileFromRelPath(relPath: string_RelPath): Promise<RVAddition> {
-      return await this.mgr.loadFile(relPath).then((f) => this.addDazFile(f))
-   }
+   filesLoaded = new Set<DsonFile>()
+   async loadFile(file: DsonFile): Promise<RVAddition> {
+      // ensure we don't load the same file multiple times
+      if (this.filesLoaded.has(file)) return RVScene.NO_ADDITION(file)
+      this.filesLoaded.add(file)
 
-   async addDazFileFromAbsPath(absPath: string_AbsPath): Promise<RVAddition> {
-      return await this.mgr.loadFileFromAbsPath(absPath).then((f) => this.addDazFile(f))
-   }
+      // actually load the file
 
-   async addDazFile(file: DsonFile): Promise<RVAddition> {
       const scene = file.data.scene
       const nodeMap = new Map<string, RVNode>()
       const newTopLevelNodes: RVNode[] = []
@@ -109,7 +122,15 @@ export class RuntimeScene extends RVNode {
 
       if (!scene) {
          console.warn(`[❌] ${file.dazId} has no scene defined. nothing to add.`)
-         return { nodeMap, newTopLevelNodes, newNodesAttachedToExistingNodes, file }
+         return {
+            nodeMap,
+            newTopLevelNodes,
+            newNodesAttachedToExistingNodes,
+            file,
+            get addedFigure_orCrash(): RVFigure {
+               throw new Error('No figure found in the loaded file')
+            },
+         }
       }
 
       // Create all nodes and add them to a temporary list
@@ -193,7 +214,17 @@ export class RuntimeScene extends RVNode {
       }
 
       this.refreshSceneGraph()
-      return { nodeMap, newTopLevelNodes, newNodesAttachedToExistingNodes, file }
+      return {
+         nodeMap,
+         newTopLevelNodes,
+         newNodesAttachedToExistingNodes,
+         file,
+         get addedFigure_orCrash(): RVFigure {
+            const figure = newTopLevelNodes.find((n) => n instanceof RVFigure)
+            if (!figure) throw new Error('No figure found in the loaded file')
+            return figure as RVFigure
+         },
+      }
    }
 
    private async createRvNode(dNodeInst: DazNodeInst): Promise<KnownRVNodes> {
@@ -206,7 +237,7 @@ export class RuntimeScene extends RVNode {
       else throw new Error(`Unsupported node type: ${dNodeDef.type} for ${dNodeInst.dazId}`)
    }
 
-   setSelectedItem(node: RVNode | null): void {
+   selectNode(node: RVNode | null): void {
       this.selection = node
       this.refreshSceneGraph()
    }
@@ -217,7 +248,7 @@ export class RuntimeScene extends RVNode {
          this.mainGui.title('Debug Controls')
          this.mainGui.domElement.style.left = '0px'
 
-         this.sceneGraphGui = new GUI({ title: 'Scene Graph' })
+         this.sceneGraphGui = new GUI({ title: 'Scene Graph', width: 500 })
          this.sceneGraphGui.domElement.style.position = 'absolute'
          this.sceneGraphGui.domElement.style.right = '0px'
       }
@@ -272,12 +303,14 @@ export class RuntimeScene extends RVNode {
          folder.domElement.style.borderLeft = '2px solid #888'
          folder.domElement.style.marginLeft = '10px'
          folder.domElement.addEventListener('click', (ev) => {
-            this.focusNodeInView(rvNode)
+            this.centerCameraOnNode(rvNode)
             ev.stopPropagation()
             ev.preventDefault()
          })
 
-         if (depth < 3) {
+         if (rvNode instanceof RVGeometryInstance) {
+            folder.close()
+         } else if (depth < 3) {
             folder.open()
          } else {
             folder.close()
@@ -291,7 +324,7 @@ export class RuntimeScene extends RVNode {
          // If no children and not a modifier with a specific control, just add a display item
          const displayItem = parentGui.add({ name: nodeName }, 'name').disable().name(nodeName)
          displayItem.domElement.addEventListener('click', (ev) => {
-            this.focusNodeInView(rvNode)
+            this.centerCameraOnNode(rvNode)
             ev.stopPropagation()
             ev.preventDefault()
          })
