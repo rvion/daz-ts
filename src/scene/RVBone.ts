@@ -39,7 +39,7 @@ export class RVBone extends RVNode {
       ASSERT_(dNodeDef.type === 'bone', `Node ${dNodeDef.dazId} is not a bone type`)
       this.bone = new THREE.Bone()
       this.bone.name = dNodeDef.data.name || dNodeDef.dazId
-      this.object3d.add(this.bone)
+      this.object3d = this.bone // Set the object3d to the bone itself
       this.setupNodeChannels(dNodeDef.data)
 
       // Apply initial position/rotation from node data if available

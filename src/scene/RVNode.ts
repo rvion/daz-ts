@@ -24,7 +24,7 @@ export type RVNodeQuery = {
 export abstract class RVNode {
    uid_ = nanoid(4)
    readonly emoji: string = '❓'
-   public readonly object3d: THREE.Object3D
+   public object3d: THREE.Object3D
    public readonly children: RVNode[] = []
    public parent?: RVNode
    abstract sceneDaz: RuntimeScene

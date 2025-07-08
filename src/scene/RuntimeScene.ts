@@ -51,7 +51,7 @@ export class RuntimeScene extends RVNode {
       console.log(`[🤠] hello`, node.path)
       const worldPosition = new THREE.Vector3()
       node.object3d.getWorldPosition(worldPosition)
-      console.log(`[🤠] worldPosition=${worldPosition.toArray()}`)
+      console.log(`[🤠] worldPosition=${worldPosition.toArray()}`, node)
       this.cameraController.controls.target.copy(worldPosition)
    }
 
