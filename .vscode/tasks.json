@@ -8,10 +8,22 @@
             "dependsOn": [
                 //
                 "🖼  Front",
-                "👁  TSC"
+                "👁  TSC",
+                "📦  Daz File Server"
             ],
             "group": { "kind": "build", "isDefault": true },
             "runOptions": { "runOn": "folderOpen", "instanceLimit": 1 }
+        },
+        {
+            "label": "📦  Daz File Server",
+            "detail": "Start Bun server for Daz files",
+            "type": "process",
+            "command": "bun",
+            "args": ["run", "--watch", "src/server/fileServer.ts"],
+            "isBackground": true,
+            "presentation": { "reveal": "never", "close": false },
+            "group": "build",
+            "runOptions": { "instanceLimit": 1 }
         },
         {
             "label": "👁  TSC",
