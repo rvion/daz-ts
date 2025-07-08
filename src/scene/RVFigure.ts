@@ -7,12 +7,13 @@ import { DazNodeInst } from '../core/DazNodeInst.js'
 import { GLOBAL, getMgr } from '../DI.js'
 import { ModifierDB, ModifierDBEntry } from '../scripts/parse-modifiers.js'
 import { $$formula, $$morph, dazId, string_DazId } from '../spec.js'
-import { ASSERT_, ASSERT_INSTANCE_OF, assertXYZChanels, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
+import { ASSERT_, ASSERT_INSTANCE_OF, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
 import { simplifyObject } from '../utils/simplifyObject.js'
 import { FormulaHelper } from './FormulaHelper.js'
 import { fallbackMesh, meshStandardMaterial1 } from './materials.js'
 import { RuntimeScene } from './RuntimeScene.js'
+import { RVBone } from './RVBone.js'
 import { RVNode } from './RVNode.js'
 
 export class RVFigure extends RVNode {
@@ -157,62 +158,64 @@ export class RVFigure extends RVNode {
    }
 
    async buildSkeleton(): Promise<void> {
-      // Build skeleton from figure's node_inf data
+      // Build skeleton from the RVBone children of this RVFigure
       const rootBones: THREE.Bone[] = []
-      const figure = await this.dazCharacter.resolve()
-      const figureNodes = [...figure.nodeDefMap.values()]
-      // console.log(`❓ ---- buildSkeleton (${figureNodes.length} nodes)`)
 
       // Store absolute positions for relative calculation
       const absolutePositions = new Map<string, THREE.Vector3>()
 
-      // ----- First pass: create all bones and store absolute positions -----
-      for (const node of figureNodes) {
-         if (node.data.type === 'bone') {
-            const bone = this.createBoneFromDazBoneNode(node)
-            this.bones.set(node.dazId, bone)
-
-            // Store the absolute position for later relative calculation
-            absolutePositions.set(node.dazId, bone.position.clone())
+      // First pass: recursively find all RVBone children and populate the bones map
+      const findBones = (node: RVNode) => {
+         for (const child of node.children) {
+            if (child instanceof RVBone) {
+               const bone = child.bone
+               this.bones.set(child.dazId, bone)
+               absolutePositions.set(child.dazId, bone.position.clone())
+            }
+            findBones(child)
          }
       }
+      findBones(this)
 
-      // ----- Second pass: build hierarchy and calculate relative positions -----
-      for (const node of figureNodes) {
-         if (node.data.type !== 'bone') continue
+      // Second pass: build hierarchy and calculate relative positions
+      for (const child of this.bones.keys()) {
+         const rvBone = this.findNodeById(child) as RVBone
+         if (rvBone) {
+            const bone = rvBone.bone
+            const dNodeDef = rvBone.dNodeDef
 
-         const bone = bang(this.bones.get(node.dazId), `bone not found for ${node.dazId}`)
-         const parent = node.parent_orCrash
+            const parentId = dNodeDef.parentId_orNull
+            if (parentId) {
+               if (parentId === this.dazId) {
+                  rootBones.push(bone)
+               } else {
+                  const parentBone = this.bones.get(parentId)
+                  if (parentBone) {
+                     // Calculate relative position: child_absolute - parent_absolute
+                     const childAbsPos = absolutePositions.get(rvBone.dazId)
+                     const parentAbsPos = absolutePositions.get(parentId)
 
-         if (parent.type !== 'bone') {
-            // This is a root bone
-            rootBones.push(bone)
-            // Root bones keep their absolute position
-            continue
+                     if (childAbsPos && parentAbsPos) {
+                        const relativePos = childAbsPos.clone().sub(parentAbsPos)
+                        bone.position.copy(relativePos)
+                     } else {
+                        console.warn(`[RVFigure] Missing absolute position for ${rvBone.dazId} or ${parentId}`)
+                     }
+
+                     parentBone.add(bone)
+                     // Index the hierarchy
+                     if (!this.boneHierarchy.has(parentId)) this.boneHierarchy.set(parentId, [])
+                     this.boneHierarchy.get(parentId)?.push(rvBone.dazId)
+                  } else {
+                     console.warn(`Parent bone ${parentId} not found for ${rvBone.dazId}, treating as root`)
+                     rootBones.push(bone)
+                  }
+               }
+            } else {
+               // This is a root bone
+               rootBones.push(bone)
+            }
          }
-
-         const parentBone = this.bones.get(parent.dazId)
-         if (!parentBone) {
-            console.warn(`Parent bone ${parent.dazId} not found for ${node.dazId}, treating as root`)
-            rootBones.push(bone)
-            continue
-         }
-
-         // Calculate relative position: child_absolute - parent_absolute
-         const childAbsPos = bang(absolutePositions.get(node.dazId), `absolute position not found for ${node.dazId}`)
-         const parentAbsPos = bang(absolutePositions.get(parent.dazId), `missing absolute position for ${parent.dazId}`)
-         const relativePos = childAbsPos.clone().sub(parentAbsPos)
-
-         // Set the relative position before adding to parent
-         bone.position.copy(relativePos)
-
-         // Add to parent bone
-         parentBone.add(bone)
-
-         // Index the hierarchy
-         const parentId = node.parentId_orCrash
-         if (!this.boneHierarchy.has(parentId)) this.boneHierarchy.set(parentId, [])
-         bang(this.boneHierarchy.get(parentId)).push(node.dazId)
       }
 
       ASSERT_(rootBones.length > 0 && this.bones.size > 0, 'not enough bones or root bones found')
@@ -239,33 +242,6 @@ export class RVFigure extends RVNode {
          this.skeletonHelper.visible = true
          this.object3d.add(this.skeletonHelper)
       }
-   }
-
-   private createBoneFromDazBoneNode(node: DazNodeDef): THREE.Bone {
-      ASSERT_(node.type === 'bone', `Node ${node.dazId} is not a bone type`)
-      const bone = new THREE.Bone()
-      bone.name = node.data.name || node.dazId
-
-      const _rotation = assertXYZChanels(node.data.rotation || [])
-      if (_rotation.x !== 0 || _rotation.y !== 0 || _rotation.z !== 0) console.log(`[🔴] !!`, { _rotation })
-
-      const _translation = assertXYZChanels(node.data.translation || [])
-      if (_translation.x !== 0 || _translation.y !== 0 || _translation.z !== 0) console.log(`[🔴] !!`, { _translation })
-
-      const _scale = assertXYZChanels(node.data.scale || [])
-      if (_scale.x !== 1 || _scale.y !== 1 || _scale.z !== 1) console.log(`[🔴] !!`, JSON.stringify({ _scale }))
-      // const _orientation = assertXYZChanels(node.data.orientation || [])
-      // if (_orientation.x !== 0 || _orientation.y !== 0 || _orientation.z !== 0) console.log(`[🔴] !!`, { _orientation })
-
-      // Set initial position/rotation from node data if available
-      // This would need to be expanded based on your node_inf structure
-      if (node.data.center_point) {
-         const chans = node.data.center_point
-         const { x, y, z } = assertXYZChanels(chans)
-         bone.position.set(x, y, z)
-      }
-
-      return bone
    }
 
    setSkeletonToBindPose(): void {
@@ -713,9 +689,12 @@ export class RVFigure extends RVNode {
    }
 
    getBone_orCrash(boneId: string): THREE.Bone {
-      const bone = this.bones.get(dazId(boneId))
-      if (!bone) throw new Error(`Bone with id ${boneId} not found`)
-      return bone
+      for (const bone of this.bones.values()) {
+         if (bone.name === boneId) {
+            return bone
+         }
+      }
+      throw new Error(`Bone with id ${boneId} not found`)
    }
 
    get availableBones(): string[] {

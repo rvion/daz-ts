@@ -14,16 +14,13 @@ describe('Skinning Debug', () => {
          '🎬 #root',
          '    🧑 #Genesis9',
          '       📐 #Genesis9-1',
-         '       🦴 #hip',
-         '          🦴 #pelvis',
-         '          🦴 #spine1',
-         '       🛠️ #body_bs_Navel_HD3',
-         '          📡 #value = 0',
-         '       🛠️ #head_bs_MouthRealism_HD3',
-         '          📡 #value = 0',
+         '       🦴 #hip = cnt(0.0,97.1,0.5), end(0.0,80.9,0.2), ort(0*), rot(0*), trs(0*), scale(1.0,1.0,1.0), general_scale(undefined=1.0)',
+         '          🦴 #pelvis = cnt(0.0,99.0,-0.3), end(0.0,80.0,-0.3), ort(0*), rot(0*), trs(0*), scale(1.0,1.0,1.0), general_scale(undefined=1.0)',
+         '          🦴 #spine1 = cnt(0.0,98.9,-0.8), end(0.0,106.7,-0.8), ort(0*), rot(0*), trs(0*), scale(1.0,1.0,1.0), general_scale(undefined=1.0)',
+         '       🛠️ #body_bs_Navel_HD3 = value(undefined=0.0)',
+         '       🛠️ #head_bs_MouthRealism_HD3 = value(undefined=0.0)',
          '       🛠️ #SkinBinding',
-         '       🛠️ #facs_ctrl_EyeRestingFocalPoint',
-         '          📡 #value = 0',
+         '       🛠️ #facs_ctrl_EyeRestingFocalPoint = value(undefined=0.0)',
       ])
       expect(character.skeleton).toBeTruthy()
       expect(character.bones.size).toBeGreaterThan(0)

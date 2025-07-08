@@ -116,7 +116,7 @@ export class RuntimeScene extends RVNode {
       const createdNodes: RVNode[] = []
       for (const dNodeInst of file.sceneNodesList) {
          const rvNode = await this.createRvNode(dNodeInst)
-         console.log(`[🤠] created ${rvNode.dNodeDef.type} ${dNodeInst.dazId}`)
+         // console.log(`[🤠] created ${rvNode.dNodeDef.type} ${dNodeInst.dazId}`)
          if (rvNode) {
             nodeMap.set(dNodeInst.dazId, rvNode)
             createdNodes.push(rvNode)
