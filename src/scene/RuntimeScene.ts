@@ -24,9 +24,9 @@ import {
    RVUvSetInstance,
 } from './RVTypes.js'
 
-type KnownRVNodes = RVFigure | RVBone | RVCamera | RVLight | RVProp
+export type KnownRVNodes = RVFigure | RVBone | RVCamera | RVLight | RVProp
 
-type RVAddition = {
+export type RVAddition = {
    file: KnownDazFile
    nodeMap: Map<string, RVNode>
    newTopLevelNodes: RVNode[]
@@ -45,6 +45,8 @@ export class RuntimeScene extends RVNode {
    public renderer?: THREE.WebGLRenderer
    public cameraController!: CameraController
    public selection: RVNode | null = null
+
+   get sceneDaz(): RuntimeScene { return this } // biome-ignore format: misc
 
    private animationId: number | null = null
    private isDisposed = false
@@ -192,86 +194,6 @@ export class RuntimeScene extends RVNode {
       else throw new Error(`Unsupported node type: ${dNodeDef.type} for ${dNodeInst.dazId}`)
    }
 
-   findNodeByURL(url: string_DazUrl): RVNode | undefined {
-      const parts = parseDazUrl(url)
-      const q: RVNodeQuery = {
-         id: parts.asset_id,
-         defPath: parts.file_path,
-      }
-      return this.findNode(q)
-   }
-
-   findNode(q: RVNodeQuery): RVNode | undefined {
-      // console.log(`[🤠] query: ${JSON.stringify(q)}`)
-      const traverse = (node: RVNode): RVNode | undefined => {
-         const isMatching = node.match(q)
-         // console.log(` node {${node.dazId} ! ${node.dazDefPath}} matches? ${isMatching ? '🟢' : '❌'}`)
-         if (isMatching) return node
-         for (const child of node.children) {
-            const found = traverse(child)
-            if (found) return found
-         }
-         return undefined
-      }
-      return traverse(this)
-   }
-
-   findNodeById(id: string): RVNode | undefined {
-      const traverse = (node: RVNode): RVNode | undefined => {
-         if (node.dazId === id) return node
-         for (const child of node.children) {
-            const found = traverse(child)
-            if (found) return found
-         }
-         return undefined
-      }
-      return traverse(this)
-   }
-
-   getSceneGraphAsString_simple = (p: GraphPrintingConf = {}) =>
-      this.getSceneGraphAsString({ maxDepth: 3, emoji: true, showMaterial: false, ...p })
-
-   getSceneGraphAsString(p: GraphPrintingConf = {}): string[] {
-      const lines: string[] = []
-      const {
-         showPath = false,
-         showMaterial = false,
-         maxDepth = Infinity,
-         emoji,
-         colors = false, // Default to true for colors
-         showName = false,
-         showIndent = true,
-      } = p
-      const traverse = (node: RVNode, depth = 0) => {
-         if (depth > maxDepth) return
-         if (node instanceof RVMaterialInstance && !showMaterial) return // Skip materials if not requested
-         let indent = '   '.repeat(depth)
-         if (colors) indent = chalk.gray.dim(indent)
-         let id: string = node.dazId
-         let path: string = node.dazDefPath
-         if (colors) id = chalk.red(id)
-         if (colors) path = chalk.blue(path)
-         lines.push(
-            [
-               showIndent ? indent : '',
-               `${emoji ? `${node.emoji}` : ''}`,
-               showPath ? path : '',
-               `#${id}`,
-               showName ? `${node.object3d.name}` : '',
-               !emoji ? `(${node.constructor.name})` : '',
-               `${node.channelValue ? `= ${node.channelValue}` : ''}`,
-            ]
-               .filter(Boolean)
-               .join(' '),
-         )
-         for (const child of node.children) {
-            traverse(child, depth + 1)
-         }
-      }
-      traverse(this)
-      return lines
-   }
-
    setSelectedItem(node: RVNode | null): void {
       this.selection = node
       this.refreshGui()
@@ -284,6 +206,8 @@ export class RuntimeScene extends RVNode {
       }
    }
 
+   // TODO: this should not remove the entire GUI, but rather
+   // update the relevant parts.
    private refreshGui(): void {
       if (!this.gui) return
       // Clear existing folders
@@ -408,7 +332,7 @@ export class RuntimeScene extends RVNode {
    }
 }
 
-type GraphPrintingConf = {
+export type GraphPrintingConf = {
    showPath?: boolean
    showMaterial?: boolean
    maxDepth?: number

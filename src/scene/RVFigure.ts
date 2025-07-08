@@ -4,10 +4,10 @@ import { DazFilePose } from '../core/DazFilePose.js'
 import { DazGeometryInst } from '../core/DazGeometryInst.js'
 import { DazNodeDef } from '../core/DazNodeDef.js'
 import { DazNodeInst } from '../core/DazNodeInst.js'
-import { getMgr } from '../DI.js'
+import { GLOBAL, getMgr } from '../DI.js'
 import { ModifierDB } from '../scripts/parse-modifiers.js'
 import { $$morph, dazId, string_DazId } from '../spec.js'
-import { ASSERT_, assertXYZChanels, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
+import { ASSERT_, ASSERT_INSTANCE_OF, assertXYZChanels, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
 import { simplifyObject } from '../utils/simplifyObject.js'
 import { FormulaHelper } from './FormulaHelper.js'
@@ -406,6 +406,10 @@ export class RVFigure extends RVNode {
       this.sceneDaz.setSelectedItem(this)
       const additions = await this.sceneDaz.addDazFileFromAbsPath(mod.path)
       const FILE = additions.file
+
+      const modifier = ASSERT_INSTANCE_OF(bang(this.findNodeById(modifierId)), GLOBAL.RVModifier)
+      modifier.setPropertyValue('value', value)
+
       // console.log(`[ADDITIONS]`, {
       //    a: additions.newTopLevelNodes.length,
       //    b: [...additions.nodeMap.keys()],
@@ -466,22 +470,18 @@ export class RVFigure extends RVNode {
             }
             if (targetGeometryInstance) break
          }
-         if (!targetGeometryInstance) {
+         if (!targetGeometryInstance)
             return void console.warn(`[RVFigure] ❌ Geometry instance for morph ${modifierId} (geomId: ${targetGeometryId}) not found.`) // biome-ignore format: misc
-         } else
-            console.log(`[🤠] Found target geometry instance for morph ${modifierId}:`, targetGeometryInstance?.dazId)
+         else console.log(`[🤠] Found target geometry instance for morph ${modifierId}:`, targetGeometryInstance?.dazId)
 
          // get the skinned mesh by its name
          const meshName = `SkinnedMesh_${targetGeometryInstance.dazId}`
          const targetMesh = this.meshes.find((m) => m.name === meshName) as THREE.SkinnedMesh | undefined
-         if (!targetMesh) {
-            return void console.warn(`[RVFigure] ❌ Mesh for morph ${modifierId} not found: ${meshName}`)
-         }
+         if (!targetMesh) return void console.warn(`[RVFigure] ❌ Mesh for morph ${modifierId} not found: ${meshName}`)
 
          const positionAttribute = targetMesh.geometry.attributes.position
-         if (!positionAttribute) {
+         if (!positionAttribute)
             return void console.warn(`[RVFigure] ❌ Target mesh for morph has no position attribute.`)
-         }
 
          const originalPositions = positionAttribute.array as Float32Array
          const morphedPositions = new Float32Array(originalPositions.length) // Create a separate array for deltas
@@ -518,13 +518,7 @@ export class RVFigure extends RVNode {
          console.log(`[RVFigure] ✅ Morph ${modifierId} applied with value ${value}`)
       }
 
-      const outputs: {
-         [key: string]: {
-            sum: number[]
-            multiply: number[]
-         }
-      } = {}
-
+      const outputs: { [key: string]: { sum: number[]; multiply: number[] } } = {}
       if (mod.formula) {
          //  scheme      file_path      property_path
          //    _|_       _____|_____          _|_
@@ -545,13 +539,16 @@ export class RVFigure extends RVNode {
                    ? 3
                    : 0
 
+         const willSkipCount = Math.max(formulas.length - maxPrint, 0)
          for (const formula of formulas) {
             // console.log(`[🤠] ${fmtAbsPath(this.nodeInstance.file.absPath)}`,this.nodeInstance.data)
             const result = this.formulaHelper.evaluate(formula)
             if (maxPrint-- > 0) this.formulaHelper.printFormula(formula, result)
+            if (maxPrint === 0) console.log(`...skipping ${willSkipCount}`)
             // console.log(`          value=${result}`)
 
             // Parse the output URL
+            this.setValueAtUrl(formula.output, result)
             const output = parseDazUrl(formula.output)
             const node_path = bang(output.node_path)
             const bone = this.bones.get(node_path)

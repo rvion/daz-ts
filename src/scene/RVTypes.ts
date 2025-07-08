@@ -5,9 +5,11 @@ import { DazModifierDef } from '../core/DazModifierDef.js'
 import { DazModifierInst } from '../core/DazModifierInst.js'
 import { DazNodeDef } from '../core/DazNodeDef.js'
 import { DazNodeInst } from '../core/DazNodeInst.js'
-import { $$any_channel, $$material_instance, $$uv_set_instance } from '../spec.js'
+import { $$material_instance, $$uv_set_instance } from '../spec.js'
+import { Maybe } from '../types.js'
 import { bang } from '../utils/assert.js'
 import { RuntimeScene } from './RuntimeScene.js'
+import { RVChannel } from './RVChannel.js'
 import { RVNode } from './RVNode.js'
 
 export class RVGeometryInstance extends RVNode {
@@ -37,34 +39,22 @@ export class RVUvSetInstance extends RVNode {
    }
 }
 
-export class RVChannel extends RVNode {
-   override emoji: string = '📡'
-
-   override get channelValue(): string {
-      if (this.data.type === 'float') return `${this.data.value ?? this.data.current_value}`
-      else if (this.data.type === 'bool') return `${this.data.value ?? this.data.current_value}`
-      else if (this.data.type === 'int') return `${this.data.value ?? this.data.current_value}`
-      else if (this.data.type === 'color') return `${this.data.value ?? this.data.current_value}`
-      else if (this.data.type === 'enum') return `${this.data.value ?? this.data.current_value}`
-      else if (this.data.type === 'float_color') return `${this.data.value ?? this.data.current_value}`
-      else if (this.data.type === 'file') return `${this.data.value ?? this.data.current_value}`
-      else if (this.data.type === 'string') return `${this.data.value ?? this.data.current_value}`
-      else if (this.data.type === 'image') return `${this.data.value ?? this.data.current_value}`
-      else if (this.data.type === 'ok') return `${this.data.value ?? this.data.current_value}`
-      else if (this.data.type === 'alias') return `🔴REF:${this.data.target_channel}`
-      else return '❓'
-   }
-   constructor(
-      public readonly sceneDaz: RuntimeScene,
-      public readonly data: $$any_channel,
-   ) {
-      super(data.id, '🔴⁉️', '🔴⁉️', data.id)
-   }
-}
-
 export class RVModifier extends RVNode {
    override emoji: string = '🛠️'
    public readonly channel?: RVChannel
+
+   // get value() {
+   //    return bang(this.channel).value
+   // }
+
+   // set value(newValue: unknown) {
+   //    bang(this.channel).value = newValue
+   // }
+
+   // override getPropertyValue(propertyPath: Maybe<string>): unknown {
+   //    if (propertyPath === 'value') return this.value
+   //    return super.getPropertyValue(propertyPath)
+   // }
 
    constructor(
       public readonly sceneDaz: RuntimeScene,
@@ -79,8 +69,8 @@ export class RVModifier extends RVNode {
          dModDef.data.name ?? dModDef.dazId,
       )
       if (dModDef.data.channel) {
-         this.channel = new RVChannel(sceneDaz, dModDef.data.channel)
-         this.addChild(this.channel)
+         this.channels.value = new RVChannel(sceneDaz, dModDef.data.channel)
+         // this.addChild(this.channel)
       }
    }
 }
@@ -109,6 +99,13 @@ export class RVBone extends RVNode {
    override emoji: string = '🦴'
    public readonly bone: THREE.Bone
 
+   // override getPropertyValue(propertyPath: Maybe<string>): unknown {
+   //    if (propertyPath === 'rotation/x') return this.bone.rotation.x
+   //    if (propertyPath === 'rotation/y') return this.bone.rotation.y
+   //    if (propertyPath === 'rotation/z') return this.bone.rotation.z
+   //    return super.getPropertyValue(propertyPath)
+   // }
+
    constructor(
       public readonly sceneDaz: RuntimeScene,
       public readonly dNodeDef: DazNodeDef,
@@ -123,6 +120,7 @@ export class RVBone extends RVNode {
       )
       this.bone = new THREE.Bone()
       this.object3d.add(this.bone)
+      this.setupNodeChannels(dNodeDef.data)
    }
 }
 
@@ -144,6 +142,7 @@ export class RVCamera extends RVNode {
       // TODO: Create perspective or orthographic camera based on node data
       this.camera = new THREE.PerspectiveCamera()
       this.object3d.add(this.camera)
+      this.setupNodeChannels(dNodeDef.data)
    }
 }
 
