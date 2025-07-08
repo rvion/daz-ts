@@ -118,6 +118,7 @@ export class RuntimeScene extends RVNode {
       for (const dNodeInst of file.sceneNodesList) {
          // parenting will be done right below once all nodes are created.
          const rvNode = await this.createRvNode(dNodeInst)
+         console.log(`[🤠] created ${rvNode.dNodeDef.type} ${dNodeInst.dazId}`)
          if (rvNode) nodeMap.set(dNodeInst.dazId, rvNode)
 
          for (const dGeoInst of dNodeInst.geometries) {
@@ -249,7 +250,8 @@ export class RuntimeScene extends RVNode {
                   .name(nodeName)
                   .listen()
                   .onChange((next: number) => {
-                     const figure = ASSERT_RVFIGURE(rvNode.parent)
+                     const figure = rvNode.findParentFigure_orCrash()
+                     // const figure = ASSERT_RVFIGURE(rvNode.parent)
                      figure.setModifierValue(rvNode.dazId, next)
                      console.log(`[🤠] new value is ${next}`)
                   })
@@ -273,7 +275,7 @@ export class RuntimeScene extends RVNode {
             ev.preventDefault()
          })
 
-         if (depth < 2) {
+         if (depth < 3) {
             folder.open()
          } else {
             folder.close()

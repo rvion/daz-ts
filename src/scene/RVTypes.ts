@@ -5,6 +5,7 @@ import { DazModifierDef } from '../core/DazModifierDef.js'
 import { DazModifierInst } from '../core/DazModifierInst.js'
 import { DazNodeDef } from '../core/DazNodeDef.js'
 import { DazNodeInst } from '../core/DazNodeInst.js'
+import { GLOBAL } from '../DI.js'
 import { $$material_instance, $$uv_set_instance } from '../spec.js'
 import { Maybe } from '../types.js'
 import { bang } from '../utils/assert.js'
@@ -40,6 +41,14 @@ export class RVUvSetInstance extends RVNode {
 }
 
 export class RVModifier extends RVNode {
+   findParentFigure_orCrash() {
+      let at: Maybe<RVNode> = this
+      while (at) {
+         if (at instanceof RVNode && at instanceof GLOBAL.RVFigure) return at
+         at = at.parent
+      }
+      throw new Error(`Modifier ${this.dazId} must be attached to a figure`)
+   }
    override emoji: string = '🛠️'
    constructor(
       public readonly sceneDaz: RuntimeScene,

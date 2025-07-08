@@ -17,7 +17,7 @@ export async function initSceneGenesis9(mgr: DazMgr) {
    const action1 = await scene.loadFile('People/Genesis 9/Genesis 9.duf')
    const figure = action1.addedFigure_orCrash
    await figure.loadModifierFile('body_ctrl_WaistTwist') // Load the waist twist modifier
-   // await figure.loadModifierFile('body_bs_ProportionArmsLength') // Load the waist twist modifier
+   await figure.loadModifierFile('body_bs_ProportionArmsLength') // Load the waist twist modifier
    // const action2 = await scene.loadFile('People/Genesis 9/Genesis 9.duf')
    // const character2 = action1.addedFigure_orCrash
    // character2.x += 50
