@@ -362,15 +362,6 @@ export class RVFigure extends RVNode {
       return getMgr().getModifierDB_orCrash()
    }
 
-   // debug
-   _body_ctrl_WaistTwist: number = 0
-   get body_ctrl_WaistTwist(): number { return this._body_ctrl_WaistTwist } // biome-ignore format: misc
-   set body_ctrl_WaistTwist(value: number) {
-      this._body_ctrl_WaistTwist = NUMBER_OR_CRASH(value, 'Waist Twist must be a valid number')
-      ASSERT_( this._body_ctrl_WaistTwist >= -2 && this._body_ctrl_WaistTwist <= 2, 'Waist Twist must be between -2 and 2') // biome-ignore format: misc
-      void this.setModifierValue('body_ctrl_WaistTwist', value)
-   }
-
    async loadModifierFile(
       //
       modifierId: string,

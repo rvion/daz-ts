@@ -17,6 +17,13 @@ export class RVModifier extends RVNode {
       throw new Error(`Modifier ${this.dazId} must be attached to a figure`)
    }
 
+   override get displayName() {
+      return (
+         this.dModDef.data.presentation?.label || //
+         this.channels.value?.data.label ||
+         super.displayName
+      )
+   }
    get icon(): string_DazUrl | undefined {
       return (
          this.dModDef.data.presentation?.icon_large ?? //

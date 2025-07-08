@@ -8,7 +8,7 @@ import { Maybe, string_RelPath } from '../types.js'
 import { assertXYZChanels, bang } from '../utils/assert.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
 import { RVChannel } from './RVChannel.js'
-import { GraphPrintingConf, RVScene } from './RVScene.js'
+import { RVScene } from './RVScene.js'
 
 export type RVNodeQuery = {
    id?: Maybe<string_DazId>
@@ -28,6 +28,9 @@ export abstract class RVNode {
    public readonly children: RVNode[] = []
    public parent?: RVNode
    abstract sceneDaz: RVScene
+   get displayName(): string {
+      return this.object3d.name || this.dazId || `RVNode-${this.uid_}`
+   }
 
    /**
     * Called after the node is created and parented in the scene graph.
@@ -295,4 +298,18 @@ export abstract class RVNode {
       traverse(this)
       return lines
    }
+}
+
+export type GraphPrintingConf = {
+   showPath?: boolean
+   showMaterial?: boolean
+   maxDepth?: number
+   /** default: true */
+   emoji?: boolean
+   /** default: true */
+   colors?: boolean
+   /** default: false */
+   showName?: boolean
+   /** default: true */
+   showIndent?: boolean
 }

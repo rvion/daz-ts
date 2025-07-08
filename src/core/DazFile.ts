@@ -1,5 +1,4 @@
 import type { PathInfo } from '../fs/PathInfo.js'
-import type { RVScene } from '../scene/RVScene.js'
 import {
    $$dson,
    $$material_instance,

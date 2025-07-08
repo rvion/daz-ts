@@ -269,7 +269,7 @@ export class RVScene extends RVNode {
    }
 
    private buildGuiNode(rvNode: RVNode, parentGui: GUI, depth: number): void {
-      const nodeName = `${rvNode.emoji} ${rvNode.object3d.name}`
+      const nodeName = `${rvNode.emoji} ${rvNode.displayName}`
 
       if (rvNode instanceof RVModifier) {
          if (rvNode.channels.value) {
@@ -308,13 +308,10 @@ export class RVScene extends RVNode {
             ev.preventDefault()
          })
 
-         if (rvNode instanceof RVGeometryInstance) {
-            folder.close()
-         } else if (depth < 3) {
-            folder.open()
-         } else {
-            folder.close()
-         }
+         // smart open/close default values
+         if (rvNode instanceof RVGeometryInstance) folder.close()
+         else if (depth < 3) folder.open()
+         else folder.close()
 
          // Recursively add children
          for (const child of rvNode.children) {
@@ -434,18 +431,4 @@ export class RVScene extends RVNode {
       }
       console.log('✅ RuntimeScene disposed')
    }
-}
-
-export type GraphPrintingConf = {
-   showPath?: boolean
-   showMaterial?: boolean
-   maxDepth?: number
-   /** default: true */
-   emoji?: boolean
-   /** default: true */
-   colors?: boolean
-   /** default: false */
-   showName?: boolean
-   /** default: true */
-   showIndent?: boolean
 }

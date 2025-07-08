@@ -44,6 +44,7 @@ export const ASSERT_ERROR = (err: unknown): Error => {
 
 export const ASSERT_RVFIGURE = (obj: unknown): RVFigure => {
    if (!(obj instanceof GLOBAL.RVFigure)) {
+      // biome-ignore lint/suspicious/noExplicitAny: misc
       throw new Error(`Expected instance of RVFigure, but got: ${typeof obj} - ${(obj as any)?.path}`)
    }
    return obj as RVFigure

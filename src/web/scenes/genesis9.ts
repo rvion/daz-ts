@@ -1,6 +1,5 @@
 import { DazMgr } from '../../mgr.js'
 import { RVScene } from '../../scene/RVScene.js'
-import { dazId } from '../../spec.js'
 import { bang } from '../../utils/assert.js'
 import { setupDebugGUI } from './setupDebugGUI.js'
 
