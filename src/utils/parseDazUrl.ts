@@ -111,28 +111,19 @@ export interface DazUrlParts {
  * 4. Local reference: "#id"
  * 5. Empty path with property: "#id?property"
  */
-// export const parseDazUrl = (dazUrl: string_DazUrl): URL => {
-//    // Handle URLs with node reference prefixes like "l_thigh:/data/..."
-//    // We need to preprocess these before using URL constructor
-//    let processedUrl: string = dazUrl
-
-//    // Check if URL has a node reference prefix (pattern: nodeId:/path)
-//    const nodeRefMatch = dazUrl.match(/^([^:/#?]+):(.*)$/)
-//    if (nodeRefMatch && !nodeRefMatch[2].startsWith('//')) {
-//       // This is a node reference, not a protocol
-//       // Reconstruct without the node prefix for URL parsing
-//       processedUrl = nodeRefMatch[2]
-//    }
-
-//    return new URL(processedUrl, 'daz://')
-// }
 
 export const parseDazUrl_ = (dazUrl?: Maybe<string_DazUrl>): Maybe<DazUrlParts> => {
    if (!dazUrl) return undefined
    return parseDazUrl(dazUrl)
 }
 
+const parseCache = new Map<string_DazUrl, DazUrlParts>()
+// setTimeout(() => console.log(`[🤠] Parse cache size: ${parseCache.size}`, { keys: [...parseCache.keys()] }), 3_000)
+
 export const parseDazUrl = (dazUrl: string_DazUrl): DazUrlParts => {
+   // Check if we have already parsed this URL
+   if (parseCache.has(dazUrl)) return parseCache.get(dazUrl) as DazUrlParts
+
    let urlToParse: string = dazUrl
    let nodeRef: string_DazId | undefined
    let scheme: 'id' | 'name' = 'id'
@@ -181,13 +172,19 @@ export const parseDazUrl = (dazUrl: string_DazUrl): DazUrlParts => {
       property = url.search.startsWith('?') ? url.search.substring(1) : url.search
    }
 
-   return {
+   // Create the DazUrlParts object
+   const parts: DazUrlParts = {
       scheme: scheme,
       node_path: nodeRef,
       file_path: path,
       asset_id: idInFile,
       property_path: property,
    }
+
+   // Cache the parsed parts
+   parseCache.set(dazUrl, parts)
+
+   return parts
 }
 
 export const getPathFromDazUrl = (dazUrl: string_DazUrl): string_RelPath | null => {

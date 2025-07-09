@@ -6,7 +6,7 @@ import { DazNodeDef } from '../core/DazNodeDef.js'
 import { DazNodeInst } from '../core/DazNodeInst.js'
 import { GLOBAL, getMgr } from '../DI.js'
 import { ModifierDB, ModifierDBEntry } from '../scripts/parse-modifiers.js'
-import { $$formula, $$morph, dazId, string_DazId } from '../spec.js'
+import { $$formula, $$morph, dazId, dazUrl, string_DazId } from '../spec.js'
 import { ASSERT_, ASSERT_INSTANCE_OF, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
 import { simplifyObject } from '../utils/simplifyObject.js'
@@ -161,60 +161,37 @@ export class RVFigure extends RVNode {
       // Build skeleton from the RVBone children of this RVFigure
       const rootBones: THREE.Bone[] = []
 
-      // Store absolute positions for relative calculation
-      const absolutePositions = new Map<string, THREE.Vector3>()
-
       // First pass: recursively find all RVBone children and populate the bones map
       const findBones = (node: RVNode) => {
          for (const child of node.children) {
             if (child instanceof RVBone) {
-               const bone = child.bone
-               this.bones.set(child.dazId, bone)
-               absolutePositions.set(child.dazId, bone.position.clone())
+               this.bones.set(child.dazId, child.bone)
             }
             findBones(child)
          }
       }
       findBones(this)
 
-      // Second pass: build hierarchy and calculate relative positions
-      for (const child of this.bones.keys()) {
-         const rvBone = this.findNodeById(child) as RVBone
-         if (rvBone) {
-            const bone = rvBone.bone
-            const dNodeDef = rvBone.dNodeDef
+      // Second pass: build hierarchy and sync bones
+      for (const dazId of this.bones.keys()) {
+         const rvBone = this.findNodeById(dazId) as RVBone
+         if (!rvBone) continue
 
-            const parentId = dNodeDef.parentId_orNull
-            if (parentId) {
-               if (parentId === this.dazId) {
-                  rootBones.push(bone)
-               } else {
-                  const parentBone = this.bones.get(parentId)
-                  if (parentBone) {
-                     // Calculate relative position: child_absolute - parent_absolute
-                     const childAbsPos = absolutePositions.get(rvBone.dazId)
-                     const parentAbsPos = absolutePositions.get(parentId)
+         rvBone.syncFromChannels()
 
-                     if (childAbsPos && parentAbsPos) {
-                        const relativePos = childAbsPos.clone().sub(parentAbsPos)
-                        bone.position.copy(relativePos)
-                     } else {
-                        console.warn(`[RVFigure] Missing absolute position for ${rvBone.dazId} or ${parentId}`)
-                     }
-
-                     parentBone.add(bone)
-                     // Index the hierarchy
-                     if (!this.boneHierarchy.has(parentId)) this.boneHierarchy.set(parentId, [])
-                     this.boneHierarchy.get(parentId)?.push(rvBone.dazId)
-                  } else {
-                     console.warn(`Parent bone ${parentId} not found for ${rvBone.dazId}, treating as root`)
-                     rootBones.push(bone)
-                  }
-               }
+         const parentId = rvBone.dNodeDef.parentId_orNull
+         if (parentId && parentId !== this.dazId) {
+            const parentBone = this.bones.get(parentId)
+            if (parentBone) {
+               parentBone.add(rvBone.bone)
+               if (!this.boneHierarchy.has(parentId)) this.boneHierarchy.set(parentId, [])
+               this.boneHierarchy.get(parentId)?.push(rvBone.dazId)
             } else {
-               // This is a root bone
-               rootBones.push(bone)
+               console.warn(`Parent bone ${parentId} not found for ${rvBone.dazId}, treating as root`)
+               rootBones.push(rvBone.bone)
             }
+         } else {
+            rootBones.push(rvBone.bone)
          }
       }
 
@@ -226,9 +203,7 @@ export class RVFigure extends RVNode {
 
       // Build bone name to index mapping for skinning
       this.skeleton.bones.forEach((bone, index) => {
-         if (bone.name) {
-            this.boneNameToIndex.set(bone.name, index)
-         }
+         if (bone.name) this.boneNameToIndex.set(bone.name, index)
       })
 
       // Add root bones to the character group so they're positioned correctly
@@ -561,31 +536,31 @@ export class RVFigure extends RVNode {
 
             // Parse the output URL
             this.setValueAtUrl(formula.output, result)
-            const output = parseDazUrl(formula.output)
-            const node_path = bang(output.node_path)
-            const bone = this.bones.get(node_path)
-            if (!bone) {
-               console.warn(`[RVFigure] 🔴 Bone not found for modifier output (${formula.output}): ${node_path}`)
-               continue
-            }
-            // console.log(`[🤠] bone=${bone.name}`)
-            const property = output.property_path
-            if (property === 'rotation/x') bone.rotation.x = (result * Math.PI) / 180
-            else if (property === 'rotation/y') bone.rotation.y = (result * Math.PI) / 180
-            else if (property === 'rotation/z') bone.rotation.z = (result * Math.PI) / 180
-            else if (property === 'translation/x') bone.position.x += result
-            else if (property === 'translation/y') bone.position.y += result
-            else if (property === 'translation/z') bone.position.z += result
-            else if (property === 'scale/general') bone.scale.set(result, result, result)
-            // 🔴 ⁉️ center point
-            else if (property === 'center_point/x') bone.position.x += result
-            else if (property === 'center_point/y') bone.position.y += result
-            else if (property === 'center_point/z') bone.position.z += result
-            // 🔴 ⁉️ end_point
-            else if (property === 'end_point/x') bone.position.x += result
-            else if (property === 'end_point/y') bone.position.y += result
-            else if (property === 'end_point/z') bone.position.z += result
-            else throw new Error(`[RVFigure] ❌ Unknown property in modifier output: ${property}`)
+            // const output = parseDazUrl(formula.output)
+            // const node_path = bang(output.node_path)
+            // const bone = this.bones.get(node_path)
+            // if (!bone) {
+            //    console.warn(`[RVFigure] 🔴 Bone not found for modifier output (${formula.output}): ${node_path}`)
+            //    continue
+            // }
+            // // console.log(`[🤠] bone=${bone.name}`)
+            // const property = output.property_path
+            // if (property === 'rotation/x') bone.rotation.x = (result * Math.PI) / 180
+            // else if (property === 'rotation/y') bone.rotation.y = (result * Math.PI) / 180
+            // else if (property === 'rotation/z') bone.rotation.z = (result * Math.PI) / 180
+            // else if (property === 'translation/x') bone.position.x += result
+            // else if (property === 'translation/y') bone.position.y += result
+            // else if (property === 'translation/z') bone.position.z += result
+            // else if (property === 'scale/general') bone.scale.set(result, result, result)
+            // // 🔴 ⁉️ center point
+            // else if (property === 'center_point/x') bone.position.x += result
+            // else if (property === 'center_point/y') bone.position.y += result
+            // else if (property === 'center_point/z') bone.position.z += result
+            // // 🔴 ⁉️ end_point
+            // else if (property === 'end_point/x') bone.position.x += result
+            // else if (property === 'end_point/y') bone.position.y += result
+            // else if (property === 'end_point/z') bone.position.z += result
+            // else throw new Error(`[RVFigure] ❌ Unknown property in modifier output: ${property}`)
          }
       }
 
@@ -727,6 +702,11 @@ export class RVFigure extends RVNode {
    }
 
    update(): void {
+      this.traverse((n) => {
+         if (n instanceof RVBone) {
+            n.syncFromChannels()
+         }
+      })
       this.animation_waveArmsUpAndDown()
       this.updateSkeletonMatrices() // Update skeleton matrices to keep SkeletonHelper synchronized
    }
@@ -738,8 +718,10 @@ export class RVFigure extends RVNode {
    private animation_waveArmsUpAndDown(): void {
       const time = Date.now() * 0.003 // Convert to seconds
       const armAngle = Math.sin(time * 0.8) + 0.4 /* * 0.4 */ // Oscillate between -0.8 and 0.8 radians
-      this.getBone_orCrash(`l_shoulder`).rotation.z = armAngle // Animate shoulder bones for arm raising/lowering
-      this.getBone_orCrash(`r_shoulder`).rotation.z = -armAngle // Mirror for right arm
+      this.setValueAtUrl(dazUrl`#l_shoulder?rotation/z`, (armAngle * 180) / Math.PI) // Convert radians to degrees for Daz
+      this.setValueAtUrl(dazUrl`#r_shoulder?rotation/z`, -(armAngle * 180) / Math.PI) // Convert radians to degrees for Daz
+      // this.getBone_orCrash(`l_shoulder`).rotation.z = armAngle // Animate shoulder bones for arm raising/lowering
+      // this.getBone_orCrash(`r_shoulder`).rotation.z = -armAngle // Mirror for right arm
    }
 
    dispose(): void {

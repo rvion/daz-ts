@@ -7,8 +7,9 @@ import { $$node, string_DazId, string_DazUrl } from '../spec.js'
 import { Maybe, string_RelPath } from '../types.js'
 import { assertXYZChanels, bang } from '../utils/assert.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
+import type { RVBone } from './RVBone.js'
 import { RVChannel } from './RVChannel.js'
-import { RVScene } from './RVScene.js'
+import type { RVScene } from './RVScene.js'
 
 export type RVNodeQuery = {
    id?: Maybe<string_DazId>
@@ -228,6 +229,20 @@ export abstract class RVNode {
       if (!node) throw new Error(`❌ Node not found for query: ${JSON.stringify(q)} in ${this.constructor.name}`)
       return node
    }
+
+   /** Traverses the node and its children, calling the provided callback for each node. */
+   traverse(callback: (node: RVNode) => void): void {
+      const traverse = (node: RVNode) => {
+         callback(node)
+         for (const child of node.children) traverse(child)
+      }
+      traverse(this)
+   }
+
+   isRVBone(): this is RVBone {
+      return this instanceof GLOBAL.RVBone
+   }
+
    findNode(q: RVNodeQuery): RVNode | undefined {
       // console.log(`[🤠] query: ${JSON.stringify(q)}`)
       const traverse = (node: RVNode): RVNode | undefined => {
