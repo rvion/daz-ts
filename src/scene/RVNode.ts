@@ -105,7 +105,7 @@ export abstract class RVNode {
       const res = parseDazUrl(url)
       const node = this.findNodeByURL(url)
       const value = node?.getPropertyValue(res.property_path)
-      console.log(`[getValueFromUrl()] node ${url}`, node?.constructor.name, node?.path, `= ${value}`)
+      // console.log(`[getValueFromUrl()] node ${url}`, node?.constructor.name, node?.path, `= ${value}`)
       if (!res.node_path) throw new Error(`[RVFigure] ❌ Invalid URL: ${url} - missing node_path`)
       return value
    }

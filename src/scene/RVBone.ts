@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { DazNodeDef } from '../core/DazNodeDef.js'
 import { DazNodeInst } from '../core/DazNodeInst.js'
-import { ASSERT_, assertXYZChanels } from '../utils/assert.js'
+import { ASSERT_ } from '../utils/assert.js'
 import { RVNode } from './RVNode.js'
 import { RVScene } from './RVScene.js'
 
@@ -18,12 +18,6 @@ export class RVBone extends RVNode {
    override emoji: string = '🦴'
    public readonly bone: THREE.Bone
 
-   // override getPropertyValue(propertyPath: Maybe<string>): unknown {
-   //    if (propertyPath === 'rotation/x') return this.bone.rotation.x
-   //    if (propertyPath === 'rotation/y') return this.bone.rotation.y
-   //    if (propertyPath === 'rotation/z') return this.bone.rotation.z
-   //    return super.getPropertyValue(propertyPath)
-   // }
    constructor(
       public readonly sceneDaz: RVScene,
       public readonly dNodeDef: DazNodeDef,

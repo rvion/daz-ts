@@ -1,5 +1,4 @@
 import chalk from 'chalk'
-import { DefaultMap } from 'mnemonist'
 import { nanoid } from 'nanoid'
 import * as path from 'pathe'
 import { KnownDazFile } from './core/DazFile.js'
@@ -10,26 +9,18 @@ import { DazFilePose } from './core/DazFilePose.js'
 import { DazFileWearable } from './core/DazFileWearable.js'
 import { DazModifierDef } from './core/DazModifierDef.js'
 import { DazNodeDef } from './core/DazNodeDef.js'
-import { checkpoint, GLOBAL, registerMgrInstance } from './DI.js'
+import { GLOBAL, registerMgrInstance } from './DI.js'
 import type { FS } from './fs/fsNode.js'
 import type { PathInfo } from './fs/PathInfo.js'
-import { processFiles, type WalkOptions } from './fs/walk.js'
+import { type WalkOptions } from './fs/walk.js'
 import { RVScene } from './scene/RVScene.js'
-import { ModifierDB } from './scripts/parse-modifiers.js'
-import { $$, $$asset_info, $$dson, DazAssetType, string_DazUrl } from './spec.js'
+import { FileEntry } from './scripts/step1-indexFiles.js'
+import { ModifierDB } from './scripts/step2-parse-modifiers.js'
+import { $$, $$dson, DazAssetType, string_DazUrl } from './spec.js'
 import { relPath, string_AbsPath, string_Ext, string_RelPath } from './types.js'
 import { check_orCrash } from './utils/arkutils.js'
 import { ASSERT_INSTANCE_OF, bang } from './utils/assert.js'
 import { DazUrlParts, parseDazUrl } from './utils/parseDazUrl.js'
-import { readableStringify } from './utils/readableStringify.js'
-
-type CachedLibraryFiles = {
-   assetType: DazAssetType
-   relPath: string
-   ext: string_Ext
-   gz?: boolean
-   fileSize?: number
-}
 
 export class DazMgr {
    uid = nanoid(4)
@@ -64,49 +55,6 @@ export class DazMgr {
       this.filesFull.set(file.absPath.toLowerCase(), file)
    }
 
-   // ---- stats
-   count = 0
-   // countPerType = new DefaultMap<DazAssetType, number>(() => 0)
-   countPerTypePerExt = new DefaultMap<string_Ext | 'total', DefaultMap<DazAssetType, { x: number }>>(
-      () => new DefaultMap(() => ({ x: 0 })),
-   )
-
-   /**
-    *  outputs something like
-    * ```
-    *            | total | duf | dsf |
-    *  character |    10 |   5 |   5 |
-    *  figure    |    10 |   5 |   5 |
-    * ```
-    */
-   get statTable(): string {
-      const out: string[] = []
-      const exts = Array.from(this.countPerTypePerExt.keys()).sort()
-      const totalMap = this.countPerTypePerExt.get('total')
-      const types = Array.from(totalMap.keys()).sort()
-      const PAD_TYPE = Math.max(...types.map((t) => t.length)) + 1 // +1 for padding
-      const PAD_NUMBER = 5
-      const header = ['Type'.padEnd(PAD_TYPE), ...exts.map((ext) => ext.padStart(PAD_NUMBER))].join(' | ')
-      out.push(header)
-      out.push('-'.repeat(header.length))
-      for (const type of types) {
-         const counts = exts.map((ext) => this.countPerTypePerExt.get(ext).get(type).x)
-         const line = [
-            type.padEnd(PAD_TYPE),
-            ...counts.map((i) => (i === 0 ? '' : i.toString()).padStart(PAD_NUMBER)),
-         ].join(' | ')
-         out.push(line)
-      }
-      return out.join('\n')
-   }
-
-   incrementType = (type_: DazAssetType | undefined, ext: string_Ext): void => {
-      const type = type_ ?? 'unknown' // Default to 'unknown' if type is undefined
-      this.countPerTypePerExt.get('total').get(type).x++
-      this.countPerTypePerExt.get(ext).get(type).x++
-      // this.countPerType.set(type, (this.countPerType.get(type) ?? 0) + 1)
-   }
-
    constructor(
       public absRootPath: string_AbsPath,
       public fs: FS,
@@ -137,15 +85,15 @@ export class DazMgr {
    }
 
    // ---- Load > Genesis 9 samples
-   private genesis9baseDuf = relPath`People/Genesis 9/Genesis 9.duf`
-   private genesis9baseDsf = relPath`data/DAZ 3D/Genesis 9/Base/Genesis9.dsf`
+   genesis9baseDufRelPath: string_RelPath = relPath`People/Genesis 9/Genesis 9.duf`
+   genesis9baseDsfRelPath: string_RelPath = relPath`data/DAZ 3D/Genesis 9/Base/Genesis9.dsf`
 
    async loadGenesis9CharacterFile(): Promise<DazFileCharacter> {
-      const f = await this.loadFileFromRelPath(this.genesis9baseDuf)
+      const f = await this.loadFileFromRelPath(this.genesis9baseDufRelPath)
       return ASSERT_INSTANCE_OF(f, GLOBAL.DazFileCharacter)
    }
    async loadGenesis9FigureFile(): Promise<DazFileFigure> {
-      const f = await this.loadFileFromRelPath(this.genesis9baseDsf)
+      const f = await this.loadFileFromRelPath(this.genesis9baseDsfRelPath)
       return ASSERT_INSTANCE_OF(f, GLOBAL.DazFileFigure)
    }
 
@@ -158,35 +106,15 @@ export class DazMgr {
    private async _loadFromPathInfo(meta: PathInfo): Promise<KnownDazFile> {
       // use cached file if exists
       if (this.filesFull.has(meta.absPathLC)) return bang(this.filesFull.get(meta.absPathLC))
-      // console.log(`[💿] loading ${fmtAbsPath(meta.absPath)} `)
 
       // load dson
       const { json } = await this.fs.readJSON(meta.absPath)
       const dson = await check_orCrash($$.dson, json, meta.absPath)
-      this.incrementType(dson.asset_info.type, meta.fileExt)
-      this.count++
 
       // load full
       const stuff = await this._hydrateDson(meta, dson)
       // 💬 2025-06-30 rvion: have to remove this from here,
       this.filesFull.set(meta.absPathLC, stuff)
-      // if (meta.absPath.includes('Amala_body_bs_body')) {
-      //    const A = meta.absPath
-      //    const B = `/Volumes/ssd4t1/daz-lib/data/DAZ 3D/Genesis 9/Base/Morphs/Daz 3D/Base Characters 9/Amala_body_bs_body.dsf`
-      //    console.log(`[🔴🔴🔴🦊] A: ${A}`)
-      //    console.log(`[🔴🔴🔴🦊] B: ${B}`)
-      //    console.log('[🔴🔴🔴🦊] A === B:', A === B)
-      //    // console.log('[🔴🔴🔴🦊]', this.filesFull.has(meta.absPath))
-      //    // console.log('[🔴🔴🔴🦊]', this.uid)
-      //    // console.log('[🔴🔴🔴🦊]', meta.absPath)
-      //    // console.log(
-      //    //    '[🔴🔴🔴🦊]',
-      //    //    this.filesFull.has(
-      //    //       `/Volumes/ssd4t1/daz-lib/data/DAZ 3D/Genesis 9/Base/Morphs/Daz 3D/Base Characters 9/Amala_body_bs_body.dsf`,
-      //    //    ),
-      //    // )
-      // }
-
       return stuff
    }
 
@@ -213,9 +141,9 @@ export class DazMgr {
    }
 
    // #region ---- Inspect Library
-   async getCachedFiles(): Promise<CachedLibraryFiles[]> {
+   async loadFileIndex(): Promise<FileEntry[]> {
       const { json } = await this.fs.readJSON('data/processed_files.json')
-      return json as CachedLibraryFiles[]
+      return json as FileEntry[]
    }
 
    async getAllAssetAbsPaths(options?: WalkOptions): Promise<{ duf: string_AbsPath[]; dsf: string_AbsPath[] }> {
@@ -227,59 +155,6 @@ export class DazMgr {
          else if (file.fileExt === '.dsf') dsf.push(file.absPath)
       }
       return { duf, dsf }
-   }
-
-   // #region ---- Summarize
-   async summarize(): Promise<string> {
-      checkpoint('summarize.start')
-      const logUnexpectedParseError = (f: PathInfo) => (_err: unknown) => {
-         if (f.fileName.startsWith('._')) return // skip hidden files
-         console.log(`[🔶] skipping ${f.absPath}: ${_err}`)
-      }
-      const files = await this.fs.discoverFiles(this.absRootPath)
-      checkpoint('summarize.walk-end')
-      const res = processFiles(files, {
-         onDufFile: (f) => this._peek(f).catch(logUnexpectedParseError(f)),
-         onDsfFile: (f) => this._peek(f).catch(logUnexpectedParseError(f)),
-      })
-      checkpoint('summarize.parse-spawn')
-      await Promise.all(res)
-      checkpoint('summarize.parse-end')
-      await this._saveSummary()
-      checkpoint('summarize.summary-end')
-      return this.statTable
-   }
-
-   /** Only load as simple DSON file. do not hydrate graph. do not resolve URLs. */
-   private _seenFiles: CachedLibraryFiles[] = []
-
-   private async _peek(meta: PathInfo): Promise<$$asset_info> {
-      const { json, gz, fileSize } = await this.fs.readPartialJSON(meta.absPath, 2000)
-      const dson = await check_orCrash($$.dson, json, meta.absPath)
-      const assetType_: DazAssetType | undefined = dson.asset_info.type
-      const assetType = assetType_ ?? 'unknown'
-      this.incrementType(assetType, meta.fileExt)
-      const { relPath, fileExt: ext } = meta
-      this._seenFiles.push({ relPath, assetType, ext, gz, fileSize })
-      this.count++
-      return dson.asset_info
-   }
-
-   private async _saveSummary() {
-      const sortedFiles: CachedLibraryFiles[] = this._seenFiles.sort((a, b) => a.relPath.localeCompare(b.relPath))
-      const summary = readableStringify(sortedFiles, 0)
-      const pathAssetList = 'data/processed_files.json' // More generic name
-      const pathStats = 'data/stats.txt' // More generic name
-      try {
-         // Ensure the data directory exists
-         const outputDir = path.dirname(pathAssetList)
-         await this.fs.mkdir(outputDir, { recursive: true })
-         await this.fs.writeFile(pathAssetList, summary)
-         await this.fs.writeFile(pathStats, this.statTable)
-         console.log(`Processed ${this.count} relevant files.`)
-      } catch (err: unknown) {
-         console.error(`Error writing to ${pathAssetList}`, err)
-      }
    }
 
    async resolveModifierDef(url: string_DazUrl | DazUrlParts, FROM: KnownDazFile): Promise<DazModifierDef> {

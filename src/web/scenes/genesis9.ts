@@ -14,7 +14,8 @@ export async function initSceneGenesis9(mgr: DazMgr) {
    const action1 = await scene.loadFileFromRelPath('People/Genesis 9/Genesis 9.duf')
    const figure = action1.addedFigure_orCrash
    await figure.loadModifierFile('body_ctrl_WaistTwist') // Load the waist twist modifier
-   await figure.loadModifierFile('Amala_figure_ctrl_Character') // Load the waist twist modifier
+   // await figure.loadModifierFile('Amala_figure_ctrl_Character') // Load the waist twist modifier
+   await figure.loadModifierFile('head_ctrl_ProportionHeadSize_scl')
 
    // Adjust camera for a wider view to see both characters
    // Assuming characters are around 170 units (cm) tall

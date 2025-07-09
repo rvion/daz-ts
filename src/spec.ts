@@ -47,6 +47,7 @@ export type $$point3d = typeof $$.float3.infer
 
 export const $ = scope({
    // #region Legacy
+   dson_peek: { file_version: 'string', asset_info: 'asset_info' },
    dson: 'DAZ',
    dson_character: 'DAZ',
    dson_wearable: 'DAZ',

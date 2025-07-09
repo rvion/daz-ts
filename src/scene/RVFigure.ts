@@ -5,7 +5,7 @@ import { DazGeometryInst } from '../core/DazGeometryInst.js'
 import { DazNodeDef } from '../core/DazNodeDef.js'
 import { DazNodeInst } from '../core/DazNodeInst.js'
 import { GLOBAL, getMgr } from '../DI.js'
-import { ModifierDB, ModifierDBEntry } from '../scripts/parse-modifiers.js'
+import { ModifierDB, ModifierDBEntry } from '../scripts/step2-parse-modifiers.js'
 import { $$formula, $$morph, dazId, dazUrl, string_DazId } from '../spec.js'
 import { ASSERT_, ASSERT_INSTANCE_OF, bang, NUMBER_OR_CRASH } from '../utils/assert.js'
 import { parseDazUrl } from '../utils/parseDazUrl.js'
@@ -349,7 +349,11 @@ export class RVFigure extends RVNode {
       this.select()
       const filePath = modifierDBEntry.path
       const _additions = await this.sceneDaz.loadFileFromAbsPath(filePath)
-      ASSERT_INSTANCE_OF(bang(this.findNodeById(modifierId)), GLOBAL.RVModifier)
+      // const modifier = bang(
+      //    this.findNodeById(modifierId),
+      //    `❌ ${modifierId} (added: ${[..._additions.nodeMap.keys()]})`,
+      // )
+      // ASSERT_INSTANCE_OF(modifier, GLOBAL.RVModifier)
 
       const queue = [_additions.file]
       let next: typeof _additions.file | undefined

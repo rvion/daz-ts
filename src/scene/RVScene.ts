@@ -153,7 +153,10 @@ export class RVScene extends RVNode {
       // Parent the nodes
       for (const nodeInstance of file.sceneNodesList) {
          const rvNode = nodeMap.get(nodeInstance.dazId)
-         if (!rvNode) continue
+         if (!rvNode) {
+            console.error(`⁉️#pBvsmka4oA`)
+            continue
+         }
 
          const parentId = nodeInstance.parent?.asset_id
          const parentNode = parentId ? (nodeMap.get(parentId) ?? this.findNodeById(parentId)) : this
@@ -184,9 +187,10 @@ export class RVScene extends RVNode {
          // const parentNode = parentUrl ? nodeMap.get(parentUrl) : this
          let parentNode = this.findNodeByURL(parentUrl)
          if (parentNode == null) {
-            console.log(chalk.red(`[⁉️] FAILURE to find ${parentUrl}`))
+            console.error(chalk.red(`[⁉️] FAILURE to find ${parentUrl}`))
             console.log(`[⁉️] dModInst.data.parent=${dModInst.data.parent}`)
             console.log(`[⁉️]  dModDef.data.parent=${dModDef.data.parent}`)
+            console.log(this.getSceneGraphAsString().join('\n'))
             parentNode = this
          }
          parentNode?.addChild(rvModifier)
@@ -286,7 +290,7 @@ export class RVScene extends RVNode {
                      const figure = rvNode.findParentFigure_orCrash()
                      // const figure = ASSERT_RVFIGURE(rvNode.parent)
                      figure.setModifierValue(rvNode.dazId, next)
-                     console.log(`[🤠] new value is ${next}`)
+                     console.log(`[🤠] ${rvNode.dazId} set to: ${next}`)
                   })
             } else if (channelData.type === 'int') {
                const min = channelData.min

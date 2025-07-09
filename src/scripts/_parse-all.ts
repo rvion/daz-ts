@@ -9,7 +9,7 @@ import { fmtNumber } from '../utils/fmt.js'
 
 checkpoint('1')
 export const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
-const assets = await mgr.getCachedFiles()
+const assets = await mgr.loadFileIndex()
 console.log(assets.length)
 checkpoint('2')
 console.log(

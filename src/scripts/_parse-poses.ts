@@ -9,7 +9,7 @@ import { fmtNumber } from '../utils/fmt.js'
 
 checkpoint('1')
 export const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
-const assets = await mgr.getCachedFiles()
+const assets = await mgr.loadFileIndex()
 console.log(assets.length)
 const poses = assets.filter((a) => a.assetType === 'pose')
 const preset_poses = assets.filter((a) => a.assetType === 'preset_pose')

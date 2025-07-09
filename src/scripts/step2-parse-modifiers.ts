@@ -1,4 +1,4 @@
-import { basename, resolve } from 'pathe'
+import { resolve } from 'pathe'
 import '../DI.js'
 
 import chalk from 'chalk'
@@ -8,7 +8,8 @@ import { fs } from '../fs/fsNode.js'
 import { DazMgr } from '../mgr.js'
 import { $$modifier, string_DazGroup, string_DazId, string_DazUrl } from '../spec.js'
 import { string_AbsPath, string_RelPath } from '../types.js'
-import { fmtAbsPath, fmtNumber } from '../utils/fmt.js'
+import { bang } from '../utils/assert.js'
+import { fmtAbsPath } from '../utils/fmt.js'
 import { DazUrlParts, parseDazUrl } from '../utils/parseDazUrl.js'
 
 // allocate mgr
@@ -16,41 +17,42 @@ checkpoint('1')
 export const mgr = new DazMgr('/Volumes/ssd4t1/daz-lib/', fs)
 
 // load all cached files
-const assets = await mgr.getCachedFiles()
-console.log(assets.length)
+const fileEnties = await mgr.loadFileIndex()
+console.log(`${fileEnties.length} assets in library`)
 
-// retrieve all modfiers we care about
-const modfiers = assets
-   .filter((a) => a.assetType === 'modifier') //
+const modifierEntries = fileEnties.filter((a) => a.assetType === 'modifier')
+console.log(`${modifierEntries.length} modifiers in library`)
+
+const topicEntries = modifierEntries
    .filter((a) => !a.relPath.includes('/Worker Uniform'))
    .filter((a) => !a.relPath.includes('/Sue Yee'))
    .filter((a) => !a.relPath.includes('/AprilYSH'))
    .filter((a) => !a.relPath.includes('dForce'))
    .filter((a) => !a.relPath.includes('Toon'))
 
-checkpoint('2')
+console.log(`${topicEntries.length} interesting modifiers in library`)
 
-// print short summary about scope
-console.log(
-   `found ${fmtNumber(modfiers.length)} character assets:`,
-   modfiers.map((i) => basename(i.relPath)),
-)
+checkpoint('2')
 
 // load all modifiers
 let ix = 0
 const NOT_FOUND: string[] = []
 const MODIFIERS: DazModifierDef[] = []
-for (const a of modfiers /* .slice(1300) */) {
-   checkpoint(`loading morph ${ix++}/${modfiers.length}`)
+for (const file of topicEntries /* .slice(1300) */) {
+   if (ix++ % 100 === 0) checkpoint(`loading morph ${ix}/${topicEntries.length}`)
    try {
-      const _x = await mgr.loadFileFromRelPath(a.relPath)
+      const _x = await mgr.loadFileFromRelPath(file.relPath)
+      if (_x.modifierDefList.length > 1) {
+         console.log(`[🔴] more than one modifier found in file ${fmtAbsPath(file.relPath)}`)
+         process.exit(1)
+      }
       MODIFIERS.push(..._x.modifierDefList)
       // console.log(`[🤠] --------------------------------------------------`, x.constructor.name)
    } catch (err) {
       if (err instanceof Error) {
          if (err.message.startsWith('ENOENT')) {
-            console.error(chalk.red(`[🟡] File not found: "${a.relPath}" ⁉️`))
-            NOT_FOUND.push(a.relPath)
+            console.error(chalk.red(`[🟡] File not found: "${file.relPath}" ⁉️`))
+            NOT_FOUND.push(file.relPath)
             continue
          }
       }
@@ -79,8 +81,10 @@ export type ModifierDBEntry = {
    morph?: 1
    skin?: 1
    formula?: 1
-   in?: string_RelPath[]
-   out?: string_RelPath[]
+   inFiles?: string_RelPath[]
+   outFiles?: string_RelPath[]
+   inChans?: string_RelPath[]
+   outChans?: string_RelPath[]
 }
 
 // must be serializable to JSON
@@ -88,6 +92,7 @@ export type ModifierDB = Record<string, ModifierDBEntry>
 
 function buildJsonDb(modifiers: DazModifierDef[]) {
    const db: ModifierDB = {}
+   const dedupe = (x: string_RelPath[]): string_RelPath[] => [...new Set<string_RelPath>(x).keys()]
 
    // for each modifier
    for (const modifier of modifiers) {
@@ -100,14 +105,39 @@ function buildJsonDb(modifiers: DazModifierDef[]) {
       }
 
       const formulas_ = d.formulas ?? []
-      const formulaOutputs: DazUrlParts[] = (formulas_.map((i) => i.output) ?? []) //
-         .map(parseDazUrl)
 
+      // #region outputs
+      const formulaOutputs: DazUrlParts[] = (formulas_.map((i) => i.output) ?? []) //
+         .map((a) => {
+            const parts = parseDazUrl(bang(a))
+            bang(parts.property_path)
+            bang(parts.asset_id)
+            return parts
+         })
+      const formulaOutputFiles = dedupe(formulaOutputs.map((i) => i.file_path).filter(Boolean))
+      const formulaOutputChans: string[] = dedupe(
+         formulaOutputs
+            .map((i) => (i.file_path ? `${i.file_path}#${i.asset_id}?${bang(i.property_path)}` : ''))
+            .filter(Boolean),
+      )
+
+      // #region inputs
       const formulaInput: DazUrlParts[] = formulas_
          .flatMap((f) => f.operations.map((x) => ('url' in x ? x.url : null)))
          .filter(Boolean)
-         // biome-ignore lint/style/noNonNullAssertion: misc
-         .map((a) => parseDazUrl(a!))
+         .map((a) => {
+            const parts = parseDazUrl(bang(a))
+            bang(parts.property_path)
+            bang(parts.asset_id)
+            return parts
+         })
+
+      const formulaInputFiles = dedupe(formulaInput.map((i) => i.file_path).filter(Boolean))
+      const formulaInputChans: string[] = dedupe(
+         formulaInput
+            .map((i) => (i.file_path ? `${i.file_path}#${i.asset_id}?${bang(i.property_path)}` : ''))
+            .filter(Boolean),
+      )
 
       const path = modifier.source.absPath
       const ENTRY: ModifierDBEntry = {
@@ -128,8 +158,12 @@ function buildJsonDb(modifiers: DazModifierDef[]) {
          morph: d.morph ? 1 : undefined,
          skin: d.skin ? 1 : undefined,
          formula: d.formulas?.length ? 1 : undefined,
-         in: formulaInput.length ? formulaInput.map((i) => i.file_path) : undefined,
-         out: formulaOutputs.length ? formulaOutputs.map((i) => i.file_path) : undefined,
+         // files
+         inFiles: formulaInputFiles.length ? formulaInputFiles : undefined,
+         outFiles: formulaOutputFiles.length ? formulaOutputFiles : undefined,
+         // chans
+         inChans: formulaInputChans.length ? formulaInputChans : undefined,
+         outChans: formulaOutputChans.length ? formulaOutputChans : undefined,
       }
       db[id] = ENTRY
    }
@@ -164,6 +198,7 @@ function buildSummary(p: { color: boolean }) {
    }
    return final
 }
+
 // print colorful summary
 const finalCol = buildSummary({ color: true })
 console.log(finalCol)
@@ -177,6 +212,11 @@ const jsonDb = buildJsonDb(MODIFIERS)
 const jsonDbString = JSON.stringify(jsonDb, null, 2)
 mgr.fs.writeFile('data/modifiers.json', jsonDbString)
 console.log(`[✅] saved data/modifiers.json with ${Object.keys(jsonDb).length} modifiers`)
+
+// save modifier dependencies graph to file
+// const modifierGraph = buildModifierDependenciesGraph(jsonDb)
+// mgr.fs.writeFile('data/modifier-dependencies.md', modifierGraph)
+// console.log(`[✅] saved data/modifier-dependencies.md`)
 
 // print missing files
 if (NOT_FOUND.length > 0) {

@@ -28,7 +28,7 @@ export async function setupDebugGUI(
    // Pose selection
    const mgr = getMgr()
    type CachedFile = { assetType: DazAssetType; relPath: string_RelPath }
-   const poses = (await mgr.getCachedFiles()).filter((f: CachedFile) => f.assetType === 'preset_pose')
+   const poses = (await mgr.loadFileIndex()).filter((f: CachedFile) => f.assetType === 'preset_pose')
    const poseMap = new Map<string, string>()
    poseMap.set('None', 'none') // Special value for no pose
    poses.forEach((p: CachedFile) => poseMap.set(path.basename(p.relPath), p.relPath))
