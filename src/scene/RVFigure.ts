@@ -382,12 +382,12 @@ export class RVFigure extends RVNode {
       while ((next = queue.shift())) {
          if (seen.has(next.dazId)) continue // already processed this file
          seen.add(next.dazId)
-         console.log(`[🟢] Processing ${next.dazId}`)
+         console.log(`[🟢] Processing ${next.absPath}`)
          for (const i of next.modifierDefList) {
             if (i.data.formulas == null) continue
-            console.log(`    [🟢]  > modifier: ${i.dazId}`)
+            // console.log(`    [🟢]  > modifier: ${i.dazId}`)
             for (const formula of i.data.formulas) {
-               console.log(`              [🟢]  > formula: (${formula.output})`)
+               // console.log(`              [🟢]  > formula: (${formula.output})`)
                const parts = parseDazUrl(formula.output)
                if (parts.file_path /* && !this.sceneDaz.filesLoaded.has(parts.file_path) */) {
                   const x = await this.sceneDaz.loadFileFromRelPath(parts.file_path)
@@ -565,7 +565,7 @@ export class RVFigure extends RVNode {
             const node_path = bang(output.node_path)
             const bone = this.bones.get(node_path)
             if (!bone) {
-               console.warn(`[RVFigure] 🔴 Bone not found for modifier output: ${node_path}`)
+               console.warn(`[RVFigure] 🔴 Bone not found for modifier output (${formula.output}): ${node_path}`)
                continue
             }
             // console.log(`[🤠] bone=${bone.name}`)

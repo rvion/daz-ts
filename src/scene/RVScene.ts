@@ -303,7 +303,7 @@ export class RVScene extends RVNode {
          folder.domElement.style.borderLeft = '2px solid #888'
          folder.domElement.style.marginLeft = '10px'
          folder.domElement.addEventListener('click', (ev) => {
-            this.centerCameraOnNode(rvNode)
+            if (rvNode instanceof GLOBAL.RVBone) this.centerCameraOnNode(rvNode)
             ev.stopPropagation()
             ev.preventDefault()
          })
@@ -321,7 +321,7 @@ export class RVScene extends RVNode {
          // If no children and not a modifier with a specific control, just add a display item
          const displayItem = parentGui.add({ name: nodeName }, 'name').disable().name(nodeName)
          displayItem.domElement.addEventListener('click', (ev) => {
-            this.centerCameraOnNode(rvNode)
+            if (rvNode instanceof GLOBAL.RVBone) this.centerCameraOnNode(rvNode)
             ev.stopPropagation()
             ev.preventDefault()
          })

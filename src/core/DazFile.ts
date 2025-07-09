@@ -208,6 +208,8 @@ export abstract class DsonFile extends DazAbstraction<PathInfo, $$dson> {
    // #region ---- paths
    get absPath(): string_AbsPath { return this.source.absPath } // biome-ignore format: misc
    get relPath(): string_RelPath { return this.source.relPath } // biome-ignore format: misc
+   get absPathLC(): string_AbsPath { return this.source.absPathLC } // biome-ignore format: misc
+   get relPathLC(): string_RelPath { return this.source.relPathLC } // biome-ignore format: misc
    get fileExt(): string_Ext { return this.source.fileExt } // biome-ignore format: misc
    get rootDir(): string { return this.source.rootDir } // biome-ignore format: misc
    get dazId_nice(): string { return this.dazId.replaceAll('%20', ' ') } // biome-ignore format: misc

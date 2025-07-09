@@ -10,6 +10,7 @@ import { DazGeometryInst } from './core/DazGeometryInst.js'
 import { DazNodeDef } from './core/DazNodeDef.js' // New import
 import { DazNodeInst } from './core/DazNodeInst.js' // Corrected import path
 import type { DazMgr } from './mgr.js'
+import { RVBone } from './scene/RVBone.js'
 import { RVFigure } from './scene/RVFigure.js'
 import { RVMaterialInstance } from './scene/RVMaterialInstance.js'
 import { RVModifier } from './scene/RVModifier.js'
@@ -35,6 +36,7 @@ export const GLOBAL = {
    RVMaterialInstance: RVMaterialInstance,
    RVModifier: RVModifier,
    RVFigure: RVFigure,
+   RVBone: RVBone,
 }
 
 // -------- Timestamp utilities --------

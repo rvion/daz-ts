@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import { DefaultMap } from 'mnemonist'
+import { nanoid } from 'nanoid'
 import * as path from 'pathe'
 import { KnownDazFile } from './core/DazFile.js'
 import { DazFileCharacter } from './core/DazFileCharacter.js'
@@ -31,6 +32,7 @@ type CachedLibraryFiles = {
 }
 
 export class DazMgr {
+   uid = nanoid(4)
    /** @internal */ private ____DI____ = (() => registerMgrInstance(this))()
    public scene: RVScene | null = null
    public modifiersDb: ModifierDB | null = null
@@ -54,12 +56,12 @@ export class DazMgr {
    // ---- files
    filesFull = new Map<string_AbsPath, KnownDazFile>()
    getPreviouslyLoadedFile_orCrash(absPath: string_AbsPath): KnownDazFile {
-      const file = this.filesFull.get(absPath)
+      const file = this.filesFull.get(absPath.toLowerCase())
       if (!file) throw new Error(`File not found: ${absPath}`)
       return file
    }
    register(file: KnownDazFile) {
-      this.filesFull.set(file.absPath, file)
+      this.filesFull.set(file.absPath.toLowerCase(), file)
    }
 
    // ---- stats
@@ -108,7 +110,11 @@ export class DazMgr {
    constructor(
       public absRootPath: string_AbsPath,
       public fs: FS,
-   ) {}
+   ) {
+      // biome-ignore lint/suspicious/noExplicitAny: ...
+      const glb = globalThis as any
+      glb.mgr = this // for debugging
+   }
 
    createScene(): RVScene {
       return new RVScene(this)
@@ -151,7 +157,7 @@ export class DazMgr {
    /**  Load full Daz asset, hydrate graph, resolve URLs. */
    private async _loadFromPathInfo(meta: PathInfo): Promise<KnownDazFile> {
       // use cached file if exists
-      if (this.filesFull.has(meta.absPath)) return bang(this.filesFull.get(meta.absPath))
+      if (this.filesFull.has(meta.absPathLC)) return bang(this.filesFull.get(meta.absPathLC))
       // console.log(`[💿] loading ${fmtAbsPath(meta.absPath)} `)
 
       // load dson
@@ -163,7 +169,24 @@ export class DazMgr {
       // load full
       const stuff = await this._hydrateDson(meta, dson)
       // 💬 2025-06-30 rvion: have to remove this from here,
-      this.filesFull.set(meta.absPath, stuff)
+      this.filesFull.set(meta.absPathLC, stuff)
+      // if (meta.absPath.includes('Amala_body_bs_body')) {
+      //    const A = meta.absPath
+      //    const B = `/Volumes/ssd4t1/daz-lib/data/DAZ 3D/Genesis 9/Base/Morphs/Daz 3D/Base Characters 9/Amala_body_bs_body.dsf`
+      //    console.log(`[🔴🔴🔴🦊] A: ${A}`)
+      //    console.log(`[🔴🔴🔴🦊] B: ${B}`)
+      //    console.log('[🔴🔴🔴🦊] A === B:', A === B)
+      //    // console.log('[🔴🔴🔴🦊]', this.filesFull.has(meta.absPath))
+      //    // console.log('[🔴🔴🔴🦊]', this.uid)
+      //    // console.log('[🔴🔴🔴🦊]', meta.absPath)
+      //    // console.log(
+      //    //    '[🔴🔴🔴🦊]',
+      //    //    this.filesFull.has(
+      //    //       `/Volumes/ssd4t1/daz-lib/data/DAZ 3D/Genesis 9/Base/Morphs/Daz 3D/Base Characters 9/Amala_body_bs_body.dsf`,
+      //    //    ),
+      //    // )
+      // }
+
       return stuff
    }
 
@@ -273,7 +296,10 @@ export class DazMgr {
       const file = await this.resolveFileFromUrl(parts, FROM)
       if (parts.asset_id == null) throw new Error('Asset ID is missing in the URL parts.')
       const asset = file.nodeDefMap.get(parts.asset_id) // biome-ignore format: misc
-      if (asset == null) throw new Error(`Node with ID "${parts.asset_id}" not found in file "${file.absPath}".`)
+      if (asset == null)
+         throw new Error(
+            `Node with ID "${parts.asset_id}" not found in file "${file.absPathLC}". assets: ${[...file.nodeDefMap.keys()]}`,
+         )
       return asset
    }
 
@@ -307,6 +333,8 @@ export class DazMgr {
       const fileMeta: PathInfo = {
          absPath: absPath as string_AbsPath,
          relPath: relPath as string_RelPath,
+         absPathLC: absPath.toLowerCase() as string_AbsPath,
+         relPathLC: relPath.toLowerCase() as string_RelPath,
          fileExt: fileExt,
          rootDir: this.absRootPath,
          baseName,
